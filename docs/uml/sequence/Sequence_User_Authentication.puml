@@ -1,0 +1,22 @@
+@startuml
+title Sequence Diagram: User Authentication
+
+actor User
+participant "Frontend\n(React)" as Frontend
+participant "Backend\n(FastAPI)" as Backend
+database "PostgreSQL" as DB
+
+User -> Frontend : Enter registration/login details
+Frontend -> Backend : Submit credentials
+Backend -> DB : Validate user credentials
+DB --> Backend : Authentication result
+
+alt Credentials Valid
+    Backend --> Frontend : Login successful
+    Frontend --> User : Display Dashboard
+else Credentials Invalid
+    Backend --> Frontend : Authentication failed
+    Frontend --> User : Display error message
+end
+
+@enduml

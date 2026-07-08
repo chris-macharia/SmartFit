@@ -1,0 +1,46 @@
+@startuml avataGeneration
+title Sequence Diagram: Body Measurement Estimation and Avatar Generation
+
+actor Customer
+
+boundary "Frontend\n(React)" as Frontend
+control "Backend\n(FastAPI)" as Backend
+control "Computer Vision\n(OpenCV + MediaPipe)" as CV
+control "Avatar Generator\n(Three.js)" as Avatar
+database "PostgreSQL" as DB
+
+Customer -> Frontend : Upload body video
+activate Frontend
+
+Frontend -> Backend : Send video
+activate Backend
+
+Backend -> CV : Process uploaded video
+activate CV
+
+CV -> CV : Extract video frames
+CV -> CV : Detect body landmarks
+CV -> CV : Estimate body measurements
+
+CV --> Backend : Return measurements
+deactivate CV
+
+Backend -> Avatar : Generate avatar
+activate Avatar
+
+Avatar --> Backend : Generated avatar
+deactivate Avatar
+
+Backend -> DB : Save avatar & measurements
+activate DB
+
+DB --> Backend : Saved successfully
+deactivate DB
+
+Backend --> Frontend : Return avatar
+deactivate Backend
+
+Frontend --> Customer : Display avatar
+deactivate Frontend
+
+@enduml

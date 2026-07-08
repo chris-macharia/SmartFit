@@ -1,0 +1,46 @@
+@startuml virtualFitting
+title Sequence Diagram: Virtual Fitting and Size Recommendation
+
+actor Customer
+
+boundary "Frontend\n(React)" as Frontend
+control "Backend\n(FastAPI)" as Backend
+database "PostgreSQL" as DB
+control "Recommendation Engine" as RE
+control "Visualization\n(Three.js)" as Viz
+
+Customer -> Frontend : Select garment
+activate Frontend
+
+Frontend -> Backend : Request virtual fitting
+activate Backend
+
+Backend -> DB : Retrieve avatar
+activate DB
+DB --> Backend : Avatar
+deactivate DB
+
+Backend -> DB : Retrieve garment
+activate DB
+DB --> Backend : Garment details
+deactivate DB
+
+Backend -> RE : Compare measurements
+activate RE
+
+RE --> Backend : Recommended size
+deactivate RE
+
+Backend -> Viz : Render virtual fitting
+activate Viz
+
+Viz --> Backend : Visualization
+deactivate Viz
+
+Backend --> Frontend : Return fitting result
+deactivate Backend
+
+Frontend --> Customer : Display avatar and size recommendation
+deactivate Frontend
+
+@enduml

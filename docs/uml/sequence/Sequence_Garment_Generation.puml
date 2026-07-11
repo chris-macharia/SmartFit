@@ -1,0 +1,39 @@
+@startuml Garment
+title Sequence Diagram: Garment Upload and Management
+
+actor Retailer
+
+boundary "Frontend\n(React)" as Frontend
+control "Backend\n(FastAPI)" as Backend
+control "Garment Processing\nModule" as GPM
+database "PostgreSQL" as DB
+
+Retailer -> Frontend : Enter garment details\n(images, sizes, measurements)
+activate Frontend
+
+Frontend -> Backend : Submit garment information
+activate Backend
+
+Backend -> GPM : Validate garment data
+activate GPM
+
+GPM -> GPM : Validate required fields
+GPM -> GPM : Verify measurements
+GPM -> GPM : Process garment images
+
+GPM --> Backend : Validated garment information
+deactivate GPM
+
+Backend -> DB : Save garment information
+activate DB
+
+DB --> Backend : Garment stored successfully
+deactivate DB
+
+Backend --> Frontend : Upload successful
+deactivate Backend
+
+Frontend --> Retailer : Display confirmation
+deactivate Frontend
+
+@enduml

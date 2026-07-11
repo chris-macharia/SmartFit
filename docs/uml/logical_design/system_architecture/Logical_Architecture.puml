@@ -1,0 +1,59 @@
+@startuml Logical_Architecture
+title Figure 3.X: Logical Architecture of the Proposed Virtual Fitting System
+
+top to bottom direction
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam defaultTextAlignment center
+
+actor Customer
+actor Retailer
+
+package "Presentation Layer" {
+    component "React Web Application" as React
+}
+
+package "Application Layer" {
+    component "FastAPI Backend" as Backend
+}
+
+package "Processing Layer" {
+
+    component "Computer Vision Module\n(OpenCV + MediaPipe)" as CV
+
+    component "Avatar Generation Module" as Avatar
+
+    component "Recommendation Module" as Recommend
+
+    component "Visualization Module\n(Three.js)" as Visualize
+
+    component "Garment Processing Module" as Garment
+
+}
+
+package "Data Layer" {
+    database "PostgreSQL Database" as DB
+}
+
+Customer --> React : Uses
+Retailer --> React : Uses
+
+React --> Backend : REST API
+
+Backend --> CV : Process body video
+Backend --> Garment : Validate garment data
+Backend --> Recommend : Request recommendation
+Backend --> Visualize : Render fitting
+
+CV --> Avatar : Body measurements
+
+Avatar --> DB : Store avatar
+Garment --> DB : Store garments
+Recommend --> DB : Retrieve measurements
+Visualize --> DB : Retrieve avatar
+Backend --> DB : User & system data
+
+@enduml

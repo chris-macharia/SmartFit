@@ -4,20 +4,31 @@ title Figure 3.X: Logical Architecture of the Proposed Virtual Fitting System
 top to bottom direction
 
 skinparam componentStyle rectangle
-skinparam shadowing false
 skinparam packageStyle rectangle
+skinparam shadowing false
 skinparam linetype ortho
 skinparam defaultTextAlignment center
+skinparam ArrowThickness 1.5
+skinparam packageBorderColor Black
+skinparam packageBackgroundColor White
+
+' Improve spacing
+skinparam nodesep 60
+skinparam ranksep 90
 
 actor Customer
 actor Retailer
 
 package "Presentation Layer" {
-    component "React Web Application" as React
+
+    component "React Web Application\n(User Interface)" as React
+
 }
 
 package "Application Layer" {
-    component "FastAPI Backend" as Backend
+
+    component "FastAPI Backend\n(Business Logic & API Services)" as Backend
+
 }
 
 package "Processing Layer" {
@@ -35,25 +46,57 @@ package "Processing Layer" {
 }
 
 package "Data Layer" {
+
     database "PostgreSQL Database" as DB
+
 }
 
-Customer --> React : Uses
-Retailer --> React : Uses
+'======================
+' User Interaction
+'======================
 
-React --> Backend : REST API
+Customer --> React : Perform virtual fitting
+
+Retailer --> React : Upload garments
+
+React --> Backend : REST API Requests
+
+'======================
+' Customer Pipeline
+'======================
 
 Backend --> CV : Process body video
-Backend --> Garment : Validate garment data
-Backend --> Recommend : Request recommendation
+
+CV --> Avatar : Estimated\nmeasurements
+
+Avatar --> Recommend : Avatar data
+
+Recommend --> Backend : Recommended size
+
 Backend --> Visualize : Render fitting
 
-CV --> Avatar : Body measurements
+Visualize --> React : Display results
 
-Avatar --> DB : Store avatar
-Garment --> DB : Store garments
-Recommend --> DB : Retrieve measurements
-Visualize --> DB : Retrieve avatar
-Backend --> DB : User & system data
+'======================
+' Retailer Pipeline
+'======================
+
+Backend ----> Garment : Validate garment data
+
+Garment ----> Backend : Valid garment data
+
+'======================
+' Database
+'======================
+
+Backend --> DB : Users
+
+Backend --> DB : Garments
+
+Backend --> DB : Measurements
+
+Backend --> DB : Avatars
+
+Backend --> DB : Recommendations
 
 @enduml

@@ -1,0 +1,91 @@
+@startuml erd
+
+title Figure 3.X: Entity Relationship Diagram for the Proposed Virtual Fitting System
+
+hide circle
+skinparam linetype ortho
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam defaultFontName Arial
+
+entity Users {
+    * user_id : UUID <<PK>>
+    --
+    full_name : VARCHAR(100)
+    email : VARCHAR(100)
+    password_hash : VARCHAR(255)
+    role : VARCHAR(20)
+    created_at : TIMESTAMP
+}
+
+entity Videos {
+    * video_id : UUID <<PK>>
+    --
+    user_id : UUID <<FK>>
+    video_path : TEXT
+    processing_status : VARCHAR(30)
+    uploaded_at : TIMESTAMP
+}
+
+entity BodyMeasurements {
+    * measurement_id : UUID <<PK>>
+    --
+    video_id : UUID <<FK>>
+    height : DECIMAL
+    chest : DECIMAL
+    waist : DECIMAL
+    hips : DECIMAL
+    shoulder_width : DECIMAL
+    inseam : DECIMAL
+}
+
+entity Avatars {
+    * avatar_id : UUID <<PK>>
+    --
+    measurement_id : UUID <<FK>>
+    avatar_path : TEXT
+    created_at : TIMESTAMP
+}
+
+entity Garments {
+    * garment_id : UUID <<PK>>
+    --
+    retailer_id : UUID <<FK>>
+    name : VARCHAR(100)
+    category : VARCHAR(50)
+    brand : VARCHAR(50)
+    size : VARCHAR(20)
+    chest : DECIMAL
+    waist : DECIMAL
+    hips : DECIMAL
+    length : DECIMAL
+    image_path : TEXT
+    created_at : TIMESTAMP
+}
+
+entity VirtualFittings {
+    * fitting_id : UUID <<PK>>
+    --
+    user_id : UUID <<FK>>
+    garment_id : UUID <<FK>>
+    avatar_id : UUID <<FK>>
+    recommended_size : VARCHAR(20)
+    fit_result : VARCHAR(50)
+    created_at : TIMESTAMP
+}
+
+Users ||--o{ Videos : uploads
+
+Videos ||--|| BodyMeasurements : produces
+
+BodyMeasurements ||--|| Avatars : generates
+
+Users ||--o{ Garments : uploads
+
+Users ||--o{ VirtualFittings : performs
+
+Garments ||--o{ VirtualFittings : selected
+
+Avatars ||--o{ VirtualFittings : used
+
+@enduml

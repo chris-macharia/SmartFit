@@ -1,0 +1,19 @@
+@startsalt
+{
+{+
+SmartFit Login
+
+Email
+"                    "
+
+Password
+"                    "
+
+[ Login ]
+
+Forgot Password?
+
+Don't have an account? Register
+}
+}
+@endsalt

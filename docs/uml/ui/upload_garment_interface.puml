@@ -1,0 +1,43 @@
+@startsalt upload_garment_interface
+{
+{+
+Upload Garment
+
+Garment Name
+
+"                              "
+
+Category
+
+^Shirt^
+
+Brand
+
+"                              "
+
+Available Size
+
+^Medium^
+
+Chest Measurement
+
+"                              "
+
+Waist Measurement
+
+"                              "
+
+Hip Measurement
+
+"                              "
+
+Garment Image
+
+" No image selected "
+
+[ Browse ]
+
+[ Save Garment ]
+}
+}
+@endsalt

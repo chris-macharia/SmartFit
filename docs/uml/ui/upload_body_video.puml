@@ -1,0 +1,23 @@
+@startsalt upload_body_vedio
+{
+{+
+Upload Body Video
+
+Selected File
+
+" No file selected "
+
+[ Browse ]
+
+Supported Formats:
+MP4, MOV
+
+[ Upload Video ]
+
+Status
+
+" Waiting for upload... "
+
+}
+}
+@endsalt

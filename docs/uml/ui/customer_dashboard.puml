@@ -1,0 +1,15 @@
+@startsalt customer_dashboard
+{
+{+
+SmartFit Customer Dashboard
+
+Welcome, Customer
+
+[ Upload Body Video ]
+[ View Avatar ]
+
+
+[ Logout ]
+}
+}
+@endsalt

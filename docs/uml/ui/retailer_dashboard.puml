@@ -1,0 +1,30 @@
+@startsalt retailer_dashboard
+{
+{+
+Virtual Fitting
+
+Select Garment
+
+^Jacket^
+
+Available Sizes
+
+^Small^
+
+Avatar Preview
+
+" 3D Avatar "
+
+Recommendation
+
+Recommended Size:
+Medium
+
+Fit Result:
+Good Fit
+
+[ Perform Virtual Fitting ]
+
+}
+}
+@endsalt

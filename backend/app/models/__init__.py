@@ -6,6 +6,7 @@ they are registered with the shared SQLAlchemy Base metadata.
 """
 
 from app.models.user import User
+from app.models.garment import Garment
 
 
 # Define the public models exposed by this package.
@@ -14,4 +15,5 @@ from app.models.user import User
 # implemented.
 __all__ = [
     "User",
+    "Garment",
 ]

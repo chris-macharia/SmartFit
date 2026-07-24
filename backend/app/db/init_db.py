@@ -15,7 +15,7 @@ from app.db.database import Base, engine
 #
 # Without importing the models, SQLAlchemy may not know about
 # the tables that need to be created.
-from app.models import User
+from app.models import Garment, User
 
 
 def init_db():

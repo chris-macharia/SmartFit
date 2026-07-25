@@ -10,6 +10,7 @@ from app.models.body_measurements import BodyMeasurement
 from app.models.garment import Garment
 from app.models.user import User
 from app.models.video import Video
+from app.models.virtual_fitting import VirtualFitting
 
 
 # Define the public models exposed by this package.
@@ -22,4 +23,5 @@ __all__ = [
     "Video",
     "BodyMeasurement",
     "Avatar",
+    "VirtualFitting",
 ]

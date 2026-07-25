@@ -1,16 +1,18 @@
 """
 User database model for SmartFit.
 
-This module defines the User entity used to store information
-about customers and sellers registered in the SmartFit system.
+This module defines the User entity used to store account information
+for customers and retailers using the SmartFit system.
 
-The User model corresponds to the User table defined in the
+The User model corresponds to the Users entity defined in the
 SmartFit database design.
 """
 
+import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, String
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.database import Base
@@ -20,58 +22,44 @@ class User(Base):
     """
     SQLAlchemy model representing a SmartFit user.
 
-    A user can be either a customer or a seller. The role field
-    is used to distinguish between the two types of users.
-
-    The model currently contains the following fields:
-
-    - id
-    - full_name
-    - email
-    - hashed_password
-    - role
-    - created_at
+    Each user is assigned a UUID as their primary key. UUIDs are used
+    consistently throughout the SmartFit database design to identify
+    users and related records.
     """
 
     # Define the name of the PostgreSQL database table.
     __tablename__ = "users"
 
-    # Unique identifier for each user.
+    # Generate a unique UUID for each user.
     #
-    # This field is the primary key of the users table.
-    # SQLAlchemy will map this to an integer column in PostgreSQL.
-    id: Mapped[int] = mapped_column(
+    # UUIDs provide globally unique identifiers and are consistent
+    # with the UUID-based identifiers used throughout the SmartFit
+    # database design.
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True),
         primary_key=True,
-        index=True,
+        default=uuid.uuid4,
     )
 
     # Store the user's full name.
-    #
-    # The field is required and cannot be NULL.
     full_name: Mapped[str] = mapped_column(
-        String(255),
+        String(100),
         nullable=False,
     )
 
     # Store the user's email address.
     #
-    # The email is required and must be unique.
-    # This prevents multiple accounts from being registered
-    # using the same email address.
+    # The email must be unique so that two accounts cannot be
+    # registered using the same email address.
     email: Mapped[str] = mapped_column(
         String(255),
         unique=True,
         nullable=False,
-        index=True,
     )
 
-    # Store the user's password as a secure hash.
+    # Store the securely hashed version of the user's password.
     #
-    # The application must NEVER store the user's plain-text
-    # password in the database.
-    #
-    # Password hashing and authentication will be implemented
-    # in a later milestone.
+    # Plain-text passwords must never be stored in the database.
     hashed_password: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
@@ -79,24 +67,20 @@ class User(Base):
 
     # Store the user's role within the SmartFit system.
     #
-    # The initial roles are:
+    # Examples include:
     # - customer
-    # - seller
-    #
-    # We are using a String for now. This can be refined to
-    # an Enum later if stricter role validation is required.
+    # - retailer
     role: Mapped[str] = mapped_column(
         String(50),
         nullable=False,
     )
 
-    # Store the date and time when the user account was created. 
-    # 
-    # A timezone-aware UTC timestamp is used so that account creation
-    # times are stored consistently regardless of the server's local
-    # timezone.
+    # Store the date and time when the user account was created.
+    #
+    # A timezone-aware UTC timestamp is used to ensure consistent
+    # timestamps regardless of the server's local timezone.
     created_at: Mapped[datetime] = mapped_column(
-    DateTime(timezone=True),
-    default=lambda: datetime.now(timezone.utc),
-    nullable=False,
-)
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )

@@ -17,6 +17,7 @@ import uuid
 from sqlalchemy import Numeric
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKey
 
 from app.db.database import Base
 
@@ -58,8 +59,10 @@ class BodyMeasurement(Base):
     # constraint. The relationship will be refined later when the
     # database entity relationships are finalized.
     video_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        nullable=False,
+    UUID(as_uuid=True),
+    ForeignKey("videos.video_id"),
+    unique=True,
+    nullable=True,
     )
 
     # Store the user's estimated height.

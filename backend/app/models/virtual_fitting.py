@@ -23,6 +23,7 @@ from datetime import datetime, timezone
 from sqlalchemy import DateTime, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKey
 
 from app.db.database import Base
 
@@ -59,8 +60,9 @@ class VirtualFitting(Base):
     # This field is currently stored as a UUID without a foreign-key
     # constraint. The relationship will be refined later.
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        nullable=False,
+    UUID(as_uuid=True),
+    ForeignKey("users.user_id"),
+    nullable=False,
     )
 
     # Store the UUID of the garment being evaluated.
@@ -68,8 +70,9 @@ class VirtualFitting(Base):
     # This field identifies the garment selected for the virtual
     # fitting operation.
     garment_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        nullable=False,
+    UUID(as_uuid=True),
+    ForeignKey("garments.garment_id"),
+    nullable=False,
     )
 
     # Store the UUID of the digital avatar used during the fitting.
@@ -77,8 +80,9 @@ class VirtualFitting(Base):
     # The avatar represents the user's estimated body shape and
     # dimensions.
     avatar_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        nullable=False,
+    UUID(as_uuid=True),
+    ForeignKey("avatars.avatar_id"),
+    nullable=False,
     )
 
     # Store the clothing size recommended by the fitting process.

@@ -17,6 +17,7 @@ from datetime import datetime, timezone
 from sqlalchemy import DateTime, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import ForeignKey
 
 from app.db.database import Base
 
@@ -52,8 +53,9 @@ class Video(Base):
     # constraint. The relationship will be refined later when the
     # User database design is updated.
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
-        nullable=False,
+    UUID(as_uuid=True),
+    ForeignKey("users.user_id"),
+    nullable=False,
     )
 
     # Store the path or location of the uploaded video file.

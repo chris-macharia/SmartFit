@@ -47,3 +47,26 @@ def test_video_table_columns():
 
     # Confirm that all expected columns are present.
     assert expected_columns.issubset(actual_columns)
+
+
+def test_video_user_id_is_foreign_key():
+    """
+    Verify that videos.user_id references users.user_id.
+
+    This confirms that the Video model correctly implements
+    the User-to-Video relationship defined in the ERD.
+    """
+
+    # Retrieve the videos table from SQLAlchemy metadata.
+    videos_table = Base.metadata.tables["videos"]
+
+    # Retrieve the user_id column.
+    user_id_column = videos_table.columns["user_id"]
+
+    # Retrieve the foreign-key constraint associated with user_id.
+    foreign_keys = list(user_id_column.foreign_keys)
+
+    # Confirm that the column has exactly one foreign key.
+    assert len(foreign_keys) == 1
+
+    # Confirm that the foreign key references users.user_id.    

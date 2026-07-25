@@ -46,3 +46,51 @@ def test_avatar_table_columns():
 
     # Confirm that all expected columns are present.
     assert expected_columns.issubset(actual_columns)
+
+
+def test_avatar_measurement_id_is_foreign_key():
+    """
+    Verify that avatars.measurement_id references
+    body_measurements.measurement_id.
+
+    This confirms that the Avatar model correctly implements
+    the BodyMeasurement-to-Avatar relationship defined in the ERD.
+    """
+
+    # Retrieve the avatars table from SQLAlchemy metadata.
+    avatars_table = Base.metadata.tables["avatars"]
+
+    # Retrieve the measurement_id column.
+    measurement_id_column = avatars_table.columns["measurement_id"]
+
+    # Retrieve the foreign keys associated with measurement_id.
+    foreign_keys = list(measurement_id_column.foreign_keys)
+
+    # Confirm that exactly one foreign key exists.
+    assert len(foreign_keys) == 1
+
+    # Confirm that the foreign key references
+    # body_measurements.measurement_id.
+    assert (
+        foreign_keys[0].target_fullname
+        == "body_measurements.measurement_id"
+    )    
+
+
+def test_avatar_measurement_id_is_unique():
+    """
+    Verify that measurement_id is unique.
+
+    The original ERD defines a one-to-one relationship between
+    BodyMeasurements and Avatars. Therefore, one BodyMeasurement
+    cannot have multiple Avatar records.
+    """
+
+    # Retrieve the avatars table.
+    avatars_table = Base.metadata.tables["avatars"]
+
+    # Retrieve the measurement_id column.
+    measurement_id_column = avatars_table.columns["measurement_id"]
+
+    # Confirm that the column is unique.
+    assert measurement_id_column.unique is True    

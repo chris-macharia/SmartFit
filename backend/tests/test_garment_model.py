@@ -54,3 +54,27 @@ def test_garment_table_columns():
 
     # Confirm that all expected columns are present.
     assert expected_columns.issubset(actual_columns)
+
+
+def test_garment_retailer_id_is_foreign_key():
+    """
+    Verify that garments.retailer_id references users.user_id.
+
+    This confirms that the Garment model correctly implements
+    the User-to-Garment relationship defined in the ERD.
+    """
+
+    # Retrieve the garments table from SQLAlchemy metadata.
+    garments_table = Base.metadata.tables["garments"]
+
+    # Retrieve the retailer_id column.
+    retailer_id_column = garments_table.columns["retailer_id"]
+
+    # Retrieve the foreign keys associated with retailer_id.
+    foreign_keys = list(retailer_id_column.foreign_keys)
+
+    # Confirm that exactly one foreign key exists.
+    assert len(foreign_keys) == 1
+
+    # Confirm that the foreign key references users.user_id.
+    assert foreign_keys[0].target_fullname == "users.user_id"    

@@ -55,3 +55,50 @@ def test_body_measurement_table_columns():
 
     # Confirm that all expected columns are present.
     assert expected_columns.issubset(actual_columns)
+
+
+def test_body_measurement_video_id_is_foreign_key():
+    """
+    Verify that body_measurements.video_id references videos.video_id.
+
+    This confirms that the BodyMeasurement model correctly implements
+    the Video-to-BodyMeasurement relationship defined in the ERD.
+    """
+
+    # Retrieve the body_measurements table from SQLAlchemy metadata.
+    body_measurements_table = Base.metadata.tables[
+        "body_measurements"
+    ]
+
+    # Retrieve the video_id column.
+    video_id_column = body_measurements_table.columns["video_id"]
+
+    # Retrieve the foreign keys associated with video_id.
+    foreign_keys = list(video_id_column.foreign_keys)
+
+    # Confirm that exactly one foreign key exists.
+    assert len(foreign_keys) == 1
+
+    # Confirm that the foreign key references videos.video_id.
+    assert foreign_keys[0].target_fullname == "videos.video_id"    
+
+
+def test_body_measurement_video_id_is_unique():
+    """
+    Verify that video_id is unique.
+
+    The original ERD defines a one-to-one relationship between
+    Videos and BodyMeasurements. Therefore, one Video cannot
+    have multiple BodyMeasurement records.
+    """
+
+    # Retrieve the body_measurements table.
+    body_measurements_table = Base.metadata.tables[
+        "body_measurements"
+    ]
+
+    # Retrieve the video_id column.
+    video_id_column = body_measurements_table.columns["video_id"]
+
+    # Confirm that the column is unique.
+    assert video_id_column.unique is True    

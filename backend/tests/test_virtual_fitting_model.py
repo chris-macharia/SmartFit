@@ -52,3 +52,53 @@ def test_virtual_fitting_table_columns():
 
     # Confirm that all expected columns are present.
     assert expected_columns.issubset(actual_columns)
+
+
+def test_virtual_fitting_user_id_is_foreign_key():
+    """
+    Verify that virtual_fittings.user_id references users.user_id.
+    """
+
+    virtual_fittings_table = Base.metadata.tables["virtual_fittings"]
+
+    user_id_column = virtual_fittings_table.columns["user_id"]
+
+    foreign_keys = list(user_id_column.foreign_keys)
+
+    assert len(foreign_keys) == 1
+
+    assert foreign_keys[0].target_fullname == "users.user_id"    
+
+
+def test_virtual_fitting_garment_id_is_foreign_key():
+    """
+    Verify that virtual_fittings.garment_id references
+    garments.garment_id.
+    """
+
+    virtual_fittings_table = Base.metadata.tables["virtual_fittings"]
+
+    garment_id_column = virtual_fittings_table.columns["garment_id"]
+
+    foreign_keys = list(garment_id_column.foreign_keys)
+
+    assert len(foreign_keys) == 1
+
+    assert foreign_keys[0].target_fullname == "garments.garment_id"    
+
+
+def test_virtual_fitting_avatar_id_is_foreign_key():
+    """
+    Verify that virtual_fittings.avatar_id references
+    avatars.avatar_id.
+    """
+
+    virtual_fittings_table = Base.metadata.tables["virtual_fittings"]
+
+    avatar_id_column = virtual_fittings_table.columns["avatar_id"]
+
+    foreign_keys = list(avatar_id_column.foreign_keys)
+
+    assert len(foreign_keys) == 1
+
+    assert foreign_keys[0].target_fullname == "avatars.avatar_id"

@@ -108,7 +108,7 @@ Before setting up the SmartFit backend, install the following:
 Clone the SmartFit repository from GitHub:
 
 ```powershell
-git clone <SMARTFIT_REPOSITORY_URL>
+git clone https://github.com/chris-macharia/SmartFit
 ```
 
 Navigate into the project:
@@ -201,7 +201,7 @@ Open `.env` and replace `YOUR_PASSWORD` with the password configured for your Po
 The configuration should follow this format:
 
 ```env
-DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/smartfit
+DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/SmartFit
 ```
 
 **⚠️ Important:** Do not commit the `.env` file to Git.

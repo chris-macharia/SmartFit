@@ -11,23 +11,34 @@ The database connection URL is retrieved from the application
 configuration defined in app.core.config.
 """
 
+import os
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 from app.core.config import settings
 
+# Determine which database should be used.
+#
+# By default, SmartFit uses the development database.
+#
+# When SMARTFIT_ENV=test is defined, the application connects
+# to the isolated PostgreSQL test database instead.
+#
+database_url = (
+    settings.TEST_DATABASE_URL
+    if os.getenv("SMARTFIT_ENV") == "test"
+    else settings.DATABASE_URL
+)
+
 
 # Create the SQLAlchemy engine.
 #
-# The engine manages communication between the SmartFit backend
-# and the PostgreSQL database.
-#
-# The connection URL is retrieved from the environment through
-# the application settings object.
+# The engine manages communication between SmartFit and the
+# selected PostgreSQL database.
 engine = create_engine(
-    settings.DATABASE_URL
+    database_url
 )
-
 
 # Create a database session factory.
 #

@@ -29,15 +29,19 @@ class Settings:
 
     Attributes:
         DATABASE_URL: Connection URL used by SQLAlchemy to connect
-            to the SmartFit PostgreSQL database.
+            to the SmartFit development PostgreSQL database.
+
+        TEST_DATABASE_URL: Connection URL used by the automated
+            pytest suite to connect to the isolated test database.
     """
 
-    # Retrieve the database connection URL from the environment.
-    #
-    # If DATABASE_URL is not defined, an empty string is returned.
-    # The database connection layer will later detect an invalid or
-    # missing URL when it attempts to create the database engine.
+    # Development database connection.
     DATABASE_URL: str = os.getenv("DATABASE_URL", "")
+
+    # Test database connection.
+    #
+    # This database is used exclusively by automated tests.
+    TEST_DATABASE_URL: str = os.getenv("TEST_DATABASE_URL", "")
 
 
 # Create a single Settings instance that can be imported and reused

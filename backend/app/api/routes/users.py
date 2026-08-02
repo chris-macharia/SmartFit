@@ -16,7 +16,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
-from app.db.database import SessionLocal
+from app.db.database import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, UserResponse
 
@@ -26,23 +26,6 @@ router = APIRouter(
     prefix="/users",
     tags=["Users"],
 )
-
-
-def get_db():
-    """
-    Provide a database session to API endpoints.
-
-    A new SQLAlchemy session is created for each request.
-    The session is automatically closed after the request
-    has been completed.
-    """
-
-    db = SessionLocal()
-
-    try:
-        yield db
-    finally:
-        db.close()
 
 
 @router.post(
@@ -88,7 +71,7 @@ def create_user(
         role=user_data.role,
     )
 
-    # Add the new user to the current database session.
+    # Add the new User object to the current database session.
     db.add(new_user)
 
     # Commit the transaction so the user is permanently

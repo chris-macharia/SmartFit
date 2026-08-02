@@ -9,6 +9,10 @@ the HTTP API, including:
 3. Password hash exclusion from API responses.
 4. Duplicate email rejection.
 5. Invalid email validation.
+
+The tests use the isolated SmartFit_Test_db database and clean up
+any users created during each test so that the test suite can be
+run repeatedly without leftover test data causing failures.
 """
 
 from fastapi.testclient import TestClient
@@ -23,35 +27,76 @@ from app.models.user import User
 client = TestClient(app)
 
 
+def delete_user_by_email(email: str):
+    """
+    Delete a test user from the database using their email address.
+
+    This helper is used to clean up users created during API tests.
+    Keeping test data cleanup in one place makes the tests easier
+    to maintain and ensures that repeated test runs do not fail
+    because of leftover records.
+    """
+
+    # Create a database session.
+    db = SessionLocal()
+
+    try:
+        # Find the user created by the test.
+        user = (
+            db.query(User)
+            .filter(User.email == email)
+            .first()
+        )
+
+        # Delete the user if they exist.
+        if user:
+            db.delete(user)
+            db.commit()
+
+    finally:
+        # Always close the database session.
+        db.close()
+
+
 def test_create_user():
     """
     Verify that a valid user can be registered successfully.
     """
 
-    response = client.post(
-        "/api/users/",
-        json={
-            "full_name": "Test User",
-            "email": "test.user@example.com",
-            "password": "SecurePassword123",
-            "role": "customer",
-        },
-    )
+    email = "test.user@example.com"
 
-    assert response.status_code == 201
+    # Make sure the test starts with a clean database state.
+    delete_user_by_email(email)
 
-    data = response.json()
+    try:
+        response = client.post(
+            "/api/users/",
+            json={
+                "full_name": "Test User",
+                "email": email,
+                "password": "SecurePassword123",
+                "role": "customer",
+            },
+        )
 
-    assert data["full_name"] == "Test User"
-    assert data["email"] == "test.user@example.com"
-    assert data["role"] == "customer"
+        assert response.status_code == 201
 
-    # The API response must contain the generated UUID.
-    assert "user_id" in data
+        data = response.json()
 
-    # Password information must never be returned.
-    assert "password" not in data
-    assert "hashed_password" not in data
+        assert data["full_name"] == "Test User"
+        assert data["email"] == email
+        assert data["role"] == "customer"
+
+        # The API response must contain the generated UUID.
+        assert "user_id" in data
+
+        # Password information must never be returned.
+        assert "password" not in data
+        assert "hashed_password" not in data
+
+    finally:
+        # Remove the test user so the test can be run repeatedly.
+        delete_user_by_email(email)
 
 
 def test_password_is_hashed_in_database():
@@ -63,38 +108,47 @@ def test_password_is_hashed_in_database():
     email = "hashed.password@example.com"
     password = "SecurePassword123"
 
-    response = client.post(
-        "/api/users/",
-        json={
-            "full_name": "Hashed Password User",
-            "email": email,
-            "password": password,
-            "role": "customer",
-        },
-    )
-
-    assert response.status_code == 201
-
-    # Open a database session to inspect the stored user.
-    db = SessionLocal()
+    # Make sure the test starts with a clean database state.
+    delete_user_by_email(email)
 
     try:
-        user = (
-            db.query(User)
-            .filter(User.email == email)
-            .first()
+        response = client.post(
+            "/api/users/",
+            json={
+                "full_name": "Hashed Password User",
+                "email": email,
+                "password": password,
+                "role": "customer",
+            },
         )
 
-        assert user is not None
+        assert response.status_code == 201
 
-        # The stored password must not equal the original password.
-        assert user.hashed_password != password
+        # Open a database session to inspect the stored user.
+        db = SessionLocal()
 
-        # The stored value should be a non-empty password hash.
-        assert user.hashed_password
+        try:
+            user = (
+                db.query(User)
+                .filter(User.email == email)
+                .first()
+            )
+
+            assert user is not None
+
+            # The stored password must not equal the original password.
+            assert user.hashed_password != password
+
+            # The stored value should be a non-empty password hash.
+            assert user.hashed_password
+
+        finally:
+            # Close the database session used for verification.
+            db.close()
 
     finally:
-        db.close()
+        # Remove the test user so the test can be run repeatedly.
+        delete_user_by_email(email)
 
 
 def test_duplicate_email_is_rejected():
@@ -105,34 +159,44 @@ def test_duplicate_email_is_rejected():
 
     email = "duplicate@example.com"
 
-    first_response = client.post(
-        "/api/users/",
-        json={
-            "full_name": "First User",
-            "email": email,
-            "password": "SecurePassword123",
-            "role": "customer",
-        },
-    )
+    # Make sure the test starts with a clean database state.
+    delete_user_by_email(email)
 
-    assert first_response.status_code == 201
+    try:
+        # Register the first user.
+        first_response = client.post(
+            "/api/users/",
+            json={
+                "full_name": "First User",
+                "email": email,
+                "password": "SecurePassword123",
+                "role": "customer",
+            },
+        )
 
-    second_response = client.post(
-        "/api/users/",
-        json={
-            "full_name": "Second User",
-            "email": email,
-            "password": "AnotherPassword456",
-            "role": "customer",
-        },
-    )
+        assert first_response.status_code == 201
 
-    assert second_response.status_code == 409
+        # Attempt to register another user with the same email.
+        second_response = client.post(
+            "/api/users/",
+            json={
+                "full_name": "Second User",
+                "email": email,
+                "password": "AnotherPassword456",
+                "role": "customer",
+            },
+        )
 
-    assert (
-        second_response.json()["detail"]
-        == "A user with this email already exists."
-    )
+        assert second_response.status_code == 409
+
+        assert (
+            second_response.json()["detail"]
+            == "A user with this email already exists."
+        )
+
+    finally:
+        # Remove the first user created during the test.
+        delete_user_by_email(email)
 
 
 def test_invalid_email_is_rejected():

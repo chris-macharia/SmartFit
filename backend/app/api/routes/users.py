@@ -28,6 +28,7 @@ from app.schemas.user import (
     UserLogin,
     UserResponse,
 )
+from app.api.dependencies import get_current_user
 
 
 # Create a router specifically for user-related endpoints.
@@ -168,3 +169,46 @@ def login_user(
         "access_token": access_token,
         "token_type": "bearer",
     }
+
+
+@router.get(
+    "/me",
+    response_model=UserResponse,
+    status_code=status.HTTP_200_OK,
+)
+def get_current_user_profile(
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Return the profile of the currently authenticated user.
+
+    The user's identity is determined from the JWT access token
+    rather than from a user ID supplied by the client.
+
+    This prevents a user from requesting another user's profile
+    simply by changing a user ID in the URL.
+
+    Args:
+        current_user:
+            The authenticated User object returned by the
+            get_current_user dependency.
+
+    Returns:
+        UserResponse:
+            Safe user information for the authenticated user.
+
+    Note:
+        The UserResponse schema deliberately excludes the
+        hashed password.
+    """
+
+    # The get_current_user dependency has already:
+    #
+    # 1. Extracted the JWT from the Authorization header.
+    # 2. Validated the JWT signature.
+    # 3. Checked the token expiration.
+    # 4. Extracted the user's UUID.
+    # 5. Retrieved the user from PostgreSQL.
+    #
+    # Therefore, we can safely return the authenticated user.
+    return current_user

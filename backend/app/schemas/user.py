@@ -32,6 +32,34 @@ class UserCreate(BaseModel):
     role: str
 
 
+class UserLogin(BaseModel):
+    """
+    Schema used when a user attempts to log in.
+
+    The user provides their registered email address and
+    plain-text password. The password is verified against
+    the securely stored password hash.
+    """
+
+    email: EmailStr
+    password: str
+
+
+class TokenResponse(BaseModel):
+    """
+    Schema returned after successful user authentication.
+
+    The access_token is a signed JWT that the client can use
+    to authenticate subsequent requests.
+
+    token_type identifies the authentication scheme used by
+    the client when sending the token in the Authorization header.
+    """
+
+    access_token: str
+    token_type: str
+
+
 class UserResponse(BaseModel):
     """
     Schema used when returning a user through the API.

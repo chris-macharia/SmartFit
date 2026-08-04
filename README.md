@@ -30,9 +30,31 @@ The current version of SmartFit includes:
 * 🧪 CRUD persistence tests
 * 🔍 Database model validation tests
 
+### 🔐 Milestone 2 — API Foundation
+
+**Status: ✅ Complete**
+
+The SmartFit backend API foundation has been implemented and tested. It currently includes:
+
+* ⚡ FastAPI API structure
+* 👤 User registration API
+* 📧 Email uniqueness validation
+* 🔐 Secure password hashing using bcrypt
+* 🔑 Password verification
+* 🔓 User login API
+* 🎟️ JWT access token generation
+* 🛡️ JWT authentication and validation
+* 👤 Protected current-user profile endpoint
+* 🔗 Shared database session dependency
+* 🧪 Isolated PostgreSQL test database
+* 🔄 Repeatable automated API tests
+* 🔒 Secure API responses that do not expose password hashes
+
 ### 📊 Test Status
 
-**29 automated tests — ✅ All Passing**
+**55 automated tests — ✅ All Passing**
+
+The automated test suite covers database models, CRUD operations, API endpoints, password security, user authentication, JWT authentication, and protected endpoints.
 
 ---
 
@@ -45,6 +67,8 @@ The current version of SmartFit includes:
 * 🔗 SQLAlchemy
 * 🐘 PostgreSQL
 * 📦 Pydantic
+* 🔐 Passlib
+* 🔑 JWT
 * 🧪 Pytest
 
 ### 💻 Frontend
@@ -170,21 +194,29 @@ pip install -r requirements.txt
 SmartFit currently requires a PostgreSQL database named:
 
 ```text
-SmartFit
+SmartFit_db
 ```
 
 The database must be created before initializing the SmartFit tables.
 
 You can create the database using **pgAdmin** or the PostgreSQL command-line tools.
 
-The expected database configuration is:
+The expected development database configuration is:
 
 ```text
 Host:     localhost
 Port:     5432
-Database: smartfit
+Database: SmartFit_db
 User:     postgres
 ```
+
+For automated testing, SmartFit uses a separate PostgreSQL database:
+
+```text
+SmartFit_Test_db
+```
+
+The test database is used exclusively by the automated test suite to prevent tests from modifying the development database.
 
 ---
 
@@ -201,7 +233,11 @@ Open `.env` and replace `YOUR_PASSWORD` with the password configured for your Po
 The configuration should follow this format:
 
 ```env
-DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/SmartFit
+# Development Database
+DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/SmartFit_db
+
+# Test Database
+TEST_DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/SmartFit_Test_db
 ```
 
 **⚠️ Important:** Do not commit the `.env` file to Git.
@@ -216,7 +252,7 @@ The `.env.example` file is provided as a safe configuration template.
 
 ## 7️⃣ Create SmartFit Database Tables
 
-After creating the `smartfit` database and configuring `.env`, initialize the SmartFit database tables:
+After creating the `SmartFit_db` database and configuring `.env`, initialize the SmartFit database tables:
 
 ```powershell
 python -m app.db.init_db
@@ -254,10 +290,10 @@ pytest -v
 The current expected result is:
 
 ```text
-29 passed
+55 passed
 ```
 
-The test suite verifies:
+The test suite uses the isolated `SmartFit_Test_db` database and verifies:
 
 * 🔌 Database connectivity
 * 🗄️ Database model registration
@@ -266,6 +302,10 @@ The test suite verifies:
 * 🔗 Foreign key relationships
 * 🔄 One-to-one constraints
 * 💾 CRUD persistence
+* 👤 User registration
+* 🔐 Password hashing and verification
+* 🔑 JWT authentication
+* 🛡️ Protected API endpoints
 * 🪞 Virtual fitting relationships
 
 All tests should pass before changes are merged into the `main` branch.
@@ -322,19 +362,25 @@ main
 🚀 Merge into main
 ```
 
-### 📌 Current Milestone
+### 📌 Completed Milestones
 
 **Milestone 1 — Database and Persistence Layer**
 
 Status: ✅ Complete
 
-Tests: 🧪 29 passing
-
-### 🔜 Next Milestone
-
 **Milestone 2 — API Foundation**
 
-Status: 🟡 Planned
+Status: ✅ Complete
+
+Tests: 🧪 55 passing
+
+### 🔜 Current Milestone
+
+**Milestone 3 — Frontend Foundation**
+
+Status: 🚧 In Progress
+
+The next development stage focuses on building the React frontend and connecting it to the completed FastAPI backend.
 
 ---
 
@@ -390,6 +436,8 @@ The objective is to ensure that the `main` branch remains a **stable, reproducib
 
 **Milestone 1:** ✅ Database & Persistence Layer
 
-**Milestone 2:** 🔜 API Foundation
+**Milestone 2:** ✅ API Foundation
+
+**Milestone 3:** 🚧 Frontend Foundation
 
 **Future:** 🎥 Video Processing · 📏 Body Measurement Estimation · 🧍 Avatar Generation · 👕 Virtual Fitting · 📊 Size Recommendations

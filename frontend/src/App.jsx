@@ -1,12 +1,14 @@
 /**
- * SmartFit Application Router
+ * SmartFit React Application
  *
- * This component defines the application's client-side
- * navigation structure using React Router.
+ * This is the root component of the SmartFit frontend.
  *
- * The MainLayout is used as the shared parent layout,
- * allowing the Navbar and Footer to remain visible while
- * the page content changes.
+ * Responsibilities:
+ *
+ * - Configure React Router.
+ * - Define the application's routes.
+ * - Use MainLayout for pages that share the common
+ *   SmartFit navigation and footer.
  */
 
 import {
@@ -26,48 +28,30 @@ import MainLayout from "./layouts/MainLayout";
 function App() {
   return (
     /*
-      BrowserRouter enables client-side routing for the
-      React application.
-
-      This allows users to navigate between pages without
-      causing a full browser refresh.
-    */
+     * BrowserRouter provides client-side routing for
+     * the SmartFit React application.
+     */
     <BrowserRouter>
 
       <Routes>
 
         {/*
-          MainLayout acts as the shared parent for the
-          application's primary routes.
-
-          Any route nested inside this component will
-          automatically receive the Navbar and Footer.
-        */}
+         * MainLayout wraps the pages that share the
+         * SmartFit navigation and footer.
+         */}
         <Route element={<MainLayout />}>
 
           {/* SmartFit landing page. */}
-          <Route
-            path="/"
-            element={<Home />}
-          />
+          <Route path="/" element={<Home />} />
 
           {/* User login page. */}
-          <Route
-            path="/login"
-            element={<Login />}
-          />
+          <Route path="/login" element={<Login />} />
 
           {/* User registration page. */}
-          <Route
-            path="/register"
-            element={<Register />}
-          />
+          <Route path="/register" element={<Register />} />
 
           {/* User dashboard. */}
-          <Route
-            path="/dashboard"
-            element={<Dashboard />}
-          />
+          <Route path="/dashboard" element={<Dashboard />} />
 
         </Route>
 

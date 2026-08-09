@@ -1,10 +1,7 @@
 /**
  * SmartFit Main Application Layout
  *
- * This component defines the common structure shared by
- * the main SmartFit application pages.
- *
- * The layout consists of three main sections:
+ * Provides the common structure shared by SmartFit pages:
  *
  *     Navbar
  *        ↓
@@ -12,8 +9,8 @@
  *        ↓
  *     Footer
  *
- * React Router's <Outlet /> acts as a placeholder for
- * whichever page matches the current URL.
+ * React Router's Outlet renders the page associated
+ * with the current URL.
  */
 
 import { Outlet } from "react-router-dom";
@@ -24,36 +21,17 @@ import Footer from "../components/Footer";
 
 function MainLayout() {
   return (
-    <div>
+    <div className="app-layout">
 
-      {/*
-        Shared navigation displayed at the top
-        of the SmartFit application.
-      */}
+      {/* Shared SmartFit navigation. */}
       <Navbar />
 
-
-      {/*
-        Main application content.
-
-        React Router replaces <Outlet /> with the
-        component associated with the current route.
-
-        For example:
-
-            /          → Home
-            /login     → Login
-            /register  → Register
-            /dashboard → Dashboard
-      */}
-      <main>
+      {/* Current route is rendered inside the main content area. */}
+      <main className="main-content">
         <Outlet />
       </main>
 
-
-      {/*
-        Shared footer displayed below the page content.
-      */}
+      {/* Shared SmartFit footer. */}
       <Footer />
 
     </div>

@@ -1,144 +1,385 @@
-/* ============================================================
-   SmartFit Global Styles
-   ============================================================
-
-   This file contains styles that apply across the entire
-   SmartFit React application.
-
-   Component-specific styles can be added later as the
-   frontend becomes more complex.
-   ============================================================ */
+/**
+ * SmartFit Global Styles
+ *
+ * Contains the global styling and theme variables
+ * used throughout the SmartFit frontend.
+ */
 
 
 /* ============================================================
-   Global Reset
+   GLOBAL THEME VARIABLES
    ============================================================ */
 
 /*
-  Remove the browser's default margin and padding.
+ * Default theme: Light mode.
+ */
+:root {
+  --background-color: #ffffff;
+  --surface-color: #f5f5f5;
+  --text-color: #222222;
+  --secondary-text-color: #666666;
+  --border-color: #dddddd;
+}
 
-  box-sizing: border-box makes width and height calculations
-  easier because padding and borders are included in the
-  element's specified dimensions.
-*/
+
+/*
+ * Dark mode.
+ *
+ * These variables replace the light-mode values when
+ * the "dark-mode" class is applied to the document body.
+ */
+body.dark-mode {
+  --background-color: #121212;
+  --surface-color: #1e1e1e;
+  --text-color: #f5f5f5;
+  --secondary-text-color: #aaaaaa;
+  --border-color: #333333;
+}
+
+
+/* ============================================================
+   GLOBAL RESET
+   ============================================================ */
+
 * {
-  margin: 0;
-  padding: 0;
   box-sizing: border-box;
 }
 
 
-/* ============================================================
-   Application Body
-   ============================================================ */
-
-/*
-  Define the default font, background colour, and text colour
-  for the SmartFit application.
-*/
-body {
-  font-family: Arial, Helvetica, sans-serif;
-  background-color: #f8f9fa;
-  color: #222;
-}
-
-
-/*
-  Ensure that the React application can occupy the full
-  height of the browser viewport.
-*/
+html,
+body,
 #root {
-  min-height: 100vh;
+  /*
+   * Ensure the application can occupy the full
+   * height of the browser window.
+   */
+  min-height: 100%;
+}
+
+
+body {
+  /*
+   * Remove the browser's default margin.
+   */
+  margin: 0;
+
+  /*
+   * Apply the current theme colours.
+   */
+  background-color: var(--background-color);
+  color: var(--text-color);
+
+  /*
+   * Basic application font.
+   */
+  font-family: Arial, sans-serif;
+
+  /*
+   * Make the theme change smooth rather than instantaneous.
+   */
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
 }
 
 
 /* ============================================================
-   Navigation Bar
+   APPLICATION LAYOUT
    ============================================================ */
 
+.app-layout {
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  background-color: var(--background-color);
+  color: var(--text-color);
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.main-content {
+  /*
+   * Allow the main content to occupy the available
+   * vertical space between the Navbar and Footer.
+   */
+  flex: 1;
+
+  padding: 2rem;
+
+  background-color: var(--background-color);
+  color: var(--text-color);
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+
+/* ============================================================
+   NAVBAR
+   ============================================================ */
+
+.navbar {
+  /*
+   * Place the brand, navigation links and theme button
+   * horizontally.
+   */
+  display: flex;
+  align-items: center;
+
+  /*
+   * Add space between the navbar sections.
+   */
+  gap: 2rem;
+
+  /*
+   * Add some internal spacing.
+   */
+  padding: 1rem 2rem;
+
+  /*
+   * Use the surface colour so the navbar is visually
+   * separated from the main page.
+   */
+  background-color: var(--surface-color);
+
+  /*
+   * Add a subtle bottom border.
+   */
+  border-bottom: 1px solid var(--border-color);
+
+  /*
+   * Use the active text colour.
+   */
+  color: var(--text-color);
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+
+/* SmartFit logo/brand. */
+.navbar-brand {
+  font-size: 1.25rem;
+  font-weight: bold;
+
+  color: var(--text-color);
+}
+
+
+/* Navigation links container. */
+.navbar-links {
+  display: flex;
+  gap: 1.25rem;
+
+  /*
+   * Push the theme button towards the right.
+   */
+  margin-left: auto;
+}
+
+
+.navbar-links a {
+  color: var(--text-color);
+
+  transition: color 0.2s ease;
+}
+
+
+.navbar-links a:hover {
+  text-decoration: underline;
+}
+
+
+/* ============================================================
+   DARK MODE BUTTON
+   ============================================================ */
+
+/* ============================================================
+   THEME TOGGLE
+   ============================================================ */
+
+.theme-control {
+  /*
+   * Keep the label and switch together.
+   */
+  display: flex;
+
+  align-items: center;
+
+  gap: 0.6rem;
+}
+
+
+.theme-label {
+  font-size: 0.9rem;
+
+  color: var(--secondary-text-color);
+
+  white-space: nowrap;
+}
+
+
 /*
-  Arrange the SmartFit logo and navigation links horizontally.
-*/
-nav {
+ * Toggle switch background.
+ */
+.theme-switch {
+  position: relative;
+
+  width: 52px;
+  height: 28px;
+
+  padding: 0;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 999px;
+
+  background-color: var(--border-color);
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+
+/*
+ * Toggle switch when dark mode is active.
+ */
+.theme-switch.active {
+  background-color: #333333;
+}
+
+
+/*
+ * The circular handle that moves
+ * from one side of the switch to the other.
+ */
+.theme-switch-handle {
+  position: absolute;
+
+  top: 2px;
+  left: 2px;
+
+  width: 22px;
+  height: 22px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: white;
+
+  border-radius: 50%;
+
+  font-size: 13px;
+
+  transition:
+    transform 0.2s ease;
+}
+
+
+/*
+ * Move the handle to the right when
+ * dark mode is enabled.
+ */
+.theme-switch.active .theme-switch-handle {
+  transform: translateX(24px);
+}
+
+
+/*
+ * Remove the browser's default button outline
+ * while keeping a visible focus indicator.
+ */
+.theme-switch:focus-visible {
+  outline: 2px solid var(--text-color);
+
+  outline-offset: 3px;
+}
+
+
+/* ============================================================
+   LINKS
+   ============================================================ */
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
+
+button {
+  font-family: inherit;
+}
+
+
+
+/* ============================================================
+   FOOTER
+   ============================================================ */
+
+.footer {
+  /*
+   * Separate the footer visually from the main content.
+   */
+  margin-top: auto;
+
+  padding: 2rem;
+
+  background-color: var(--surface-color);
+  color: var(--text-color);
+
+  border-top: 1px solid var(--border-color);
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+
+.footer-content {
+  /*
+   * Keep the footer content aligned and readable.
+   */
+  max-width: 1200px;
+
+  margin: 0 auto;
+
   display: flex;
   justify-content: space-between;
   align-items: center;
 
-  padding: 1rem 2rem;
-
-  background-color: #ffffff;
-  border-bottom: 1px solid #ddd;
+  gap: 2rem;
 }
 
 
-/*
-  Style the SmartFit application name/logo.
-*/
-nav > a {
-  font-size: 1.4rem;
-  font-weight: bold;
-
-  text-decoration: none;
-  color: #222;
+.footer h3 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
 }
 
 
-/*
-  Arrange the navigation links horizontally with
-  consistent spacing between them.
-*/
-nav div {
-  display: flex;
-  gap: 1.5rem;
+.footer p {
+  margin: 0.25rem 0;
+
+  color: var(--secondary-text-color);
 }
 
 
-/*
-  Style the individual navigation links.
-*/
-nav div a {
-  text-decoration: none;
-  color: #444;
-}
-
-
-/*
-  Provide visual feedback when the user moves the
-  mouse over a navigation link.
-*/
-nav div a:hover {
-  color: #000;
-}
-
-
-/* ============================================================
-   Main Application Content
-   ============================================================ */
-
-/*
-  Ensure that the main content area has enough vertical
-  space to keep the footer near the bottom of the page.
-*/
-main {
-  min-height: calc(100vh - 130px);
-  padding: 2rem;
-}
-
-
-/* ============================================================
-   Footer
-   ============================================================ */
-
-/*
-  Style the shared SmartFit footer.
-*/
-footer {
-  padding: 1rem 2rem;
-
-  text-align: center;
-
-  background-color: #ffffff;
-  border-top: 1px solid #ddd;
-
-  color: #666;
+.footer-info {
+  text-align: right;
 }

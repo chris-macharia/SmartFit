@@ -1,24 +1,43 @@
 /**
  * SmartFit Footer
  *
- * This component provides the footer displayed at the
- * bottom of the application's pages.
+ * Provides the shared footer displayed across the application.
  *
- * Keeping the footer as a reusable component means that
- * we only need to maintain it in one location.
+ * The footer contains the application name, a short description,
+ * and the current development year.
  */
-
 
 function Footer() {
   return (
-    <footer>
-      {/* Copyright information for the SmartFit application. */}
-      <p>
-        © 2026 SmartFit. Virtual Fitting System.
-      </p>
+    <footer className="footer">
+
+      {/* SmartFit branding and description. */}
+      <div className="footer-content">
+
+        <div>
+          <h3>👕 SmartFit</h3>
+
+          <p>
+            Virtual fitting technology for smarter online
+            clothing shopping.
+          </p>
+        </div>
+
+        {/* Development information. */}
+        <div className="footer-info">
+          <p>
+            SmartFit — Virtual Fitting System
+          </p>
+
+          <p>
+            © 2026 SmartFit
+          </p>
+        </div>
+
+      </div>
+
     </footer>
   );
 }
-
 
 export default Footer;

@@ -22,6 +22,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import UploadVideo from "./pages/UploadVideo";
+import Avatar from "./pages/Avatar";
 
 import MainLayout from "./layouts/MainLayout";
 
@@ -54,7 +55,9 @@ function App() {
           {/* User dashboard. */}
           <Route path="/dashboard" element={<Dashboard />} />
 
-          <Route path="/upload-video" element={<UploadVideo />}/>
+          <Route path="/upload-video" element={<UploadVideo />} />
+
+          <Route path="/avatar" element={<Avatar />} />
 
         </Route>
 

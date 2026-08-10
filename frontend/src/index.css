@@ -870,3 +870,246 @@ button {
   }
 
 }
+
+
+
+/* ============================================================
+   AUTHENTICATION PAGES
+   ============================================================ */
+
+.auth-page {
+  min-height: 100%;
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  padding: 4rem 1.5rem;
+}
+
+
+.auth-card {
+  width: 100%;
+
+  max-width: 480px;
+
+  padding: 2.5rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 18px;
+
+  background-color: var(--surface-color);
+
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+}
+
+
+.auth-heading {
+  margin-bottom: 2rem;
+
+  text-align: center;
+}
+
+
+.auth-heading h1 {
+  margin: 0;
+
+  font-size: 2.2rem;
+
+  line-height: 1.15;
+}
+
+
+.auth-heading p:not(.section-label) {
+  margin-top: 0.75rem;
+
+  color: var(--secondary-text-color);
+
+  line-height: 1.6;
+}
+
+
+/* ============================================================
+   FORM
+   ============================================================ */
+
+.auth-form {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 1.25rem;
+}
+
+
+.form-group {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 0.5rem;
+}
+
+
+.form-group label {
+  font-size: 0.9rem;
+
+  font-weight: 600;
+}
+
+
+.form-group input,
+.form-group select {
+  width: 100%;
+
+  box-sizing: border-box;
+
+  padding: 0.85rem 1rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 8px;
+
+  background-color: var(--background-color);
+
+  color: var(--text-color);
+
+  font: inherit;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--text-color);
+
+  box-shadow: 0 0 0 2px var(--border-color);
+}
+
+
+.form-group input::placeholder {
+  color: var(--secondary-text-color);
+}
+
+
+/* ============================================================
+   FORM MESSAGES
+   ============================================================ */
+
+.form-message {
+  padding: 0.8rem 1rem;
+
+  border-radius: 8px;
+
+  font-size: 0.9rem;
+
+  line-height: 1.5;
+}
+
+
+.error-message {
+  border: 1px solid #dc2626;
+
+  color: #dc2626;
+
+  background-color: rgba(220, 38, 38, 0.08);
+}
+
+
+.success-message {
+  border: 1px solid #16a34a;
+
+  color: #16a34a;
+
+  background-color: rgba(22, 163, 74, 0.08);
+}
+
+
+/* ============================================================
+   AUTH BUTTON
+   ============================================================ */
+
+.auth-submit {
+  width: 100%;
+
+  border: none;
+
+  cursor: pointer;
+
+  font: inherit;
+}
+
+
+.auth-submit:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* ============================================================
+   AUTH FOOTER
+   ============================================================ */
+
+.auth-footer {
+  margin-top: 1.5rem;
+
+  text-align: center;
+
+  color: var(--secondary-text-color);
+}
+
+
+.auth-footer a {
+  color: var(--text-color);
+
+  font-weight: 600;
+
+  text-decoration: underline;
+}
+
+
+/* ============================================================
+   AUTH RESPONSIVENESS
+   ============================================================ */
+
+@media (max-width: 600px) {
+
+  .auth-page {
+    padding: 2rem 1rem;
+  }
+
+
+  .auth-card {
+    padding: 1.5rem;
+  }
+
+
+  .auth-heading h1 {
+    font-size: 1.8rem;
+  }
+
+}
+
+
+/* ============================================================
+   FORM HELPER TEXT
+   ============================================================ */
+
+.form-help {
+  font-size: 0.8rem;
+
+  color: var(--secondary-text-color);
+
+  line-height: 1.4;
+}

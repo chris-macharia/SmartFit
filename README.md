@@ -50,9 +50,31 @@ The SmartFit backend API foundation has been implemented and tested. It currentl
 * 🔄 Repeatable automated API tests
 * 🔒 Secure API responses that do not expose password hashes
 
+### 💻 Milestone 3 — Frontend Foundation
+
+**Status: ✅ Complete**
+
+The initial SmartFit React frontend has been implemented as a stable user interface foundation. It currently includes:
+
+* ⚛️ React and Vite frontend setup
+* 🧭 React Router navigation
+* 🏠 Home page
+* 🔐 Login page
+* 📝 Registration page
+* 📊 User dashboard
+* 🎥 Video upload interface
+* 🧍 Avatar interface
+* 🧱 Shared main layout
+* 🦶 Shared footer
+* 🌙 Dark mode toggle
+* 📱 Responsive frontend structure
+* 🧩 Reusable frontend components and layouts
+
+The frontend currently operates independently from the backend. API integration is planned for the next milestone.
+
 ### 📊 Test Status
 
-**55 automated tests — ✅ All Passing**
+**55 automated backend tests — ✅ All Passing**
 
 The automated test suite covers database models, CRUD operations, API endpoints, password security, user authentication, JWT authentication, and protected endpoints.
 
@@ -74,6 +96,9 @@ The automated test suite covers database models, CRUD operations, API endpoints,
 ### 💻 Frontend
 
 * ⚛️ React
+* ⚡ Vite
+* 🧭 React Router
+* 🎨 CSS
 
 ### 🔧 Development Tools
 
@@ -105,6 +130,17 @@ SmartFit/
 │   ├── .env.example
 │   ├── requirements.txt
 │   └── pytest.ini
+│
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── layouts/
+│   │   ├── pages/
+│   │   ├── App.jsx
+│   │   └── index.css
+│   ├── package.json
+│   └── vite.config.js
 │
 ├── docs/
 │   └── uml/
@@ -328,6 +364,47 @@ The interactive API documentation can be accessed through the FastAPI Swagger UI
 
 ---
 
+# 💻 Frontend Setup
+
+## 📋 Frontend Requirements
+
+Before running the SmartFit frontend, install:
+
+* 🟢 Node.js
+* 📦 npm
+
+---
+
+## 🔟 Navigate to the Frontend
+
+From the SmartFit project root:
+
+```powershell
+cd frontend
+```
+
+---
+
+## 1️⃣1️⃣ Install Frontend Dependencies
+
+```powershell
+npm install
+```
+
+---
+
+## 1️⃣2️⃣ Start the Frontend Development Server
+
+```powershell
+npm run dev
+```
+
+Vite will provide a local development address in the terminal.
+
+Open the displayed address in your browser to access the SmartFit frontend.
+
+---
+
 # 🌿 Development Workflow
 
 SmartFit uses Git branches to separate stable code from ongoing development.
@@ -374,13 +451,27 @@ Status: ✅ Complete
 
 Tests: 🧪 55 passing
 
-### 🔜 Current Milestone
-
 **Milestone 3 — Frontend Foundation**
 
-Status: 🚧 In Progress
+Status: ✅ Complete
 
-The next development stage focuses on building the React frontend and connecting it to the completed FastAPI backend.
+### 🔜 Current Milestone
+
+**Milestone 4 — Frontend & Backend Integration**
+
+Status: 🟡 Planned
+
+The next development stage will connect the React frontend to the completed FastAPI backend.
+
+The initial integration will focus on:
+
+* 🔗 Frontend API client
+* 📝 Registration API integration
+* 🔐 Login API integration
+* 🎟️ JWT token handling
+* 🛡️ Protected frontend routes
+* 👤 Current-user profile integration
+* 🎥 Video upload API integration
 
 ---
 
@@ -401,6 +492,8 @@ The following file may be committed:
 ```
 
 The `.env.example` file contains configuration placeholders only and does not contain real credentials.
+
+Frontend environment files containing `VITE_*` variables should also not contain sensitive backend credentials or secrets, because Vite exposes these variables to frontend code.
 
 ---
 
@@ -438,6 +531,11 @@ The objective is to ensure that the `main` branch remains a **stable, reproducib
 
 **Milestone 2:** ✅ API Foundation
 
-**Milestone 3:** 🚧 Frontend Foundation
+**Milestone 3:** ✅ Frontend Foundation
+
+**Milestone 4:** 🟡 Frontend & Backend Integration
 
 **Future:** 🎥 Video Processing · 📏 Body Measurement Estimation · 🧍 Avatar Generation · 👕 Virtual Fitting · 📊 Size Recommendations
+
+```
+```

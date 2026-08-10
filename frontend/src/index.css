@@ -1113,3 +1113,343 @@ button {
 
   line-height: 1.4;
 }
+
+
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+
+.dashboard-page {
+  max-width: 1200px;
+
+  margin: 0 auto;
+
+  padding: 4rem 1.5rem 5rem;
+}
+
+
+.dashboard-header {
+  margin-bottom: 4rem;
+}
+
+
+.dashboard-header h1 {
+  margin: 0;
+
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+
+  line-height: 1.1;
+}
+
+
+.dashboard-intro {
+  max-width: 700px;
+
+  margin-top: 1rem;
+
+  color: var(--secondary-text-color);
+
+  font-size: 1.05rem;
+
+  line-height: 1.7;
+}
+
+
+/* ============================================================
+   DASHBOARD SECTIONS
+   ============================================================ */
+
+.dashboard-section {
+  margin-top: 4rem;
+}
+
+
+.dashboard-section-heading {
+  margin-bottom: 1.5rem;
+}
+
+
+.dashboard-section-heading h2 {
+  margin: 0;
+
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+}
+
+
+/* ============================================================
+   QUICK ACTION CARDS
+   ============================================================ */
+
+.dashboard-actions {
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 1.25rem;
+}
+
+
+.dashboard-card {
+  display: block;
+
+  padding: 1.75rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 16px;
+
+  background-color: var(--surface-color);
+
+  color: var(--text-color);
+
+  text-decoration: none;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+.dashboard-card:hover {
+  transform: translateY(-4px);
+
+  border-color: var(--text-color);
+
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
+}
+
+
+.dashboard-card-featured {
+  border-color: var(--text-color);
+}
+
+
+.dashboard-card-icon {
+  margin-bottom: 1rem;
+
+  font-size: 2rem;
+}
+
+
+.dashboard-card h3 {
+  margin: 0 0 0.6rem;
+
+  font-size: 1.2rem;
+}
+
+
+.dashboard-card p {
+  margin: 0;
+
+  color: var(--secondary-text-color);
+
+  line-height: 1.6;
+}
+
+
+.dashboard-card-link {
+  display: inline-block;
+
+  margin-top: 1.25rem;
+
+  font-size: 0.9rem;
+
+  font-weight: 600;
+}
+
+
+/* ============================================================
+   PROFILE STATUS
+   ============================================================ */
+
+.dashboard-status-card {
+  display: grid;
+
+  grid-template-columns: 1fr 1fr;
+
+  gap: 3rem;
+
+  padding: 2rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 16px;
+
+  background-color: var(--surface-color);
+}
+
+
+.dashboard-status-content h2 {
+  margin: 0 0 0.75rem;
+
+  font-size: 1.7rem;
+}
+
+
+.dashboard-status-content p:not(.section-label) {
+  color: var(--secondary-text-color);
+
+  line-height: 1.7;
+}
+
+
+/* ============================================================
+   PROGRESS BAR
+   ============================================================ */
+
+.dashboard-progress {
+  display: flex;
+
+  flex-direction: column;
+
+  justify-content: center;
+}
+
+
+.dashboard-progress-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  margin-bottom: 0.6rem;
+
+  font-size: 0.9rem;
+}
+
+
+.progress-track {
+  width: 100%;
+
+  height: 8px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background-color: var(--border-color);
+}
+
+
+.progress-bar {
+  height: 100%;
+
+  border-radius: inherit;
+
+  background-color: var(--text-color);
+
+  transition: width 0.3s ease;
+}
+
+
+.dashboard-progress p {
+  margin-top: 0.75rem;
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.85rem;
+}
+
+
+/* ============================================================
+   SMARTFIT JOURNEY
+   ============================================================ */
+
+.dashboard-journey {
+  display: grid;
+
+  grid-template-columns: repeat(3, 1fr);
+
+  gap: 1.5rem;
+}
+
+
+.journey-step {
+  padding: 1.5rem;
+
+  border-top: 2px solid var(--text-color);
+}
+
+
+.journey-number {
+  display: block;
+
+  margin-bottom: 1rem;
+
+  font-size: 0.8rem;
+
+  font-weight: 700;
+
+  letter-spacing: 0.1em;
+
+  color: var(--secondary-text-color);
+}
+
+
+.journey-step h3 {
+  margin: 0 0 0.5rem;
+}
+
+
+.journey-step p {
+  margin: 0;
+
+  color: var(--secondary-text-color);
+
+  line-height: 1.6;
+}
+
+
+/* ============================================================
+   DASHBOARD RESPONSIVENESS
+   ============================================================ */
+
+@media (max-width: 800px) {
+
+  .dashboard-actions {
+    grid-template-columns: 1fr;
+  }
+
+
+  .dashboard-status-card {
+    grid-template-columns: 1fr;
+
+    gap: 2rem;
+  }
+
+
+  .dashboard-journey {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+
+@media (max-width: 600px) {
+
+  .dashboard-page {
+    padding: 2.5rem 1rem 4rem;
+  }
+
+
+  .dashboard-header {
+    margin-bottom: 2.5rem;
+  }
+
+
+  .dashboard-section {
+    margin-top: 3rem;
+  }
+
+
+  .dashboard-card {
+    padding: 1.4rem;
+  }
+
+
+  .dashboard-status-card {
+    padding: 1.5rem;
+  }
+
+}

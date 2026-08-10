@@ -1453,3 +1453,367 @@ button {
   }
 
 }
+
+
+
+/* ============================================================
+   UPLOAD VIDEO PAGE
+   ============================================================ */
+
+.upload-page {
+  max-width: 1100px;
+
+  margin: 0 auto;
+
+  padding: 3rem 1.5rem 5rem;
+}
+
+
+/* ============================================================
+   UPLOAD HEADER
+   ============================================================ */
+
+.upload-header {
+  max-width: 750px;
+
+  margin-bottom: 3rem;
+}
+
+
+.back-link {
+  display: inline-block;
+
+  margin-bottom: 2rem;
+
+  color: var(--secondary-text-color);
+
+  text-decoration: none;
+
+  font-size: 0.9rem;
+
+  transition: color 0.2s ease;
+}
+
+
+.back-link:hover {
+  color: var(--text-color);
+}
+
+
+.upload-header h1 {
+  margin: 0;
+
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+
+  line-height: 1.1;
+}
+
+
+.upload-header p:not(.section-label) {
+  margin-top: 1rem;
+
+  color: var(--secondary-text-color);
+
+  line-height: 1.7;
+
+  font-size: 1.05rem;
+}
+
+
+/* ============================================================
+   UPLOAD CONTENT
+   ============================================================ */
+
+.upload-content {
+  width: 100%;
+}
+
+
+/* ============================================================
+   DROPZONE
+   ============================================================ */
+
+.upload-dropzone {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-height: 360px;
+
+  padding: 3rem;
+
+  border: 2px dashed var(--border-color);
+
+  border-radius: 18px;
+
+  background-color: var(--surface-color);
+
+  text-align: center;
+
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+
+.upload-dropzone:hover {
+  border-color: var(--text-color);
+}
+
+
+.upload-icon {
+  margin-bottom: 1rem;
+
+  font-size: 3rem;
+}
+
+
+.upload-dropzone h2 {
+  margin: 0 0 0.5rem;
+
+  font-size: 1.6rem;
+}
+
+
+.upload-dropzone p:not(.upload-hint) {
+  max-width: 500px;
+
+  margin: 0 0 1.5rem;
+
+  color: var(--secondary-text-color);
+
+  line-height: 1.6;
+}
+
+
+.upload-hint {
+  margin-top: 1rem;
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.8rem;
+}
+
+
+/* ============================================================
+   VIDEO PREVIEW CARD
+   ============================================================ */
+
+.video-preview-card {
+  padding: 1.5rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 18px;
+
+  background-color: var(--surface-color);
+}
+
+
+.video-preview {
+  width: 100%;
+
+  overflow: hidden;
+
+  border-radius: 12px;
+
+  background-color: #000;
+}
+
+
+.video-preview video {
+  display: block;
+
+  width: 100%;
+
+  max-height: 550px;
+
+  object-fit: contain;
+}
+
+
+/* ============================================================
+   VIDEO INFORMATION
+   ============================================================ */
+
+.video-information {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 1.5rem;
+
+  padding: 1.5rem 0;
+}
+
+
+.video-information h2 {
+  margin: 0.25rem 0;
+
+  font-size: 1.1rem;
+
+  word-break: break-word;
+}
+
+
+.video-information p:not(.section-label) {
+  margin: 0;
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.9rem;
+}
+
+
+/* ============================================================
+   UPLOAD PROGRESS
+   ============================================================ */
+
+.upload-progress {
+  margin-bottom: 1.5rem;
+}
+
+
+.upload-progress-header {
+  display: flex;
+
+  justify-content: space-between;
+
+  margin-bottom: 0.6rem;
+
+  font-size: 0.9rem;
+}
+
+
+.upload-submit {
+  width: 100%;
+}
+
+
+.upload-error {
+  margin-top: 1rem;
+}
+
+
+/* ============================================================
+   VIDEO GUIDELINES
+   ============================================================ */
+
+.upload-guidelines {
+  margin-top: 5rem;
+}
+
+
+.upload-guidelines-header {
+  max-width: 700px;
+
+  margin-bottom: 2rem;
+}
+
+
+.upload-guidelines-header h2 {
+  margin: 0;
+
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+}
+
+
+.upload-guidelines-header p:not(.section-label) {
+  margin-top: 0.75rem;
+
+  color: var(--secondary-text-color);
+
+  line-height: 1.7;
+}
+
+
+.guidelines-grid {
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 1rem;
+}
+
+
+.guideline-card {
+  padding: 1.5rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 14px;
+
+  background-color: var(--surface-color);
+}
+
+
+.guideline-number {
+  display: block;
+
+  margin-bottom: 1rem;
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.8rem;
+
+  font-weight: 700;
+
+  letter-spacing: 0.1em;
+}
+
+
+.guideline-card h3 {
+  margin: 0 0 0.5rem;
+}
+
+
+.guideline-card p {
+  margin: 0;
+
+  color: var(--secondary-text-color);
+
+  line-height: 1.6;
+}
+
+
+/* ============================================================
+   RESPONSIVE DESIGN
+   ============================================================ */
+
+@media (max-width: 700px) {
+
+  .upload-page {
+    padding: 2.5rem 1rem 4rem;
+  }
+
+
+  .upload-dropzone {
+    min-height: 300px;
+
+    padding: 2rem 1rem;
+  }
+
+
+  .video-information {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+
+  .video-information .secondary-button {
+    width: 100%;
+  }
+
+
+  .guidelines-grid {
+    grid-template-columns: 1fr;
+  }
+
+}

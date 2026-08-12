@@ -3,24 +3,27 @@
  *
  * This page provides the frontend login experience.
  *
- * At this stage, authentication is simulated locally.
- * The FastAPI JWT authentication endpoint will be connected
- * later during the backend integration phase.
+ * The page communicates with the SmartFit FastAPI backend
+ * through the authentication service.
  *
  * Current responsibilities:
  *
  * 1. Collect the user's email and password.
  * 2. Perform basic client-side validation.
- * 3. Display validation and authentication messages.
- * 4. Simulate a successful login.
- * 5. Redirect the user to the dashboard.
+ * 3. Send credentials to the FastAPI login endpoint.
+ * 4. Store the returned JWT access token.
+ * 5. Display authentication errors.
+ * 6. Redirect the authenticated user to the dashboard.
  *
  * IMPORTANT:
- * No credentials are sent to the backend yet.
+ * The frontend does NOT hash the password.
+ * Password verification is handled by the backend.
  */
 
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+
+import { loginUser } from "../services/authService";
 
 
 function Login() {
@@ -36,7 +39,7 @@ function Login() {
   });
 
 
-  // Store validation or login errors.
+  // Store validation or authentication errors.
   const [error, setError] = useState("");
 
 
@@ -44,7 +47,7 @@ function Login() {
   const [success, setSuccess] = useState("");
 
 
-  // Track whether the login operation is currently running.
+  // Track whether the login request is currently running.
   const [loading, setLoading] = useState(false);
 
 
@@ -67,7 +70,7 @@ function Login() {
 
 
   /**
-   * Validate the login form before attempting authentication.
+   * Validate the login form before contacting the backend.
    *
    * Returns:
    *     An error message if validation fails.
@@ -76,12 +79,10 @@ function Login() {
   function validateForm() {
     const email = formData.email.trim();
 
-
     // Ensure both fields have been provided.
     if (!email || !formData.password) {
       return "Please enter your email and password.";
     }
-
 
     // Perform basic email validation.
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -90,7 +91,6 @@ function Login() {
       return "Please enter a valid email address.";
     }
 
-
     return "";
   }
 
@@ -98,12 +98,10 @@ function Login() {
   /**
    * Handle login form submission.
    *
-   * Backend authentication is intentionally not performed yet.
-   *
-   * Later, this function will call the authentication service,
-   * which will communicate with the FastAPI JWT login endpoint.
+   * This function now communicates with the real
+   * FastAPI authentication endpoint.
    */
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
     // Clear previous feedback.
@@ -124,27 +122,113 @@ function Login() {
     setLoading(true);
 
 
-    /**
-     * Simulate a login request.
-     *
-     * This gives us a realistic frontend experience while
-     * keeping the frontend independent from the backend.
-     */
-    setTimeout(() => {
+    try {
+      /**
+       * Send the user's credentials to FastAPI.
+       *
+       * The authentication service handles the actual
+       * API request.
+       */
+      const response = await loginUser({
+        email: formData.email.trim(),
+        password: formData.password,
+      });
 
-      setLoading(false);
 
-      setSuccess(
-        "Login successful! Redirecting..."
+      /**
+       * Handle unsuccessful authentication responses.
+       *
+       * FastAPI returns an error status when the credentials
+       * are invalid.
+       */
+      if (!response.ok) {
+        let message = "Login failed. Please check your credentials.";
+
+        try {
+          const errorData = await response.json();
+
+          // FastAPI commonly returns an error message in
+          // the "detail" property.
+          if (errorData.detail) {
+            message = errorData.detail;
+          }
+        } catch {
+          // Keep the default error message if the response
+          // does not contain valid JSON.
+        }
+
+        setError(message);
+        return;
+      }
+
+
+      /**
+       * Read the successful login response.
+       *
+       * The SmartFit backend returns a JWT access token.
+       */
+      const data = await response.json();
+
+
+      if (!data.access_token) {
+        setError(
+          "Login succeeded, but no authentication token was received."
+        );
+        return;
+      }
+
+
+      /**
+       * Store the JWT locally.
+       *
+       * We use localStorage for the current development
+       * implementation so the authentication state survives
+       * page refreshes.
+       *
+       * We will centralize this authentication state later
+       * when we implement AuthContext.
+       */
+      localStorage.setItem(
+        "smartfit_token",
+        data.access_token
       );
 
 
-      // Redirect to the dashboard after the success message.
+      // Display a short success message.
+      setSuccess("Login successful! Redirecting...");
+
+
+      /**
+       * Redirect the authenticated user to the dashboard.
+       *
+       * A short delay allows the success message to be visible
+       * before navigation.
+       */
       setTimeout(() => {
         navigate("/dashboard");
       }, 800);
 
-    }, 800);
+
+    } catch (requestError) {
+      /**
+       * This catches network-level errors such as:
+       *
+       * - FastAPI server being offline
+       * - Incorrect API URL
+       * - Network failure
+       * - Browser blocking the request
+       */
+      console.error("Login request failed:", requestError);
+
+      setError(
+        "Unable to connect to SmartFit. Please make sure the server is running and try again."
+      );
+
+
+    } finally {
+      // Always stop the loading state once the request finishes.
+      setLoading(false);
+    }
   }
 
 
@@ -185,6 +269,7 @@ function Login() {
         >
 
           {/* Email address */}
+
           <div className="form-group">
 
             <label htmlFor="email">
@@ -205,6 +290,7 @@ function Login() {
 
 
           {/* Password */}
+
           <div className="form-group">
 
             <label htmlFor="password">

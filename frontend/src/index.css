@@ -123,38 +123,31 @@ body {
    NAVBAR
    ============================================================ */
 
+/*
+ * Main SmartFit navigation container.
+ *
+ * The navbar contains:
+ *
+ * 1. SmartFit brand
+ * 2. Navigation links
+ * 3. Authenticated user information
+ * 4. Logout button
+ * 5. Theme control
+ *
+ * Everything is kept on one horizontal line.
+ */
 .navbar {
-  /*
-   * Place the brand, navigation links and theme button
-   * horizontally.
-   */
   display: flex;
   align-items: center;
 
-  /*
-   * Add space between the navbar sections.
-   */
   gap: 2rem;
 
-  /*
-   * Add some internal spacing.
-   */
   padding: 1rem 2rem;
 
-  /*
-   * Use the surface colour so the navbar is visually
-   * separated from the main page.
-   */
   background-color: var(--surface-color);
 
-  /*
-   * Add a subtle bottom border.
-   */
   border-bottom: 1px solid var(--border-color);
 
-  /*
-   * Use the active text colour.
-   */
   color: var(--text-color);
 
   transition:
@@ -170,30 +163,170 @@ body {
   font-weight: bold;
 
   color: var(--text-color);
+
+  white-space: nowrap;
 }
 
 
-/* Navigation links container. */
+/*
+ * Navigation links container.
+ *
+ * We allow this section to occupy the available space
+ * between the SmartFit brand and the authenticated user.
+ */
 .navbar-links {
   display: flex;
+
+  align-items: center;
+
   gap: 1.25rem;
 
-  /*
-   * Push the theme button towards the right.
-   */
   margin-left: auto;
 }
 
 
+/* Individual navigation links. */
 .navbar-links a {
   color: var(--text-color);
+
+  white-space: nowrap;
 
   transition: color 0.2s ease;
 }
 
 
+/* Navigation link hover state. */
 .navbar-links a:hover {
   text-decoration: underline;
+}
+
+
+/* ============================================================
+   AUTHENTICATED USER AREA
+   ============================================================ */
+
+/*
+ * Keeps the user's name and logout button next to each other.
+ */
+.navbar-user {
+  display: flex;
+
+  align-items: center;
+
+  gap: 0.75rem;
+
+  white-space: nowrap;
+}
+
+
+/*
+ * Container for the authenticated user's name.
+ */
+.navbar-user-info {
+  display: flex;
+
+  align-items: center;
+}
+
+
+/*
+ * Authenticated user's name.
+ */
+.navbar-user-name {
+  color: var(--text-color);
+
+  font-size: 0.95rem;
+
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+
+/*
+ * Logout button.
+ *
+ * This is deliberately styled independently from the
+ * application's other buttons.
+ */
+.navbar-logout {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.5rem 0.9rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 6px;
+
+  background-color: transparent;
+
+  color: var(--text-color);
+
+  font-size: 0.9rem;
+
+  font-weight: 600;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+  white-space: nowrap;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+
+/*
+ * Logout button hover state.
+ */
+.navbar-logout:hover {
+  background-color: var(--accent-bg);
+
+  border-color: var(--accent-border);
+
+  color: var(--accent);
+}
+
+
+/*
+ * Keyboard accessibility.
+ */
+.navbar-logout:focus-visible {
+  outline: 2px solid var(--accent);
+
+  outline-offset: 2px;
+}
+
+
+/* ============================================================
+   THEME CONTROL
+   ============================================================ */
+
+/*
+ * Keep the theme control on the same horizontal line.
+ */
+.theme-control {
+  display: flex;
+
+  align-items: center;
+
+  gap: 0.5rem;
+
+  white-space: nowrap;
+}
+
+
+/*
+ * Prevent the theme label from wrapping.
+ */
+.theme-label {
+  white-space: nowrap;
 }
 
 

@@ -3,239 +3,289 @@
  *
  * This page provides the frontend login experience.
  *
- * The page communicates with the SmartFit FastAPI backend
- * through the authentication service.
+ * Authentication is handled through AuthContext.
  *
  * Current responsibilities:
  *
  * 1. Collect the user's email and password.
  * 2. Perform basic client-side validation.
- * 3. Send credentials to the FastAPI login endpoint.
- * 4. Store the returned JWT access token.
- * 5. Display authentication errors.
- * 6. Redirect the authenticated user to the dashboard.
+ * 3. Call the centralized authentication system.
+ * 4. Display validation and authentication messages.
+ * 5. Redirect successfully authenticated users
+ *    to the dashboard.
  *
- * IMPORTANT:
- * The frontend does NOT hash the password.
- * Password verification is handled by the backend.
+ * The actual communication with FastAPI is handled by
+ * AuthContext and the authentication service.
  */
 
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
 
-import { loginUser } from "../services/authService";
+import { useState } from "react";
+
+import {
+  Link,
+  useNavigate,
+} from "react-router-dom";
+
+import { useAuth } from "../context/AuthContext";
 
 
 function Login() {
-  // React Router navigation function.
-  // Used to redirect the user after successful login.
+
+  /*
+   * React Router navigation function.
+   *
+   * Used to redirect the user after successful login.
+   */
   const navigate = useNavigate();
 
 
-  // Store the values entered into the login form.
+  /*
+   * Retrieve the centralized login function
+   * from AuthContext.
+   */
+  const { login } = useAuth();
+
+
+  /*
+   * Store the values entered into the login form.
+   */
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
 
 
-  // Store validation or authentication errors.
+  /*
+   * Store validation or login errors.
+   */
   const [error, setError] = useState("");
 
 
-  // Store a successful login message.
+  /*
+   * Store a successful login message.
+   */
   const [success, setSuccess] = useState("");
 
 
-  // Track whether the login request is currently running.
+  /*
+   * Track whether the login operation is currently running.
+   */
   const [loading, setLoading] = useState(false);
 
+
+  // ==========================================================
+  // HANDLE INPUT CHANGES
+  // ==========================================================
 
   /**
    * Update the appropriate form field whenever
    * the user changes an input.
    */
   function handleChange(event) {
-    const { name, value } = event.target;
 
+    const {
+      name,
+      value,
+    } = event.target;
+
+
+    /*
+     * Update only the field that changed.
+     */
     setFormData((previousData) => ({
       ...previousData,
       [name]: value,
     }));
 
-    // Clear previous feedback when the user edits the form.
+
+    /*
+     * Clear previous feedback when the user
+     * edits the form.
+     */
     setError("");
     setSuccess("");
   }
 
 
+  // ==========================================================
+  // FORM VALIDATION
+  // ==========================================================
+
   /**
-   * Validate the login form before contacting the backend.
+   * Validate the login form before authentication.
    *
    * Returns:
-   *     An error message if validation fails.
-   *     An empty string if the form is valid.
+   *
+   * - An error message if validation fails.
+   * - An empty string if the form is valid.
    */
   function validateForm() {
+
+    /*
+     * Remove unnecessary whitespace from the email.
+     */
     const email = formData.email.trim();
 
-    // Ensure both fields have been provided.
+
+    /*
+     * Make sure both fields have been provided.
+     */
     if (!email || !formData.password) {
+
       return "Please enter your email and password.";
     }
 
-    // Perform basic email validation.
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    /*
+     * Perform basic email validation.
+     */
+    const emailPattern =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 
     if (!emailPattern.test(email)) {
+
       return "Please enter a valid email address.";
     }
 
+
+    /*
+     * No validation errors were found.
+     */
     return "";
   }
 
 
+  // ==========================================================
+  // FORM SUBMISSION
+  // ==========================================================
+
   /**
    * Handle login form submission.
    *
-   * This function now communicates with the real
-   * FastAPI authentication endpoint.
+   * Authentication is delegated to AuthContext.
    */
   async function handleSubmit(event) {
+
+    /*
+     * Prevent the browser from performing a normal
+     * HTML form submission.
+     */
     event.preventDefault();
 
-    // Clear previous feedback.
+
+    /*
+     * Clear previous feedback.
+     */
     setError("");
     setSuccess("");
 
 
-    // Validate the submitted information.
+    /*
+     * Validate the submitted information.
+     */
     const validationError = validateForm();
 
+
     if (validationError) {
+
       setError(validationError);
+
       return;
     }
 
 
-    // Indicate that authentication is being processed.
+    /*
+     * Indicate that authentication is being processed.
+     */
     setLoading(true);
 
 
     try {
-      /**
-       * Send the user's credentials to FastAPI.
+
+      /*
+       * Authenticate the user through AuthContext.
        *
-       * The authentication service handles the actual
-       * API request.
+       * AuthContext handles:
+       *
+       * - FastAPI login
+       * - JWT storage
+       * - Current-user retrieval
+       * - Updating the global user state
        */
-      const response = await loginUser({
+      await login({
+
+        /*
+         * Trim the email before sending it
+         * to the backend.
+         */
         email: formData.email.trim(),
+
+        /*
+         * Password is sent exactly as entered.
+         */
         password: formData.password,
       });
 
 
-      /**
-       * Handle unsuccessful authentication responses.
-       *
-       * FastAPI returns an error status when the credentials
-       * are invalid.
+      /*
+       * At this point AuthContext has already updated
+       * isAuthenticated to true.
        */
-      if (!response.ok) {
-        let message = "Login failed. Please check your credentials.";
-
-        try {
-          const errorData = await response.json();
-
-          // FastAPI commonly returns an error message in
-          // the "detail" property.
-          if (errorData.detail) {
-            message = errorData.detail;
-          }
-        } catch {
-          // Keep the default error message if the response
-          // does not contain valid JSON.
-        }
-
-        setError(message);
-        return;
-      }
-
-
-      /**
-       * Read the successful login response.
-       *
-       * The SmartFit backend returns a JWT access token.
-       */
-      const data = await response.json();
-
-
-      if (!data.access_token) {
-        setError(
-          "Login succeeded, but no authentication token was received."
-        );
-        return;
-      }
-
-
-      /**
-       * Store the JWT locally.
-       *
-       * We use localStorage for the current development
-       * implementation so the authentication state survives
-       * page refreshes.
-       *
-       * We will centralize this authentication state later
-       * when we implement AuthContext.
-       */
-      localStorage.setItem(
-        "smartfit_token",
-        data.access_token
+      setSuccess(
+        "Login successful! Redirecting..."
       );
 
 
-      // Display a short success message.
-      setSuccess("Login successful! Redirecting...");
-
-
-      /**
-       * Redirect the authenticated user to the dashboard.
-       *
-       * A short delay allows the success message to be visible
-       * before navigation.
+      /*
+       * Give the user a short moment to see the
+       * success message before changing pages.
        */
       setTimeout(() => {
+
         navigate("/dashboard");
+
       }, 800);
 
-
     } catch (requestError) {
-      /**
-       * This catches network-level errors such as:
-       *
-       * - FastAPI server being offline
-       * - Incorrect API URL
-       * - Network failure
-       * - Browser blocking the request
-       */
-      console.error("Login request failed:", requestError);
 
+      /*
+       * Log the technical error for development.
+       */
+      console.error(
+        "Login request failed:",
+        requestError
+      );
+
+
+      /*
+       * Display a user-friendly error message.
+       */
       setError(
+        requestError.message ||
         "Unable to connect to SmartFit. Please make sure the server is running and try again."
       );
 
-
     } finally {
-      // Always stop the loading state once the request finishes.
+
+      /*
+       * Authentication has finished.
+       */
       setLoading(false);
     }
   }
 
 
+  // ==========================================================
+  // PAGE
+  // ==========================================================
+
   return (
     <main className="auth-page">
 
+
       <section className="auth-card">
+
 
         {/* =================================================
             PAGE HEADER
@@ -243,17 +293,21 @@ function Login() {
 
         <div className="auth-heading">
 
+
           <p className="section-label">
             WELCOME BACK
           </p>
+
 
           <h1>
             Log in to SmartFit
           </h1>
 
+
           <p>
             Continue your personalized virtual fitting experience.
           </p>
+
 
         </div>
 
@@ -268,13 +322,16 @@ function Login() {
           noValidate
         >
 
+
           {/* Email address */}
 
           <div className="form-group">
 
+
             <label htmlFor="email">
               Email Address
             </label>
+
 
             <input
               id="email"
@@ -286,6 +343,7 @@ function Login() {
               autoComplete="email"
             />
 
+
           </div>
 
 
@@ -293,9 +351,11 @@ function Login() {
 
           <div className="form-group">
 
+
             <label htmlFor="password">
               Password
             </label>
+
 
             <input
               id="password"
@@ -307,6 +367,7 @@ function Login() {
               autoComplete="current-password"
             />
 
+
           </div>
 
 
@@ -315,22 +376,26 @@ function Login() {
               ================================================= */}
 
           {error && (
+
             <div
               className="form-message error-message"
               role="alert"
             >
               {error}
             </div>
+
           )}
 
 
           {success && (
+
             <div
               className="form-message success-message"
               role="status"
             >
               {success}
             </div>
+
           )}
 
 
@@ -343,10 +408,13 @@ function Login() {
             className="primary-button auth-submit"
             disabled={loading}
           >
+
             {loading
               ? "Signing In..."
               : "Log In"}
+
           </button>
+
 
         </form>
 
@@ -357,15 +425,20 @@ function Login() {
 
         <p className="auth-footer">
 
+
           Don't have an account?{" "}
+
 
           <Link to="/register">
             Create an account
           </Link>
 
+
         </p>
 
+
       </section>
+
 
     </main>
   );

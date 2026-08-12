@@ -182,3 +182,87 @@
     border-right-color: var(--border);
   }
 }
+
+
+/* =========================================================
+   AUTHENTICATED USER AREA
+   ========================================================= */
+
+/*
+ * Keeps the user's name and logout button on the
+ * same horizontal line.
+ */
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+
+/*
+ * Container for the authenticated user's information.
+ */
+.navbar-user-info {
+  display: flex;
+  align-items: center;
+}
+
+
+/*
+ * Display the authenticated user's name.
+ */
+.navbar-user-name {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+
+/*
+ * SmartFit logout button.
+ *
+ * This intentionally uses a separate class rather than
+ * the generic button styles so the logout control can
+ * have its own appearance.
+ */
+.navbar-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 8px 14px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  background: transparent;
+  color: #374151;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+
+/*
+ * Hover state for the logout button.
+ */
+.navbar-logout:hover {
+  background-color: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+
+/*
+ * Prevent the button from looking pressed when
+ * the browser gives it focus.
+ */
+.navbar-logout:focus-visible {
+  outline: 2px solid #111827;
+  outline-offset: 2px;
+}

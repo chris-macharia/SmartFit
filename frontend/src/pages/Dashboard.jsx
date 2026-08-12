@@ -1,340 +1,299 @@
 /**
  * SmartFit Dashboard
  *
- * Main landing page for an authenticated SmartFit user.
+ * This page is the main authenticated landing page for
+ * SmartFit users.
  *
- * At this stage, the dashboard is frontend-only. The information
- * displayed here is static/mock data and will later be replaced
- * with information retrieved from the FastAPI backend.
+ * Responsibilities:
  *
- * Main dashboard actions:
- * 1. Upload a body video.
- * 2. Manage the digital avatar.
- * 3. Browse available garments.
- * 4. Start a virtual fitting.
+ * - Welcome the authenticated user.
+ * - Provide access to the main SmartFit features.
+ * - Provide navigation to video upload and avatar features.
+ *
+ * The authenticated user's information comes from
+ * AuthContext rather than being hard-coded.
  */
 
 import { Link } from "react-router-dom";
 
+import { useAuth } from "../context/AuthContext";
+
 
 function Dashboard() {
+
+
+  /*
+   * ---------------------------------------------------------
+   * AUTHENTICATED USER
+   * ---------------------------------------------------------
+   *
+   * Retrieve the currently authenticated user from the
+   * centralized authentication context.
+   *
+   * AuthContext obtains this information from:
+   *
+   * GET /api/users/me
+   *
+   * after validating the JWT stored during login.
+   */
+  const {
+    user,
+  } = useAuth();
+
+
+  /*
+   * ---------------------------------------------------------
+   * USER DISPLAY NAME
+   * ---------------------------------------------------------
+   *
+   * Normally user.full_name will always be available.
+   *
+   * The fallback prevents the page from displaying
+   * "undefined" if the user object has not yet been
+   * populated for some reason.
+   */
+  const displayName =
+    user?.full_name || "User";
+
+
   return (
     <main className="dashboard-page">
 
-      {/* =====================================================
+
+      {/* =================================================
           DASHBOARD HEADER
-          ===================================================== */}
+          ================================================= */}
 
       <section className="dashboard-header">
 
-        <div>
+
+        <div className="dashboard-heading">
+
+
           <p className="section-label">
             SMARTFIT DASHBOARD
           </p>
 
+
+          {/*
+           * Display the authenticated user's actual name
+           * instead of the previous static "Hello user".
+           */}
           <h1>
-            Hello, User 👋
+            Hello, {displayName}
           </h1>
 
-          <p className="dashboard-intro">
-            Manage your measurements, digital avatar, garments,
-            and virtual fitting experience from one place.
+
+          <p>
+            Welcome to your personalized virtual fitting
+            experience.
           </p>
+
+
         </div>
+
 
       </section>
 
 
-      {/* =====================================================
-          QUICK ACTIONS
-          ===================================================== */}
+      {/* =================================================
+          MAIN DASHBOARD FEATURES
+          ================================================= */}
 
       <section className="dashboard-section">
 
-        <div className="dashboard-section-heading">
 
-          <div>
-            <p className="section-label">
-              QUICK ACTIONS
-            </p>
+        <div className="section-heading">
 
-            <h2>
-              What would you like to do?
-            </h2>
-          </div>
+
+          <p className="section-label">
+            SMARTFIT FEATURES
+          </p>
+
+
+          <h2>
+            What would you like to do?
+          </h2>
+
+
+          <p>
+            Choose a SmartFit feature to continue.
+          </p>
+
 
         </div>
 
 
-        <div className="dashboard-actions">
+        {/* =================================================
+            FEATURE CARDS
+            ================================================= */}
 
-          {/* =================================================
+        <div className="dashboard-grid">
+
+
+          {/* ---------------------------------------------
               UPLOAD VIDEO
-              ================================================= */}
+              --------------------------------------------- */}
 
           <Link
             to="/upload-video"
             className="dashboard-card"
           >
 
+
             <div className="dashboard-card-icon">
               🎥
             </div>
 
-            <h3>
-              Upload Video
-            </h3>
 
-            <p>
-              Upload a short body video so SmartFit can estimate
-              your measurements and prepare your virtual fitting
-              profile.
-            </p>
+            <div className="dashboard-card-content">
 
-            <span className="dashboard-card-link">
-              Upload video →
+
+              <h3>
+                Upload Video
+              </h3>
+
+
+              <p>
+                Upload a short video to begin estimating
+                your body measurements.
+              </p>
+
+
+            </div>
+
+
+            <span className="dashboard-card-action">
+              Get Started →
             </span>
+
 
           </Link>
 
 
-          {/* =================================================
-              DIGITAL AVATAR
-              ================================================= */}
+          {/* ---------------------------------------------
+              VIEW AVATAR
+              --------------------------------------------- */}
 
           <Link
             to="/avatar"
             className="dashboard-card"
           >
 
+
             <div className="dashboard-card-icon">
               🧍
             </div>
 
-            <h3>
-              Digital Avatar
-            </h3>
 
-            <p>
-              Create and manage the digital avatar used for
-              your personalized virtual fitting experience.
-            </p>
+            <div className="dashboard-card-content">
 
-            <span className="dashboard-card-link">
-              View avatar →
+
+              <h3>
+                View Avatar
+              </h3>
+
+
+              <p>
+                View your personalized digital avatar
+                generated from your measurements.
+              </p>
+
+
+            </div>
+
+
+            <span className="dashboard-card-action">
+              View Avatar →
             </span>
+
 
           </Link>
 
 
-          {/* =================================================
-              GARMENTS
-              ================================================= */}
+          {/* ---------------------------------------------
+              VIRTUAL FITTING
+              --------------------------------------------- */}
 
-          <Link
-            to="/garments"
-            className="dashboard-card"
+          <div
+            className="dashboard-card dashboard-card-disabled"
           >
+
 
             <div className="dashboard-card-icon">
               👕
             </div>
 
-            <h3>
-              Browse Garments
-            </h3>
 
-            <p>
-              Explore available clothing items and find garments
-              that match your preferences.
-            </p>
+            <div className="dashboard-card-content">
 
-            <span className="dashboard-card-link">
-              Browse garments →
+
+              <h3>
+                Virtual Fitting
+              </h3>
+
+
+              <p>
+                Try garments virtually using your
+                personalized avatar.
+              </p>
+
+
+            </div>
+
+
+            <span className="dashboard-card-action">
+              Coming Soon
             </span>
 
-          </Link>
+
+          </div>
 
 
-          {/* =================================================
-              VIRTUAL FITTING
-              ================================================= */}
+          {/* ---------------------------------------------
+              SIZE RECOMMENDATION
+              --------------------------------------------- */}
 
-          <Link
-            to="/virtual-fitting"
-            className="dashboard-card dashboard-card-featured"
+          <div
+            className="dashboard-card dashboard-card-disabled"
           >
 
+
             <div className="dashboard-card-icon">
-              🪞
+              📏
             </div>
 
-            <h3>
-              Virtual Fitting
-            </h3>
 
-            <p>
-              Try clothing virtually using your digital avatar
-              and receive a personalized fit result.
-            </p>
-
-            <span className="dashboard-card-link">
-              Start fitting →
-            </span>
-
-          </Link>
-
-        </div>
-
-      </section>
+            <div className="dashboard-card-content">
 
 
-      {/* =====================================================
-          PROFILE STATUS
-          ===================================================== */}
-
-      <section className="dashboard-section">
-
-        <div className="dashboard-status-card">
-
-          <div className="dashboard-status-content">
-
-            <p className="section-label">
-              PROFILE SETUP
-            </p>
-
-            <h2>
-              Complete your SmartFit profile
-            </h2>
-
-            <p>
-              Your virtual fitting experience becomes more
-              accurate when your measurements and digital avatar
-              are properly configured.
-            </p>
-
-          </div>
+              <h3>
+                Size Recommendation
+              </h3>
 
 
-          {/* Temporary static progress indicator.
-              This will later be calculated from backend data. */}
+              <p>
+                Receive clothing size recommendations
+                based on your measurements.
+              </p>
 
-          <div className="dashboard-progress">
-
-            <div className="dashboard-progress-header">
-
-              <span>
-                Setup progress
-              </span>
-
-              <strong>
-                25%
-              </strong>
 
             </div>
 
 
-            <div className="progress-track">
+            <span className="dashboard-card-action">
+              Coming Soon
+            </span>
 
-              <div
-                className="progress-bar"
-                style={{ width: "25%" }}
-              />
-
-            </div>
-
-
-            <p>
-              Complete your profile to get started.
-            </p>
 
           </div>
 
+
         </div>
+
 
       </section>
 
-
-      {/* =====================================================
-          HOW SMARTFIT WORKS
-          ===================================================== */}
-
-      <section className="dashboard-section">
-
-        <div className="dashboard-section-heading">
-
-          <p className="section-label">
-            YOUR SMARTFIT JOURNEY
-          </p>
-
-          <h2>
-            From measurements to better-fitting clothes
-          </h2>
-
-        </div>
-
-
-        <div className="dashboard-journey">
-
-          {/* Step 1 */}
-          <div className="journey-step">
-
-            <span className="journey-number">
-              01
-            </span>
-
-            <h3>
-              Measure
-            </h3>
-
-            <p>
-              Upload a short body video so SmartFit can estimate
-              your measurements.
-            </p>
-
-          </div>
-
-
-          {/* Step 2 */}
-          <div className="journey-step">
-
-            <span className="journey-number">
-              02
-            </span>
-
-            <h3>
-              Create
-            </h3>
-
-            <p>
-              SmartFit uses your information to create your
-              personalized digital representation.
-            </p>
-
-          </div>
-
-
-          {/* Step 3 */}
-          <div className="journey-step">
-
-            <span className="journey-number">
-              03
-            </span>
-
-            <h3>
-              Fit
-            </h3>
-
-            <p>
-              Select a garment and see how it fits your
-              personalized avatar.
-            </p>
-
-          </div>
-
-        </div>
-
-      </section>
 
     </main>
   );
@@ -342,4 +301,3 @@ function Dashboard() {
 
 
 export default Dashboard;
-

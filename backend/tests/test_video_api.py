@@ -1,27 +1,34 @@
 """
 Tests for the SmartFit Video API.
 
-This module tests video upload functionality for authenticated
-and unauthenticated users.
+This module tests video creation/upload and deletion functionality
+for authenticated and unauthenticated users.
 
 The tests verify that:
 
 1. Authenticated users can upload supported video files.
 2. Unauthenticated users cannot upload videos.
 3. Authenticated users cannot upload unsupported file types.
-4. Test data and uploaded files are cleaned up after each test.
+4. Authenticated users can delete their own videos.
+5. Unauthenticated users cannot delete videos.
+6. Authenticated users cannot delete another user's video.
+7. Test data and uploaded files are cleaned up after each test.
+
+SmartFit does not provide an update operation for videos.
+
+If a user records or selects an incorrect video, the existing
+video can be deleted and a new video can be uploaded instead.
 """
 
 from pathlib import Path
 
-from app.db.database import SessionLocal
-from app.models.user import User
-from app.models.video import Video
-from app.core.security import hash_password
-
 from fastapi.testclient import TestClient
 
+from app.core.security import hash_password, create_access_token
+from app.db.database import SessionLocal
 from app.main import app
+from app.models.user import User
+from app.models.video import Video
 
 
 # ============================================================
@@ -39,13 +46,14 @@ def create_test_user(email: str, password: str):
     """
     Create a test user in the database.
 
+    The supplied password is hashed before being stored.
+
     Args:
         email:
             Email address for the test user.
 
         password:
-            Plain-text password which will be hashed before
-            being stored in the database.
+            Plain-text password used to create the test account.
 
     Returns:
         User:
@@ -79,8 +87,8 @@ def delete_user_by_email(email: str):
     Physical video files are removed before the database
     records are deleted.
 
-    The User model defines a cascade relationship with Video,
-    so deleting the user also deletes associated Video records.
+    This helper makes the video API tests safe to run repeatedly
+    without leftover test data affecting later tests.
     """
 
     db = SessionLocal()
@@ -94,9 +102,11 @@ def delete_user_by_email(email: str):
         )
 
         if user:
-            # Remove the physical video files associated
-            # with this user.
+
+            # Remove physical video files associated with
+            # this test user.
             for video in user.videos:
+
                 video_path = Path(video.video_path)
 
                 if video_path.exists():
@@ -104,12 +114,9 @@ def delete_user_by_email(email: str):
 
             # Delete the user.
             #
-            # Because User.videos uses:
-            #
-            #     cascade="all, delete-orphan"
-            #
-            # SQLAlchemy will also delete the associated
-            # Video database records.
+            # The User -> Video relationship is configured with
+            # cascade deletion, so the associated Video records
+            # are also removed.
             db.delete(user)
 
             db.commit()
@@ -123,8 +130,9 @@ def delete_user_by_email(email: str):
 
 
 # ============================================================
-# Test 1
+# CREATE / UPLOAD VIDEO TESTS
 # ============================================================
+
 
 def test_authenticated_user_can_upload_video():
     """
@@ -135,7 +143,7 @@ def test_authenticated_user_can_upload_video():
     email = "video.upload@example.com"
     password = "SecurePassword123"
 
-    # Remove any leftover data from a previous test run.
+    # Remove leftover data from previous test runs.
     delete_user_by_email(email)
 
     try:
@@ -192,7 +200,6 @@ def test_authenticated_user_can_upload_video():
 
         assert "video_id" in data
         assert data["processing_status"] == "uploaded"
-
         assert data["video_path"] is not None
 
         # ----------------------------------------------------
@@ -218,14 +225,9 @@ def test_authenticated_user_can_upload_video():
             db.close()
 
     finally:
-        # Clean up the test user, video record, and
-        # physical video file.
+        # Remove the test user, video record and physical file.
         delete_user_by_email(email)
 
-
-# ============================================================
-# Test 2
-# ============================================================
 
 def test_unauthenticated_user_cannot_upload_video():
     """
@@ -248,10 +250,6 @@ def test_unauthenticated_user_cannot_upload_video():
     assert response.status_code == 401
 
 
-# ============================================================
-# Test 3
-# ============================================================
-
 def test_authenticated_user_cannot_upload_unsupported_file():
     """
     Verify that an authenticated user cannot upload a file
@@ -261,7 +259,7 @@ def test_authenticated_user_cannot_upload_unsupported_file():
     email = "video.invalid.type@example.com"
     password = "SecurePassword123"
 
-    # Remove any leftover data from a previous test run.
+    # Remove leftover data from previous test runs.
     delete_user_by_email(email)
 
     try:
@@ -323,5 +321,338 @@ def test_authenticated_user_cannot_upload_unsupported_file():
         )
 
     finally:
-        # Clean up the test user and any associated data.
+        # Remove the test user and associated data.
         delete_user_by_email(email)
+
+
+# ============================================================
+# DELETE VIDEO TESTS
+# ============================================================
+
+
+def test_authenticated_user_can_delete_video():
+    """
+    Verify that an authenticated user can delete their own
+    video.
+
+    The test creates a video record, creates its physical file,
+    deletes the video through the API, and then verifies that
+    both the database record and physical file are removed.
+    """
+
+    email = "video.delete@example.com"
+    password = "SecurePassword123"
+
+    # Remove leftover data from previous test runs.
+    delete_user_by_email(email)
+
+    try:
+        # ----------------------------------------------------
+        # Create test user.
+        # ----------------------------------------------------
+
+        user = create_test_user(
+            email=email,
+            password=password,
+        )
+
+        # ----------------------------------------------------
+        # Generate an access token.
+        # ----------------------------------------------------
+
+        token = create_access_token(
+            data={
+                "sub": str(user.user_id),
+            }
+        )
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+        }
+
+        # ----------------------------------------------------
+        # Create a physical test video file.
+        # ----------------------------------------------------
+
+        video_path = Path(
+            "uploads/videos/delete-test.mp4"
+        )
+
+        video_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        video_path.write_bytes(
+            b"fake video content"
+        )
+
+        # ----------------------------------------------------
+        # Create the database video record.
+        # ----------------------------------------------------
+
+        db = SessionLocal()
+
+        try:
+            video = Video(
+                user_id=user.user_id,
+                video_path=str(video_path),
+                processing_status="uploaded",
+            )
+
+            db.add(video)
+            db.commit()
+            db.refresh(video)
+
+            video_id = video.video_id
+
+        finally:
+            db.close()
+
+        # ----------------------------------------------------
+        # Delete the video through the API.
+        # ----------------------------------------------------
+
+        response = client.delete(
+            f"/api/videos/{video_id}",
+            headers=headers,
+        )
+
+        # ----------------------------------------------------
+        # Verify successful deletion.
+        # ----------------------------------------------------
+
+        assert response.status_code == 204
+
+        # ----------------------------------------------------
+        # Verify that the database record was deleted.
+        # ----------------------------------------------------
+
+        db = SessionLocal()
+
+        try:
+            deleted_video = (
+                db.query(Video)
+                .filter(
+                    Video.video_id == video_id
+                )
+                .first()
+            )
+
+            assert deleted_video is None
+
+        finally:
+            db.close()
+
+        # ----------------------------------------------------
+        # Verify that the physical file was deleted.
+        # ----------------------------------------------------
+
+        assert not video_path.exists()
+
+    finally:
+        # Clean up anything that may remain if the test fails.
+        delete_user_by_email(email)
+
+        # Also remove the test file if it still exists.
+        video_path = Path(
+            "uploads/videos/delete-test.mp4"
+        )
+
+        if video_path.exists():
+            video_path.unlink()
+
+
+def test_unauthenticated_user_cannot_delete_video():
+    """
+    Verify that a video cannot be deleted without authentication.
+    """
+
+    email = "video.delete.unauthenticated@example.com"
+    password = "SecurePassword123"
+
+    delete_user_by_email(email)
+
+    try:
+        # ----------------------------------------------------
+        # Create test user.
+        # ----------------------------------------------------
+
+        user = create_test_user(
+            email=email,
+            password=password,
+        )
+
+        # ----------------------------------------------------
+        # Create a physical test video file.
+        # ----------------------------------------------------
+
+        video_path = Path(
+            "uploads/videos/delete-auth-test.mp4"
+        )
+
+        video_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        video_path.write_bytes(
+            b"fake video content"
+        )
+
+        # ----------------------------------------------------
+        # Create the database video record.
+        # ----------------------------------------------------
+
+        db = SessionLocal()
+
+        try:
+            video = Video(
+                user_id=user.user_id,
+                video_path=str(video_path),
+                processing_status="uploaded",
+            )
+
+            db.add(video)
+            db.commit()
+            db.refresh(video)
+
+            video_id = video.video_id
+
+        finally:
+            db.close()
+
+        # ----------------------------------------------------
+        # Attempt to delete without authentication.
+        # ----------------------------------------------------
+
+        response = client.delete(
+            f"/api/videos/{video_id}",
+        )
+
+        # Authentication is required.
+        assert response.status_code == 401
+
+    finally:
+        # Clean up the test data.
+        delete_user_by_email(email)
+
+        video_path = Path(
+            "uploads/videos/delete-auth-test.mp4"
+        )
+
+        if video_path.exists():
+            video_path.unlink()
+
+
+def test_user_cannot_delete_another_users_video():
+    """
+    Verify that an authenticated user cannot delete a video
+    belonging to another user.
+    """
+
+    owner_email = "video.delete.owner@example.com"
+    other_email = "video.delete.other@example.com"
+    password = "SecurePassword123"
+
+    delete_user_by_email(owner_email)
+    delete_user_by_email(other_email)
+
+    try:
+        # ----------------------------------------------------
+        # Create the video owner.
+        # ----------------------------------------------------
+
+        owner = create_test_user(
+            email=owner_email,
+            password=password,
+        )
+
+        # ----------------------------------------------------
+        # Create another user.
+        # ----------------------------------------------------
+
+        other_user = create_test_user(
+            email=other_email,
+            password=password,
+        )
+
+        # ----------------------------------------------------
+        # Generate a token for the other user.
+        # ----------------------------------------------------
+
+        token = create_access_token(
+            data={
+                "sub": str(other_user.user_id),
+            }
+        )
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+        }
+
+        # ----------------------------------------------------
+        # Create a physical test video file belonging to
+        # the owner.
+        # ----------------------------------------------------
+
+        video_path = Path(
+            "uploads/videos/delete-owner-video.mp4"
+        )
+
+        video_path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        video_path.write_bytes(
+            b"fake video content"
+        )
+
+        # ----------------------------------------------------
+        # Create the owner's video database record.
+        # ----------------------------------------------------
+
+        db = SessionLocal()
+
+        try:
+            video = Video(
+                user_id=owner.user_id,
+                video_path=str(video_path),
+                processing_status="uploaded",
+            )
+
+            db.add(video)
+            db.commit()
+            db.refresh(video)
+
+            video_id = video.video_id
+
+        finally:
+            db.close()
+
+        # ----------------------------------------------------
+        # Attempt to delete the owner's video using the
+        # other user's authentication token.
+        # ----------------------------------------------------
+
+        response = client.delete(
+            f"/api/videos/{video_id}",
+            headers=headers,
+        )
+
+        # The API should not reveal another user's video.
+        assert response.status_code == 404
+
+    finally:
+        # Clean up both test users.
+        delete_user_by_email(owner_email)
+        delete_user_by_email(other_email)
+
+        # Remove the physical file if it still exists.
+        video_path = Path(
+            "uploads/videos/delete-owner-video.mp4"
+        )
+
+        if video_path.exists():
+            video_path.unlink()

@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 
 from sqlalchemy import DateTime, String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
 
@@ -22,52 +22,43 @@ class User(Base):
     """
     SQLAlchemy model representing a SmartFit user.
 
-    Each user is assigned a UUID as their primary key. UUIDs are used
-    consistently throughout the SmartFit database design to identify
-    users and related records.
+    A user can have multiple uploaded videos.
     """
 
-    # Define the name of the PostgreSQL database table.
     __tablename__ = "users"
 
-    # Generate a unique UUID for each user.
-    #
-    # UUIDs provide globally unique identifiers and are consistent
-    # with the UUID-based identifiers used throughout the SmartFit
-    # database design.
+    # --------------------------------------------------------
+    # Primary Key
+    # --------------------------------------------------------
+
     user_id: Mapped[uuid.UUID] = mapped_column(
-    UUID(as_uuid=True),
-    primary_key=True,
-    default=uuid.uuid4,
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
     )
 
-    # Store the user's full name.
+    # --------------------------------------------------------
+    # User Information
+    # --------------------------------------------------------
+
     full_name: Mapped[str] = mapped_column(
         String(100),
         nullable=False,
     )
 
-    # Store the user's email address.
-    #
-    # The email must be unique so that two accounts cannot be
-    # registered using the same email address.
     email: Mapped[str] = mapped_column(
         String(255),
         unique=True,
         nullable=False,
     )
 
-    # Store the securely hashed version of the user's password.
-    #
-    # Plain-text passwords must never be stored in the database.
+    # Store the securely hashed password.
     hashed_password: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
     )
 
-    # Store the user's role within the SmartFit system.
-    #
-    # Examples include:
+    # User role, for example:
     # - customer
     # - retailer
     role: Mapped[str] = mapped_column(
@@ -75,12 +66,27 @@ class User(Base):
         nullable=False,
     )
 
-    # Store the date and time when the user account was created.
-    #
-    # A timezone-aware UTC timestamp is used to ensure consistent
-    # timestamps regardless of the server's local timezone.
+    # --------------------------------------------------------
+    # Account Creation Timestamp
+    # --------------------------------------------------------
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
+    )
+
+    # --------------------------------------------------------
+    # Relationships
+    # --------------------------------------------------------
+
+    # One user can upload many videos.
+    #
+    # The cascade option ensures that when a User is deleted
+    # through SQLAlchemy, their associated Video records are
+    # also deleted.
+    videos = relationship(
+        "Video",
+        back_populates="user",
+        cascade="all, delete-orphan",
     )

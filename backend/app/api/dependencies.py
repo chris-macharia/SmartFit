@@ -1,26 +1,18 @@
 """
-Reusable FastAPI dependencies for the SmartFit backend.
+Authentication dependencies for SmartFit.
 
-This module contains dependencies that can be shared across
-multiple API routes.
+This module contains reusable FastAPI dependencies used to
+authenticate users through JWT access tokens.
 
-The main authentication dependency is get_current_user(),
-which:
-
-1. Extracts the JWT bearer token from the request.
-2. Decodes and validates the JWT.
-3. Retrieves the user's UUID from the "sub" claim.
-4. Finds the corresponding user in the database.
-5. Returns the authenticated User object.
-
-Routes can use this dependency to ensure that only authenticated
-users can access protected resources.
+The main dependency, get_current_user(), extracts the user ID
+from a JWT, validates the token, and retrieves the corresponding
+User record from the database.
 """
 
-from uuid import UUID
+import uuid
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
@@ -29,71 +21,38 @@ from app.db.database import get_db
 from app.models.user import User
 
 
-# ============================================================
-# JWT Bearer Authentication
-# ============================================================
+# OAuth2PasswordBearer tells FastAPI where clients should obtain
+# their access token.
+#
+# The tokenUrl must match the login endpoint exposed by SmartFit.
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/api/auth/login"
+)
 
-# Configure FastAPI's OAuth2 bearer token security scheme.
-#
-# The tokenUrl identifies the endpoint where users authenticate.
-# This is also used by FastAPI's automatically generated
-# Swagger/OpenAPI documentation.
-#
-# The endpoint currently used for login is:
-#
-#     POST /api/users/login
-#
-security = HTTPBearer()
-
-
-# ============================================================
-# Current User Dependency
-# ============================================================
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+    token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ) -> User:
     """
-    Retrieve the currently authenticated SmartFit user.
+    Authenticate the current user using a JWT access token.
 
-    This dependency is used by protected API endpoints.
+    The function performs the following steps:
 
-    The process is:
+    1. Decode and validate the JWT.
+    2. Extract the user's UUID from the "sub" claim.
+    3. Validate that the UUID is correctly formatted.
+    4. Retrieve the user from the database.
+    5. Return the authenticated User object.
 
-    1. FastAPI extracts the bearer token from the Authorization header.
-    2. The JWT signature and expiration are validated.
-    3. The user's UUID is extracted from the "sub" claim.
-    4. The user is retrieved from PostgreSQL.
-    5. The authenticated User object is returned.
-
-    Args:
-        token:
-            JWT access token extracted from the Authorization header.
-
-        db:
-            Database session provided by the get_db dependency.
-
-    Returns:
-        User:
-            The authenticated SmartFit user.
-
-    Raises:
-        HTTPException:
-            HTTP 401 Unauthorized if the token is invalid,
-            malformed, expired, or belongs to a user that
-            no longer exists.
+    Any authentication failure returns HTTP 401 with the same
+    generic error message. This avoids exposing unnecessary
+    information about why authentication failed.
     """
 
-     # Extract the actual JWT from the Authorization header.
-    token = credentials.credentials
-
-
-    # Define the standard response used when authentication fails.
-    #
-    # The WWW-Authenticate header tells the client that the
-    # endpoint requires bearer token authentication.
-    credentials_exception = HTTPException(
+    # Use one consistent authentication error message for all
+    # token and user-validation failures.
+    authentication_error = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate authentication credentials.",
         headers={
@@ -102,60 +61,49 @@ def get_current_user(
     )
 
     try:
-        # Decode and verify the JWT.
-        #
-        # The SECRET_KEY verifies that the token was created
-        # by our application.
-        #
-        # The ALGORITHM specifies which signing algorithm
-        # should be used to validate the token.
+        # Decode the JWT using the application's configured
+        # secret key and signing algorithm.
         payload = jwt.decode(
             token,
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM],
         )
 
-        # Extract the subject ("sub") claim from the JWT.
+        # Extract the subject ("sub") claim.
         #
-        # Our login endpoint stores the user's UUID in this claim.
+        # SmartFit stores the user's UUID as the JWT subject.
         user_id = payload.get("sub")
 
-        # A JWT without a subject cannot be used to identify
-        # the authenticated SmartFit user.
+        # A token without a subject cannot identify a user.
         if user_id is None:
-            raise credentials_exception
+            raise authentication_error
 
-        # Convert the subject string back into a UUID.
+        # Convert the subject into a UUID.
         #
-        # This also validates that the value stored in the JWT
-        # is a correctly formatted UUID.
-        user_uuid = UUID(user_id)
+        # This also validates that the JWT contains a properly
+        # formatted SmartFit user UUID.
+        try:
+            user_uuid = uuid.UUID(user_id)
+        except (ValueError, AttributeError, TypeError):
+            raise authentication_error
 
-    except (JWTError, ValueError):
-        # JWTError catches invalid signatures, expired tokens,
-        # malformed tokens, and other JWT-related errors.
-        #
-        # ValueError catches invalid UUID values.
-        raise credentials_exception
+    except JWTError:
+        # This handles malformed, invalidly signed, or expired
+        # JWTs.
+        raise authentication_error
 
-    # Retrieve the user associated with the UUID from PostgreSQL.
+    # Retrieve the user represented by the JWT.
     user = (
         db.query(User)
         .filter(User.user_id == user_uuid)
         .first()
     )
 
-    # The token may be valid, but the user could have been
-    # deleted from the database after the token was issued.
+    # Do not reveal whether the user exists or not.
+    # Treat a nonexistent user as an invalid authentication
+    # credential.
     if user is None:
-        raise credentials_exception
+        raise authentication_error
 
-    # Return the authenticated User object.
-    #
-    # The protected route can now access information such as:
-    #
-    #     current_user.user_id
-    #     current_user.email
-    #     current_user.full_name
-    #     current_user.role
+    # Authentication succeeded.
     return user

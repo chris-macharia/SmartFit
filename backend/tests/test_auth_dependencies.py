@@ -11,8 +11,10 @@ These tests verify that get_current_user():
 6. Rejects an expired JWT.
 """
 
+import uuid
 from datetime import datetime, timedelta, timezone
 
+from fastapi.security import HTTPAuthorizationCredentials
 from jose import jwt
 
 from app.api.dependencies import get_current_user
@@ -20,6 +22,33 @@ from app.core.config import settings
 from app.core.security import create_access_token
 from app.db.database import SessionLocal
 from app.models.user import User
+
+
+# ============================================================
+# Test Helpers
+# ============================================================
+
+def create_bearer_credentials(
+    token: str,
+) -> HTTPAuthorizationCredentials:
+    """
+    Create HTTP Bearer credentials for testing.
+
+    In a real HTTP request, the client sends the JWT using:
+
+        Authorization: Bearer <token>
+
+    HTTPBearer converts this header into an
+    HTTPAuthorizationCredentials object.
+
+    This helper creates the same object when testing
+    get_current_user() directly.
+    """
+
+    return HTTPAuthorizationCredentials(
+        scheme="Bearer",
+        credentials=token,
+    )
 
 
 def delete_user_by_email(email: str):
@@ -75,6 +104,10 @@ def create_test_user(email: str) -> User:
         db.close()
 
 
+# ============================================================
+# Valid JWT Test
+# ============================================================
+
 def test_get_current_user_returns_authenticated_user():
     """
     Verify that a valid JWT returns the correct User object.
@@ -96,9 +129,15 @@ def test_get_current_user_returns_authenticated_user():
             }
         )
 
+        # Convert the JWT into HTTP Bearer credentials.
+        #
+        # This mirrors what FastAPI's HTTPBearer dependency
+        # produces from an Authorization: Bearer <token> header.
+        credentials = create_bearer_credentials(token)
+
         # Run the authentication dependency directly.
         authenticated_user = get_current_user(
-            token=token,
+            credentials=credentials,
             db=db,
         )
 
@@ -112,6 +151,10 @@ def test_get_current_user_returns_authenticated_user():
         delete_user_by_email(email)
 
 
+# ============================================================
+# Invalid JWT Test
+# ============================================================
+
 def test_invalid_token_is_rejected():
     """
     Verify that a malformed or invalid JWT is rejected.
@@ -122,9 +165,12 @@ def test_invalid_token_is_rejected():
     try:
         invalid_token = "this.is.not.a.valid.jwt"
 
+        # Convert the invalid JWT into Bearer credentials.
+        credentials = create_bearer_credentials(invalid_token)
+
         try:
             get_current_user(
-                token=invalid_token,
+                credentials=credentials,
                 db=db,
             )
 
@@ -142,6 +188,10 @@ def test_invalid_token_is_rejected():
     finally:
         db.close()
 
+
+# ============================================================
+# Missing Subject Test
+# ============================================================
 
 def test_token_without_subject_is_rejected():
     """
@@ -161,9 +211,12 @@ def test_token_without_subject_is_rejected():
             algorithm=settings.ALGORITHM,
         )
 
+        # Convert the JWT into Bearer credentials.
+        credentials = create_bearer_credentials(token)
+
         try:
             get_current_user(
-                token=token,
+                credentials=credentials,
                 db=db,
             )
 
@@ -179,6 +232,10 @@ def test_token_without_subject_is_rejected():
     finally:
         db.close()
 
+
+# ============================================================
+# Invalid UUID Test
+# ============================================================
 
 def test_token_with_invalid_uuid_is_rejected():
     """
@@ -196,9 +253,12 @@ def test_token_with_invalid_uuid_is_rejected():
             }
         )
 
+        # Convert the JWT into Bearer credentials.
+        credentials = create_bearer_credentials(token)
+
         try:
             get_current_user(
-                token=token,
+                credentials=credentials,
                 db=db,
             )
 
@@ -214,6 +274,10 @@ def test_token_with_invalid_uuid_is_rejected():
     finally:
         db.close()
 
+
+# ============================================================
+# Non-existent User Test
+# ============================================================
 
 def test_token_for_nonexistent_user_is_rejected():
     """
@@ -225,17 +289,18 @@ def test_token_for_nonexistent_user_is_rejected():
 
     try:
         # Generate a valid UUID that does not belong to a user.
-        import uuid
-
         token = create_access_token(
             data={
                 "sub": str(uuid.uuid4()),
             }
         )
 
+        # Convert the JWT into Bearer credentials.
+        credentials = create_bearer_credentials(token)
+
         try:
             get_current_user(
-                token=token,
+                credentials=credentials,
                 db=db,
             )
 
@@ -251,6 +316,10 @@ def test_token_for_nonexistent_user_is_rejected():
     finally:
         db.close()
 
+
+# ============================================================
+# Expired JWT Test
+# ============================================================
 
 def test_expired_token_is_rejected():
     """
@@ -277,9 +346,12 @@ def test_expired_token_is_rejected():
             algorithm=settings.ALGORITHM,
         )
 
+        # Convert the expired JWT into Bearer credentials.
+        credentials = create_bearer_credentials(token)
+
         try:
             get_current_user(
-                token=token,
+                credentials=credentials,
                 db=db,
             )
 

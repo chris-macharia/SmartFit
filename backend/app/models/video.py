@@ -30,8 +30,6 @@ class Video(Base):
     and tracks its processing status.
 
     The user_id field identifies the user who uploaded the video.
-    The foreign-key relationship will be implemented later when
-    the User database design is refined.
     """
 
     # Define the name of the PostgreSQL database table.

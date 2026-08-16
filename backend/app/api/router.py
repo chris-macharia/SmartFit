@@ -11,7 +11,8 @@ through this central router.
 
 from fastapi import APIRouter
 
-from app.api.routes import users
+from app.api.routes import users, videos
+
 
 # Create the central API router.
 #
@@ -35,4 +36,15 @@ api_router = APIRouter(
 #
 api_router.include_router(
     users.router
+)
+
+
+# Register the Video API routes.
+#
+# This makes the video upload endpoint available under:
+#
+#     /api/videos/
+#
+api_router.include_router(
+    videos.router
 )

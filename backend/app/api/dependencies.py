@@ -20,7 +20,7 @@ users can access protected resources.
 from uuid import UUID
 
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import JWTError, jwt
 from sqlalchemy.orm import Session
 
@@ -43,9 +43,7 @@ from app.models.user import User
 #
 #     POST /api/users/login
 #
-oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/api/users/login"
-)
+security = HTTPBearer()
 
 
 # ============================================================
@@ -53,7 +51,7 @@ oauth2_scheme = OAuth2PasswordBearer(
 # ============================================================
 
 def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db),
 ) -> User:
     """
@@ -86,6 +84,10 @@ def get_current_user(
             malformed, expired, or belongs to a user that
             no longer exists.
     """
+
+     # Extract the actual JWT from the Authorization header.
+    token = credentials.credentials
+
 
     # Define the standard response used when authentication fails.
     #

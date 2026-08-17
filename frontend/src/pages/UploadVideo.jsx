@@ -11,15 +11,15 @@
  * 3. Display a video preview.
  * 4. Display the selected file's information.
  * 5. Allow the user to remove or replace the video.
- * 6. Simulate the upload process.
+ * 6. Upload the video to the SmartFit FastAPI backend.
  *
- * Backend integration will be added later.
- *
- * The eventual backend workflow will be:
+ * Backend workflow:
  *
  *     Video Upload
  *          ↓
  *     FastAPI API
+ *          ↓
+ *     PostgreSQL Video Record
  *          ↓
  *     Computer Vision Processing
  *          ↓
@@ -31,8 +31,14 @@
 import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
+import { uploadVideo } from "../services/videoService";
+
 
 function UploadVideo() {
+  // ============================================================
+  // FILE INPUT REFERENCE
+  // ============================================================
+
   // Reference to the hidden file input.
   //
   // This allows the custom upload interface to trigger
@@ -40,43 +46,60 @@ function UploadVideo() {
   const fileInputRef = useRef(null);
 
 
+  // ============================================================
+  // COMPONENT STATE
+  // ============================================================
+
   // Store the selected video file.
   const [selectedFile, setSelectedFile] = useState(null);
-
 
   // Store the temporary browser URL used to preview the video.
   const [previewUrl, setPreviewUrl] = useState("");
 
-
-  // Store validation errors.
+  // Store validation or API errors.
   const [error, setError] = useState("");
 
-
-  // Track whether the upload simulation is running.
+  // Track whether the upload request is currently running.
   const [uploading, setUploading] = useState(false);
 
-
-  // Store the simulated upload progress.
+  // Store upload progress.
+  //
+  // At this stage, the Fetch API does not provide upload
+  // progress events, so this is used for the upload state.
+  // Real upload progress can be added later if required.
   const [uploadProgress, setUploadProgress] = useState(0);
-
 
   // Store a successful upload message.
   const [success, setSuccess] = useState("");
 
+  // Store the video returned by the backend.
+  //
+  // This is useful during development because it allows us
+  // to confirm that FastAPI successfully created the video
+  // database record.
+  const [uploadedVideo, setUploadedVideo] = useState(null);
+
+
+  // ============================================================
+  // FILE CONFIGURATION
+  // ============================================================
 
   /**
    * Maximum accepted video size.
    *
-   * Five megabytes keeps the frontend test-friendly.
+   * Fifty megabytes allows larger body videos to be uploaded
+   * while still keeping a reasonable file size for testing.
    *
-   * The actual production limit will eventually be
-   * determined by the backend upload configuration.
+   * The backend should also enforce its own upload limits.
    */
-  const MAX_FILE_SIZE = 5 * 1024 * 1024;
+  const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
 
   /**
    * Accepted video formats.
+   *
+   * These match the formats accepted by the FastAPI
+   * video endpoint.
    */
   const ACCEPTED_VIDEO_TYPES = [
     "video/mp4",
@@ -85,13 +108,20 @@ function UploadVideo() {
   ];
 
 
+  // ============================================================
+  // FILE SELECTION
+  // ============================================================
+
   /**
    * Validate and store a selected video file.
+   *
+   * @param {File} file - Selected video file.
    */
   function handleFileSelect(file) {
     // Clear previous feedback.
     setError("");
     setSuccess("");
+    setUploadedVideo(null);
     setUploadProgress(0);
 
 
@@ -101,7 +131,10 @@ function UploadVideo() {
     }
 
 
-    // Check whether the selected file is a supported video type.
+    // ----------------------------------------------------------
+    // Validate file type
+    // ----------------------------------------------------------
+
     if (!ACCEPTED_VIDEO_TYPES.includes(file.type)) {
       setError(
         "Please select an MP4, WebM, or MOV video file."
@@ -111,17 +144,32 @@ function UploadVideo() {
     }
 
 
-    // Check whether the file is within the allowed size.
+    // ----------------------------------------------------------
+    // Validate file size
+    // ----------------------------------------------------------
+
     if (file.size > MAX_FILE_SIZE) {
       setError(
-        "The selected video is too large. Please choose a video smaller than 5 MB."
+        "The selected video is too large. Please choose a video smaller than 50 MB."
       );
 
       return;
     }
 
 
-    // Create a temporary browser URL for the video preview.
+    // ----------------------------------------------------------
+    // Release previous preview URL
+    // ----------------------------------------------------------
+
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+    }
+
+
+    // ----------------------------------------------------------
+    // Create new preview URL
+    // ----------------------------------------------------------
+
     const videoUrl = URL.createObjectURL(file);
 
 
@@ -130,6 +178,10 @@ function UploadVideo() {
     setPreviewUrl(videoUrl);
   }
 
+
+  // ============================================================
+  // FILE INPUT HANDLER
+  // ============================================================
 
   /**
    * Handle selection through the standard file picker.
@@ -141,6 +193,10 @@ function UploadVideo() {
   }
 
 
+  // ============================================================
+  // OPEN FILE PICKER
+  // ============================================================
+
   /**
    * Open the browser's native file selection dialog.
    */
@@ -148,6 +204,10 @@ function UploadVideo() {
     fileInputRef.current?.click();
   }
 
+
+  // ============================================================
+  // DRAG AND DROP
+  // ============================================================
 
   /**
    * Handle drag-and-drop uploads.
@@ -169,8 +229,17 @@ function UploadVideo() {
   }
 
 
+  // ============================================================
+  // REMOVE SELECTED VIDEO
+  // ============================================================
+
   /**
-   * Remove the currently selected video.
+   * Remove the currently selected video from the page.
+   *
+   * This only removes the selected local file.
+   *
+   * It does NOT delete a video that has already been
+   * uploaded to the backend.
    */
   function removeVideo() {
     // Release the temporary browser URL.
@@ -185,6 +254,7 @@ function UploadVideo() {
     setError("");
     setSuccess("");
     setUploadProgress(0);
+    setUploadedVideo(null);
 
 
     // Reset the file input so the same file can be
@@ -195,13 +265,22 @@ function UploadVideo() {
   }
 
 
+  // ============================================================
+  // UPLOAD VIDEO
+  // ============================================================
+
   /**
-   * Simulate uploading the video.
+   * Upload the selected video to the SmartFit backend.
    *
-   * This function will eventually be replaced with a real
-   * API request to the FastAPI backend.
+   * The request is handled by videoService.js, which sends
+   * the file to:
+   *
+   *     POST /api/videos/
+   *
+   * The backend authenticates the user using the JWT.
    */
-  function handleUpload() {
+  async function handleUpload() {
+    // Make sure a file has been selected.
     if (!selectedFile) {
       setError("Please select a video before continuing.");
 
@@ -209,52 +288,104 @@ function UploadVideo() {
     }
 
 
-    // Clear previous messages.
+    // Clear previous feedback.
     setError("");
     setSuccess("");
+    setUploadedVideo(null);
 
 
-    // Begin simulated upload.
+    // Begin upload state.
     setUploading(true);
     setUploadProgress(0);
 
 
-    let progress = 0;
+    try {
+      // --------------------------------------------------------
+      // Send video to FastAPI
+      // --------------------------------------------------------
+
+      const video = await uploadVideo(selectedFile);
 
 
-    // Increase the progress value periodically.
-    const interval = setInterval(() => {
-      progress += 10;
+      // --------------------------------------------------------
+      // Store backend response
+      // --------------------------------------------------------
 
-      setUploadProgress(progress);
+      setUploadedVideo(video);
 
 
-      // Complete the simulated upload at 100%.
-      if (progress >= 100) {
-        clearInterval(interval);
+      // The request has completed successfully.
+      setUploadProgress(100);
 
-        setUploading(false);
 
-        setSuccess(
-          "Video uploaded successfully. Processing will begin shortly."
-        );
+      // Display success message.
+      setSuccess(
+        "Video uploaded successfully. Processing will begin shortly."
+      );
+
+
+      // --------------------------------------------------------
+      // Release local preview
+      // --------------------------------------------------------
+
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
       }
-    }, 150);
+
+
+      // --------------------------------------------------------
+      // Clear selected file
+      // --------------------------------------------------------
+
+      setSelectedFile(null);
+      setPreviewUrl("");
+
+
+      // Reset the file input.
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+
+    } catch (err) {
+      // --------------------------------------------------------
+      // Handle API error
+      // --------------------------------------------------------
+
+      setError(
+        err.message ||
+        "An error occurred while uploading the video."
+      );
+
+    } finally {
+      // Upload request has finished regardless of success
+      // or failure.
+      setUploading(false);
+    }
   }
 
 
+  // ============================================================
+  // FORMAT FILE SIZE
+  // ============================================================
+
   /**
    * Format the file size into a readable value.
+   *
+   * @param {number} bytes - File size in bytes.
+   * @returns {string} Formatted file size.
    */
   function formatFileSize(bytes) {
     if (bytes < 1024 * 1024) {
       return `${(bytes / 1024).toFixed(1)} KB`;
     }
 
-
     return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
   }
 
+
+  // ============================================================
+  // RENDER
+  // ============================================================
 
   return (
     <main className="upload-page">
@@ -272,13 +403,16 @@ function UploadVideo() {
           ← Back to Dashboard
         </Link>
 
+
         <p className="section-label">
           BODY MEASUREMENT
         </p>
 
+
         <h1>
           Upload your body video
         </h1>
+
 
         <p>
           Upload a short video of yourself so SmartFit can
@@ -311,14 +445,17 @@ function UploadVideo() {
               🎥
             </div>
 
+
             <h2>
               Upload your video
             </h2>
+
 
             <p>
               Drag and drop your video here or choose a file
               from your computer.
             </p>
+
 
             <button
               type="button"
@@ -328,6 +465,7 @@ function UploadVideo() {
               Choose Video
             </button>
 
+
             <input
               ref={fileInputRef}
               type="file"
@@ -336,8 +474,9 @@ function UploadVideo() {
               hidden
             />
 
+
             <p className="upload-hint">
-              MP4, WebM, or MOV · Maximum 5 MB
+              MP4, WebM, or MOV · Maximum 50 MB
             </p>
 
           </div>
@@ -363,17 +502,21 @@ function UploadVideo() {
             <div className="video-information">
 
               <div>
+
                 <p className="section-label">
                   SELECTED VIDEO
                 </p>
+
 
                 <h2>
                   {selectedFile.name}
                 </h2>
 
+
                 <p>
                   {formatFileSize(selectedFile.size)}
                 </p>
+
               </div>
 
 
@@ -402,11 +545,13 @@ function UploadVideo() {
                     Uploading video...
                   </span>
 
+
                   <strong>
                     {uploadProgress}%
                   </strong>
 
                 </div>
+
 
                 <div className="progress-track">
 
@@ -436,6 +581,36 @@ function UploadVideo() {
               </div>
             )}
 
+
+            {/* =================================================
+                BACKEND RESPONSE
+                ================================================= */}
+
+            {uploadedVideo && (
+              <div className="video-upload-result">
+
+                <p>
+                  <strong>
+                    Video ID:
+                  </strong>{" "}
+                  {uploadedVideo.video_id}
+                </p>
+
+
+                <p>
+                  <strong>
+                    Processing status:
+                  </strong>{" "}
+                  {uploadedVideo.processing_status}
+                </p>
+
+              </div>
+            )}
+
+
+            {/* =================================================
+                UPLOAD BUTTON
+                ================================================= */}
 
             <button
               type="button"
@@ -481,9 +656,11 @@ function UploadVideo() {
             VIDEO GUIDELINES
           </p>
 
+
           <h2>
             How to record your video
           </h2>
+
 
           <p>
             A clear and consistent video helps SmartFit produce
@@ -496,15 +673,18 @@ function UploadVideo() {
         <div className="guidelines-grid">
 
           {/* Guideline 1 */}
+
           <div className="guideline-card">
 
             <span className="guideline-number">
               01
             </span>
 
+
             <h3>
               Stand upright
             </h3>
+
 
             <p>
               Stand straight with your arms slightly away from
@@ -515,15 +695,18 @@ function UploadVideo() {
 
 
           {/* Guideline 2 */}
+
           <div className="guideline-card">
 
             <span className="guideline-number">
               02
             </span>
 
+
             <h3>
               Use good lighting
             </h3>
+
 
             <p>
               Record in a well-lit environment where your body
@@ -534,15 +717,18 @@ function UploadVideo() {
 
 
           {/* Guideline 3 */}
+
           <div className="guideline-card">
 
             <span className="guideline-number">
               03
             </span>
 
+
             <h3>
               Keep your full body visible
             </h3>
+
 
             <p>
               Make sure your entire body remains inside the
@@ -553,15 +739,18 @@ function UploadVideo() {
 
 
           {/* Guideline 4 */}
+
           <div className="guideline-card">
 
             <span className="guideline-number">
               04
             </span>
 
+
             <h3>
               Move slowly
             </h3>
+
 
             <p>
               Rotate slowly and steadily so the system can

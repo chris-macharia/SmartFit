@@ -30,6 +30,8 @@ The current version of SmartFit includes:
 * 🧪 CRUD persistence tests
 * 🔍 Database model validation tests
 
+---
+
 ### 🔐 Milestone 2 — API Foundation
 
 **Status: ✅ Complete**
@@ -37,18 +39,23 @@ The current version of SmartFit includes:
 The SmartFit backend API foundation has been implemented and tested. It currently includes:
 
 * ⚡ FastAPI API structure
-* 👤 User registration API
+* 👤 User registration API (`POST /api/users/`)
 * 📧 Email uniqueness validation
 * 🔐 Secure password hashing using bcrypt
 * 🔑 Password verification
-* 🔓 User login API
+* 🔓 User login API (`POST /api/users/login`)
 * 🎟️ JWT access token generation
 * 🛡️ JWT authentication and validation
-* 👤 Protected current-user profile endpoint
+* 👤 Protected current-user profile endpoint (`GET /api/users/me`)
+* 🎥 Video upload API (`POST /api/videos/`)
+* 🗑️ Video delete API (`DELETE /api/videos/{video_id}`)
 * 🔗 Shared database session dependency
+* 🌐 CORS configuration for the React/Vite frontend
 * 🧪 Isolated PostgreSQL test database
 * 🔄 Repeatable automated API tests
 * 🔒 Secure API responses that do not expose password hashes
+
+---
 
 ### 💻 Milestone 3 — Frontend Foundation
 
@@ -70,13 +77,76 @@ The initial SmartFit React frontend has been implemented as a stable user interf
 * 📱 Responsive frontend structure
 * 🧩 Reusable frontend components and layouts
 
-The frontend currently operates independently from the backend. API integration is planned for the next milestone.
+---
+
+### 🔗 Milestone 4 — Frontend & Backend Integration
+
+**Status: 🟡 In Progress (Core integration complete)**
+
+The React frontend is now connected to the FastAPI backend for authentication and video upload. Completed integration work includes:
+
+* 🔗 Shared frontend API client (`src/services/api.js`)
+* 🌍 Frontend environment configuration (`VITE_API_URL`)
+* 📝 Registration API integration
+* 🔐 Login API integration
+* 🎟️ JWT token storage and automatic Bearer authentication
+* 🧠 Centralized authentication state (`AuthContext`)
+* 🛡️ Protected frontend routes with session restoration
+* 👤 Current-user profile integration (Dashboard, Navbar)
+* 🚪 Logout functionality
+* 🎥 Video upload API integration
+
+Remaining Milestone 4 work:
+
+* 🗑️ Video delete integration in the frontend UI
+* 📋 Display uploaded video status and history
+* 🧪 Frontend integration testing and polish
+* ⚠️ Consistent error handling across integrated pages
+
+---
+
+### 🔮 Milestone 5 — Video Processing & Body Measurement
+
+**Status: ⬜ Planned**
+
+* 🎥 Body video processing pipeline
+* 👁️ Computer vision integration (OpenCV + MediaPipe)
+* 📏 Body measurement estimation from video
+* 🔄 Video processing status updates
+* 💾 Persisted body measurement records
+
+---
+
+### 🔮 Milestone 6 — Avatar Generation & Virtual Fitting
+
+**Status: ⬜ Planned**
+
+* 🧍 Digital avatar generation from body measurements
+* 👕 Garment upload and management (retailer workflow)
+* 🪞 Virtual fitting engine
+* 📊 Size recommendation logic
+* 🎨 3D visualization (Three.js)
+* 📈 Fit result display
+
+---
 
 ### 📊 Test Status
 
-**55 automated backend tests — ✅ All Passing**
+**61 automated backend tests — ✅ All Passing**
 
-The automated test suite covers database models, CRUD operations, API endpoints, password security, user authentication, JWT authentication, and protected endpoints.
+The automated test suite covers:
+
+* 🔌 Database connectivity
+* 🗄️ Database model registration
+* 📋 Table columns and UUID primary keys
+* 🔗 Foreign key and one-to-one relationships
+* 💾 CRUD persistence
+* 👤 User registration and schema validation
+* 🔐 Password hashing and verification
+* 🔑 JWT authentication
+* 🛡️ Protected API endpoints
+* 🎥 Video upload and delete API behaviour
+* 🪞 Virtual fitting relationships
 
 ---
 
@@ -89,16 +159,22 @@ The automated test suite covers database models, CRUD operations, API endpoints,
 * 🔗 SQLAlchemy
 * 🐘 PostgreSQL
 * 📦 Pydantic
-* 🔐 Passlib
+* 🔐 Passlib / bcrypt
 * 🔑 JWT
 * 🧪 Pytest
 
 ### 💻 Frontend
 
-* ⚛️ React
-* ⚡ Vite
-* 🧭 React Router
+* ⚛️ React 19
+* ⚡ Vite 8
+* 🧭 React Router 7
+* 📡 Fetch API (via shared `apiRequest` client)
 * 🎨 CSS
+
+### 🔮 Planned Processing & Visualization
+
+* 👁️ OpenCV + MediaPipe (body measurement extraction)
+* 🎨 Three.js (virtual fitting visualization)
 
 ### 🔧 Development Tools
 
@@ -116,14 +192,18 @@ SmartFit/
 ├── backend/
 │   ├── app/
 │   │   ├── api/
+│   │   │   ├── routes/
+│   │   │   │   ├── users.py
+│   │   │   │   └── videos.py
+│   │   │   ├── dependencies.py
+│   │   │   └── router.py
 │   │   ├── core/
+│   │   │   ├── config.py
+│   │   │   └── security.py
 │   │   ├── db/
 │   │   ├── models/
 │   │   ├── schemas/
-│   │   ├── services/
-│   │   ├── utils/
-│   │   ├── main.py
-│   │   └── __init__.py
+│   │   └── main.py
 │   │
 │   ├── tests/
 │   ├── uploads/
@@ -135,10 +215,17 @@ SmartFit/
 │   ├── public/
 │   ├── src/
 │   │   ├── components/
+│   │   ├── context/
+│   │   │   └── AuthContext.jsx
 │   │   ├── layouts/
 │   │   ├── pages/
+│   │   ├── services/
+│   │   │   ├── api.js
+│   │   │   ├── authService.js
+│   │   │   └── videoService.js
 │   │   ├── App.jsx
-│   │   └── index.css
+│   │   └── main.jsx
+│   ├── .env.example
 │   ├── package.json
 │   └── vite.config.js
 │
@@ -256,7 +343,7 @@ The test database is used exclusively by the automated test suite to prevent tes
 
 ---
 
-## 6️⃣ Configure Environment Variables 🔐
+## 6️⃣ Configure Backend Environment Variables 🔐
 
 Create a local `.env` file by copying the provided example:
 
@@ -264,9 +351,7 @@ Create a local `.env` file by copying the provided example:
 Copy-Item .env.example .env
 ```
 
-Open `.env` and replace `YOUR_PASSWORD` with the password configured for your PostgreSQL `postgres` user.
-
-The configuration should follow this format:
+Open `.env` and replace the placeholder values with your local configuration:
 
 ```env
 # Development Database
@@ -274,6 +359,11 @@ DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/SmartFit_db
 
 # Test Database
 TEST_DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/SmartFit_Test_db
+
+# JWT Authentication
+SECRET_KEY=YOUR_SECRET_KEY
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
 **⚠️ Important:** Do not commit the `.env` file to Git.
@@ -326,7 +416,7 @@ pytest -v
 The current expected result is:
 
 ```text
-55 passed
+61 passed
 ```
 
 The test suite uses the isolated `SmartFit_Test_db` database and verifies:
@@ -342,6 +432,7 @@ The test suite uses the isolated `SmartFit_Test_db` database and verifies:
 * 🔐 Password hashing and verification
 * 🔑 JWT authentication
 * 🛡️ Protected API endpoints
+* 🎥 Video upload and delete API behaviour
 * 🪞 Virtual fitting relationships
 
 All tests should pass before changes are merged into the `main` branch.
@@ -358,9 +449,17 @@ From the `backend` directory:
 uvicorn app.main:app --reload
 ```
 
-The FastAPI development server will start locally.
+The FastAPI development server will start locally at:
 
-The interactive API documentation can be accessed through the FastAPI Swagger UI.
+```text
+http://127.0.0.1:8000
+```
+
+The interactive API documentation can be accessed at:
+
+```text
+http://127.0.0.1:8000/docs
+```
 
 ---
 
@@ -393,15 +492,50 @@ npm install
 
 ---
 
-## 1️⃣2️⃣ Start the Frontend Development Server
+## 1️⃣2️⃣ Configure Frontend Environment Variables
+
+Create a local `.env` file by copying the provided example:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+The default configuration should be:
+
+```env
+VITE_API_URL=http://127.0.0.1:8000
+```
+
+**⚠️ Important:** Do not commit the `.env` file to Git.
+
+Frontend environment files containing `VITE_*` variables should not contain sensitive backend credentials or secrets, because Vite exposes these variables to frontend code.
+
+---
+
+## 1️⃣3️⃣ Start the Frontend Development Server
 
 ```powershell
 npm run dev
 ```
 
-Vite will provide a local development address in the terminal.
+Vite will provide a local development address in the terminal (typically `http://localhost:5173`).
 
 Open the displayed address in your browser to access the SmartFit frontend.
+
+---
+
+# 🔌 Current API Endpoints
+
+| Method | Endpoint | Auth | Description |
+|--------|----------|------|-------------|
+| `GET` | `/` | No | API health check |
+| `POST` | `/api/users/` | No | Register a new user |
+| `POST` | `/api/users/login` | No | Authenticate and receive JWT |
+| `GET` | `/api/users/me` | Yes | Get current user profile |
+| `POST` | `/api/videos/` | Yes | Upload a body video |
+| `DELETE` | `/api/videos/{video_id}` | Yes | Delete a user's video |
+
+Models exist in the database layer for avatars, garments, body measurements, and virtual fittings, but API routes for those features have not been implemented yet.
 
 ---
 
@@ -439,39 +573,16 @@ main
 🚀 Merge into main
 ```
 
-### 📌 Completed Milestones
+### 📌 Milestone Summary
 
-**Milestone 1 — Database and Persistence Layer**
-
-Status: ✅ Complete
-
-**Milestone 2 — API Foundation**
-
-Status: ✅ Complete
-
-Tests: 🧪 55 passing
-
-**Milestone 3 — Frontend Foundation**
-
-Status: ✅ Complete
-
-### 🔜 Current Milestone
-
-**Milestone 4 — Frontend & Backend Integration**
-
-Status: 🟡 Planned
-
-The next development stage will connect the React frontend to the completed FastAPI backend.
-
-The initial integration will focus on:
-
-* 🔗 Frontend API client
-* 📝 Registration API integration
-* 🔐 Login API integration
-* 🎟️ JWT token handling
-* 🛡️ Protected frontend routes
-* 👤 Current-user profile integration
-* 🎥 Video upload API integration
+| Milestone | Status |
+|-----------|--------|
+| 1 — Database & Persistence Layer | ✅ Complete |
+| 2 — API Foundation | ✅ Complete |
+| 3 — Frontend Foundation | ✅ Complete |
+| 4 — Frontend & Backend Integration | 🟡 In Progress |
+| 5 — Video Processing & Body Measurement | ⬜ Planned |
+| 6 — Avatar Generation & Virtual Fitting | ⬜ Planned |
 
 ---
 
@@ -482,18 +593,22 @@ Never commit sensitive credentials to GitHub.
 The following files should remain local:
 
 ```text
-.env
+backend/.env
+frontend/.env
 ```
 
-The following file may be committed:
+The following files may be committed:
 
 ```text
-.env.example
+backend/.env.example
+frontend/.env.example
 ```
 
-The `.env.example` file contains configuration placeholders only and does not contain real credentials.
+The `.env.example` files contain configuration placeholders only and do not contain real credentials.
 
 Frontend environment files containing `VITE_*` variables should also not contain sensitive backend credentials or secrets, because Vite exposes these variables to frontend code.
+
+Passwords are hashed on the backend using bcrypt. JWT access tokens are stored in the browser's `localStorage` under the key `smartfit_token`.
 
 ---
 
@@ -527,15 +642,20 @@ The objective is to ensure that the `main` branch remains a **stable, reproducib
 
 🚧 **Currently in active development**
 
-**Milestone 1:** ✅ Database & Persistence Layer
+**Completed:**
 
-**Milestone 2:** ✅ API Foundation
+* ✅ Database & Persistence Layer
+* ✅ API Foundation
+* ✅ Frontend Foundation
 
-**Milestone 3:** ✅ Frontend Foundation
+**In Progress:**
 
-**Milestone 4:** 🟡 Frontend & Backend Integration
+* 🟡 Frontend & Backend Integration (auth and video upload connected)
 
-**Future:** 🎥 Video Processing · 📏 Body Measurement Estimation · 🧍 Avatar Generation · 👕 Virtual Fitting · 📊 Size Recommendations
+**Upcoming:**
 
-```
-```
+* ⬜ Video Processing & Body Measurement Estimation
+* ⬜ Avatar Generation
+* ⬜ Garment Management
+* ⬜ Virtual Fitting & Size Recommendations
+* ⬜ 3D Visualization

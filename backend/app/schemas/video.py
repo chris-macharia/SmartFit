@@ -40,6 +40,12 @@ class VideoResponse(BaseModel):
     # - failed
     processing_status: str
 
+    # User-provided height used to calibrate measurement estimates.
+    user_height_cm: float | None
+
+    # User-safe message explaining why processing failed, if it did.
+    processing_error: str | None
+
     # Date and time when the video was originally uploaded.
     uploaded_at: datetime
 

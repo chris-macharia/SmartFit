@@ -53,6 +53,10 @@ function UploadVideo() {
   // Store the selected video file.
   const [selectedFile, setSelectedFile] = useState(null);
 
+  // Store the user's declared height. SmartFit uses this value as the
+  // real-world scale reference for the initial measurement estimates.
+  const [userHeightCm, setUserHeightCm] = useState("");
+
   // Store the temporary browser URL used to preview the video.
   const [previewUrl, setPreviewUrl] = useState("");
 
@@ -87,12 +91,12 @@ function UploadVideo() {
   /**
    * Maximum accepted video size.
    *
-   * Fifty megabytes allows larger body videos to be uploaded
-   * while still keeping a reasonable file size for testing.
+   * Five hundred megabytes accommodates realistic short body videos,
+   * particularly those recorded by modern mobile phones.
    *
    * The backend should also enforce its own upload limits.
    */
-  const MAX_FILE_SIZE = 50 * 1024 * 1024;
+  const MAX_FILE_SIZE = 500 * 1024 * 1024;
 
 
   /**
@@ -288,6 +292,17 @@ function UploadVideo() {
     }
 
 
+    // A camera video does not contain a dependable centimetre scale by
+    // itself, so height is required before the backend can process it.
+    const parsedHeight = Number(userHeightCm);
+
+    if (!Number.isFinite(parsedHeight) || parsedHeight < 100 || parsedHeight > 250) {
+      setError("Please enter your height between 100 cm and 250 cm.");
+
+      return;
+    }
+
+
     // Clear previous feedback.
     setError("");
     setSuccess("");
@@ -304,7 +319,10 @@ function UploadVideo() {
       // Send video to FastAPI
       // --------------------------------------------------------
 
-      const video = await uploadVideo(selectedFile);
+      const video = await uploadVideo(
+        selectedFile,
+        parsedHeight
+      );
 
 
       // --------------------------------------------------------
@@ -429,6 +447,30 @@ function UploadVideo() {
 
       <section className="upload-content">
 
+        {/*
+          Height calibrates normalized pose landmarks to centimetres. It is
+          collected alongside the video rather than inferred from one
+          uncalibrated camera recording.
+        */}
+        <div className="form-group upload-height-field">
+          <label htmlFor="user-height-cm">
+            Your height (cm)
+          </label>
+
+          <input
+            id="user-height-cm"
+            type="number"
+            min="100"
+            max="250"
+            step="0.1"
+            value={userHeightCm}
+            onChange={(event) => setUserHeightCm(event.target.value)}
+            placeholder="e.g. 175"
+            required
+            disabled={uploading}
+          />
+        </div>
+
         {!selectedFile ? (
 
           /* =================================================
@@ -451,13 +493,13 @@ function UploadVideo() {
             </h2>
 
 
-            <p>
-              Drag and drop your video here or choose a file
-              from your computer.
-            </p>
+              <p>
+                Drag and drop your video here or choose a file
+                from your computer.
+              </p>
 
 
-            <button
+              <button
               type="button"
               className="primary-button"
               onClick={openFilePicker}
@@ -476,7 +518,7 @@ function UploadVideo() {
 
 
             <p className="upload-hint">
-              MP4, WebM, or MOV · Maximum 50 MB
+              MP4, WebM, or MOV · Maximum 500 MB
             </p>
 
           </div>
@@ -603,6 +645,16 @@ function UploadVideo() {
                   </strong>{" "}
                   {uploadedVideo.processing_status}
                 </p>
+
+
+                {uploadedVideo.processing_error && (
+                  <p>
+                    <strong>
+                      Processing note:
+                    </strong>{" "}
+                    {uploadedVideo.processing_error}
+                  </p>
+                )}
 
               </div>
             )}

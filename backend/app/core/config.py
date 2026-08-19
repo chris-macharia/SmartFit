@@ -80,6 +80,19 @@ class Settings:
     )
 
 
+    # ============================================================
+    # Computer Vision Configuration
+    # ============================================================
+
+    # Location of the MediaPipe task model used to detect body pose
+    # landmarks in an uploaded video. The model file is downloaded
+    # locally and is not committed to source control.
+    POSE_LANDMARKER_MODEL_PATH: str = os.getenv(
+        "POSE_LANDMARKER_MODEL_PATH",
+        "models/pose_landmarker_lite.task",
+    )
+
+
 # Create a single Settings instance that can be imported and reused
 # throughout the application.
 #

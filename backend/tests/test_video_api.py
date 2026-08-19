@@ -1,18 +1,22 @@
 """
 Tests for the SmartFit Video API.
 
-This module tests video creation/upload and deletion functionality
-for authenticated and unauthenticated users.
+This module tests video creation/upload, status retrieval, and deletion
+functionality for authenticated and unauthenticated users.
 
 The tests verify that:
 
 1. Authenticated users can upload supported video files.
 2. Unauthenticated users cannot upload videos.
 3. Authenticated users cannot upload unsupported file types.
-4. Authenticated users can delete their own videos.
-5. Unauthenticated users cannot delete videos.
-6. Authenticated users cannot delete another user's video.
-7. Test data and uploaded files are cleaned up after each test.
+4. Authenticated users can retrieve their own video status and metadata.
+5. Unauthenticated users cannot retrieve video information.
+6. Non-existent video requests return 404 Not Found.
+7. Authenticated users cannot access another user's video.
+8. Authenticated users can delete their own videos.
+9. Unauthenticated users cannot delete videos.
+10. Authenticated users cannot delete another user's video.
+11. Test data and uploaded files are cleaned up after each test.
 
 SmartFit does not provide an update operation for videos.
 
@@ -20,6 +24,7 @@ If a user records or selects an incorrect video, the existing
 video can be deleted and a new video can be uploaded instead.
 """
 
+import uuid
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -188,6 +193,9 @@ def test_authenticated_user_can_upload_video():
                     "video/mp4",
                 )
             },
+            data={
+                "user_height_cm": "175",
+            },
         )
 
         # ----------------------------------------------------
@@ -219,7 +227,10 @@ def test_authenticated_user_can_upload_video():
 
             assert video is not None
             assert video.user_id is not None
-            assert video.processing_status == "uploaded"
+            # TestClient completes background tasks before returning control.
+            # The intentionally invalid test bytes therefore produce the
+            # expected terminal failed state after a successful upload.
+            assert video.processing_status == "failed"
 
         finally:
             db.close()
@@ -243,6 +254,9 @@ def test_unauthenticated_user_cannot_upload_video():
                 b"fake video content",
                 "video/mp4",
             )
+        },
+        data={
+            "user_height_cm": "175",
         },
     )
 
@@ -303,6 +317,9 @@ def test_authenticated_user_cannot_upload_unsupported_file():
                     b"This is not a video.",
                     "text/plain",
                 )
+            },
+            data={
+                "user_height_cm": "175",
             },
         )
 
@@ -656,3 +673,203 @@ def test_user_cannot_delete_another_users_video():
 
         if video_path.exists():
             video_path.unlink()
+
+
+# ============================================================
+# RETRIEVE / GET VIDEO TESTS
+# ============================================================
+
+
+def test_authenticated_owner_can_get_video():
+    """
+    Verify that an authenticated user can retrieve the status
+    and details of a video they own.
+    """
+
+    email = "video.get.owner@example.com"
+    password = "SecurePassword123"
+
+    delete_user_by_email(email)
+
+    try:
+        user = create_test_user(
+            email=email,
+            password=password,
+        )
+
+        token = create_access_token(
+            data={
+                "sub": str(user.user_id),
+            }
+        )
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+        }
+
+        # Create a test video in the database.
+        db = SessionLocal()
+
+        try:
+            video = Video(
+                user_id=user.user_id,
+                video_path="uploads/videos/get-test.mp4",
+                processing_status="completed",
+                user_height_cm=175.5,
+                processing_error=None,
+            )
+
+            db.add(video)
+            db.commit()
+            db.refresh(video)
+
+            video_id = video.video_id
+
+        finally:
+            db.close()
+
+        # Retrieve the video through the GET API.
+        response = client.get(
+            f"/api/videos/{video_id}",
+            headers=headers,
+        )
+
+        assert response.status_code == 200
+
+        data = response.json()
+
+        assert data["video_id"] == str(video_id)
+        assert data["user_id"] == str(user.user_id)
+        assert data["video_path"] == "uploads/videos/get-test.mp4"
+        assert data["processing_status"] == "completed"
+        assert data["user_height_cm"] == 175.5
+        assert data["processing_error"] is None
+        assert "uploaded_at" in data
+
+    finally:
+        delete_user_by_email(email)
+
+
+def test_unauthenticated_user_cannot_get_video():
+    """
+    Verify that an unauthenticated request to retrieve a video
+    is rejected with HTTP 401.
+    """
+
+    fake_video_id = uuid.uuid4()
+
+    response = client.get(
+        f"/api/videos/{fake_video_id}",
+    )
+
+    assert response.status_code == 401
+
+
+def test_get_nonexistent_video_returns_404():
+    """
+    Verify that an authenticated user requesting a nonexistent video ID
+    receives HTTP 404 Not Found.
+    """
+
+    email = "video.get.nonexistent@example.com"
+    password = "SecurePassword123"
+
+    delete_user_by_email(email)
+
+    try:
+        user = create_test_user(
+            email=email,
+            password=password,
+        )
+
+        token = create_access_token(
+            data={
+                "sub": str(user.user_id),
+            }
+        )
+
+        headers = {
+            "Authorization": f"Bearer {token}",
+        }
+
+        nonexistent_id = uuid.uuid4()
+
+        response = client.get(
+            f"/api/videos/{nonexistent_id}",
+            headers=headers,
+        )
+
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Video not found."
+
+    finally:
+        delete_user_by_email(email)
+
+
+def test_authenticated_user_cannot_get_another_users_video():
+    """
+    Verify that an authenticated user cannot retrieve a video
+    belonging to another user, receiving HTTP 404.
+    """
+
+    owner_email = "video.get.owner.other@example.com"
+    viewer_email = "video.get.viewer@example.com"
+    password = "SecurePassword123"
+
+    delete_user_by_email(owner_email)
+    delete_user_by_email(viewer_email)
+
+    try:
+        owner = create_test_user(
+            email=owner_email,
+            password=password,
+        )
+
+        viewer = create_test_user(
+            email=viewer_email,
+            password=password,
+        )
+
+        viewer_token = create_access_token(
+            data={
+                "sub": str(viewer.user_id),
+            }
+        )
+
+        viewer_headers = {
+            "Authorization": f"Bearer {viewer_token}",
+        }
+
+        # Create owner's video in the database.
+        db = SessionLocal()
+
+        try:
+            video = Video(
+                user_id=owner.user_id,
+                video_path="uploads/videos/owner-video-get.mp4",
+                processing_status="uploaded",
+                user_height_cm=180.0,
+            )
+
+            db.add(video)
+            db.commit()
+            db.refresh(video)
+
+            owner_video_id = video.video_id
+
+        finally:
+            db.close()
+
+        # The viewer attempts to retrieve the owner's video.
+        response = client.get(
+            f"/api/videos/{owner_video_id}",
+            headers=viewer_headers,
+        )
+
+        # The API returns 404 to avoid leaking existence of other users' videos.
+        assert response.status_code == 404
+        assert response.json()["detail"] == "Video not found."
+
+    finally:
+        delete_user_by_email(owner_email)
+        delete_user_by_email(viewer_email)

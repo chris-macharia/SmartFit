@@ -83,37 +83,50 @@ The initial SmartFit React frontend has been implemented as a stable user interf
 
 **Status: 🟡 In Progress (Core integration complete)**
 
-The React frontend is now connected to the FastAPI backend for authentication and video upload. Completed integration work includes:
+The React frontend is connected to the FastAPI backend for authentication and video upload. Completed integration work includes:
 
 * 🔗 Shared frontend API client (`src/services/api.js`)
 * 🌍 Frontend environment configuration (`VITE_API_URL`)
-* 📝 Registration API integration
-* 🔐 Login API integration
-* 🎟️ JWT token storage and automatic Bearer authentication
+* 📝 Registration API integration (`/api/users/`)
+* 🔐 Login API integration (`/api/users/login`)
+* 🎟️ JWT token storage in `localStorage` and automatic Bearer authentication header injection
 * 🧠 Centralized authentication state (`AuthContext`)
-* 🛡️ Protected frontend routes with session restoration
-* 👤 Current-user profile integration (Dashboard, Navbar)
+* 🛡️ Protected frontend routes (`ProtectedRoute`) with session restoration
+* 👤 Current-user profile integration on Dashboard (`/api/users/me`) and Navbar
 * 🚪 Logout functionality
-* 🎥 Video upload API integration
+* 🎥 Video upload API integration (`/api/videos/`) with user-declared height input (100–250 cm) and 500 MB limit
+* 📋 Display of initial video upload response and processing notes/errors on the upload page
 
-Remaining Milestone 4 work:
+Remaining Milestone 4 work (Planned / Not Yet Implemented):
 
-* 🗑️ Video delete integration in the frontend UI
-* 📋 Display uploaded video status and history
-* 🧪 Frontend integration testing and polish
+* 🗑️ Video deletion integration in the frontend UI (the `deleteVideo` service function exists, but no UI action is yet provided)
+* 🔄 Video processing status polling (updating video state from `uploaded` to `processing` and `completed` / `failed`)
+* 📏 Display of estimated body measurements on the Dashboard or Avatar page
+* 📜 Uploaded video history and status list
+* 🧪 Frontend integration testing and UI polish
 * ⚠️ Consistent error handling across integrated pages
 
 ---
 
 ### 🔮 Milestone 5 — Video Processing & Body Measurement
 
-**Status: ⬜ Planned**
+**Status: 🟡 In Progress (Core backend pipeline complete)**
 
-* 🎥 Body video processing pipeline
-* 👁️ Computer vision integration (OpenCV + MediaPipe)
-* 📏 Body measurement estimation from video
-* 🔄 Video processing status updates
-* 💾 Persisted body measurement records
+The first video processing slice includes:
+
+* 🎥 Background processing orchestration for uploaded body videos via FastAPI `BackgroundTasks`
+* 👁️ OpenCV and MediaPipe Pose Landmarker integration (`pose_estimator.py`)
+* 📏 Deterministic, height-calibrated shoulder-width and inseam estimation service (`measurement_estimator.py`)
+* 🔄 `uploaded → processing → completed/failed` status transitions
+* 💾 Persisted body-measurement records with confidence metadata and algorithm version tracking
+* 🔍 Video status retrieval API endpoint (`GET /api/videos/{video_id}`)
+* 🛡️ Multi-tenant ownership checks preventing cross-user video inspection
+
+Remaining Milestone 5 work (Planned / Not Yet Implemented):
+
+* 🔄 Frontend polling for real-time video processing completion
+* 📊 Frontend visualization of extracted body measurements
+* 📐 Chest, waist, and hip circumferences (intentionally deferred until 2D silhouette analysis with controlled front and side views is implemented)
 
 ---
 
@@ -132,7 +145,7 @@ Remaining Milestone 4 work:
 
 ### 📊 Test Status
 
-**61 automated backend tests — ✅ All Passing**
+**67 automated backend tests — ✅ All Passing**
 
 The automated test suite covers:
 
@@ -140,12 +153,13 @@ The automated test suite covers:
 * 🗄️ Database model registration
 * 📋 Table columns and UUID primary keys
 * 🔗 Foreign key and one-to-one relationships
-* 💾 CRUD persistence
+* 💾 CRUD persistence for all models
 * 👤 User registration and schema validation
 * 🔐 Password hashing and verification
-* 🔑 JWT authentication
+* 🔑 JWT authentication and authorization dependencies
 * 🛡️ Protected API endpoints
-* 🎥 Video upload and delete API behaviour
+* 🎥 Video upload, retrieval, and delete API behaviour
+* 📏 Body measurement estimation calculations from synthetic pose frames
 * 🪞 Virtual fitting relationships
 
 ---
@@ -374,7 +388,7 @@ The `.env.example` file is provided as a safe configuration template.
 
 ---
 
-# 🗃️ Database Initialization
+# 🗃️ Database Initialization & Schema Management
 
 ## 7️⃣ Create SmartFit Database Tables
 
@@ -389,6 +403,32 @@ A successful initialization should display:
 ```text
 Database tables initialized successfully.
 ```
+
+### 🔄 Database Schema Management During Development
+
+> [!NOTE]
+> The PostgreSQL database currently contains only disposable development and test data.
+>
+> During local development, schema changes are handled by rebuilding or resetting the development and test database schema from the current SQLAlchemy models using the existing reset script. A full production migration strategy (e.g. Alembic migrations) will be established later before production deployment. No manual migration scripts are required for Milestone 5.
+
+To recreate the database schema cleanly from the SQLAlchemy models, stop the FastAPI server and run the existing, guarded reset utility from the `backend` directory:
+
+```powershell
+# Reset only SmartFit_db (the default target)
+python -m scripts.reset_databases --target development
+
+# Reset only SmartFit_Test_db
+python -m scripts.reset_databases --target test
+
+# Reset both disposable local databases
+python -m scripts.reset_databases --target both
+```
+
+The script requires typing the exact confirmation phrase `RESET SMARTFIT DATABASES` before executing. Never use it against a database containing data you need to retain.
+
+### 🤖 Computer Vision Model Setup
+
+Milestone 5 uses the MediaPipe Pose Landmarker model. Download the `.task` model file to the location configured by `POSE_LANDMARKER_MODEL_PATH` in `.env` (default: `backend/models/pose_landmarker_lite.task`). The downloaded `.task` model file is intentionally excluded from Git via `.gitignore`.
 
 The current database contains the following core entities:
 
@@ -416,7 +456,7 @@ pytest -v
 The current expected result is:
 
 ```text
-61 passed
+67 passed
 ```
 
 The test suite uses the isolated `SmartFit_Test_db` database and verifies:
@@ -532,7 +572,8 @@ Open the displayed address in your browser to access the SmartFit frontend.
 | `POST` | `/api/users/` | No | Register a new user |
 | `POST` | `/api/users/login` | No | Authenticate and receive JWT |
 | `GET` | `/api/users/me` | Yes | Get current user profile |
-| `POST` | `/api/videos/` | Yes | Upload a body video |
+| `POST` | `/api/videos/` | Yes | Upload a body video (up to 500 MB) with declared height; starts processing |
+| `GET` | `/api/videos/{video_id}` | Yes | Get a user's video processing status |
 | `DELETE` | `/api/videos/{video_id}` | Yes | Delete a user's video |
 
 Models exist in the database layer for avatars, garments, body measurements, and virtual fittings, but API routes for those features have not been implemented yet.
@@ -581,7 +622,7 @@ main
 | 2 — API Foundation | ✅ Complete |
 | 3 — Frontend Foundation | ✅ Complete |
 | 4 — Frontend & Backend Integration | 🟡 In Progress |
-| 5 — Video Processing & Body Measurement | ⬜ Planned |
+| 5 — Video Processing & Body Measurement | 🟡 In Progress |
 | 6 — Avatar Generation & Virtual Fitting | ⬜ Planned |
 
 ---
@@ -651,10 +692,10 @@ The objective is to ensure that the `main` branch remains a **stable, reproducib
 **In Progress:**
 
 * 🟡 Frontend & Backend Integration (auth and video upload connected)
+* 🟡 Video Processing & Body Measurement (initial pose-based pipeline)
 
 **Upcoming:**
 
-* ⬜ Video Processing & Body Measurement Estimation
 * ⬜ Avatar Generation
 * ⬜ Garment Management
 * ⬜ Virtual Fitting & Size Recommendations

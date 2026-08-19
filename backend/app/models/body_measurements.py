@@ -13,8 +13,9 @@ body video.
 """
 
 import uuid
+from datetime import datetime, timezone
 
-from sqlalchemy import Numeric
+from sqlalchemy import DateTime, Numeric, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import ForeignKey
@@ -75,21 +76,21 @@ class BodyMeasurement(Base):
     )
 
     # Store the estimated chest measurement.
-    chest: Mapped[float] = mapped_column(
+    chest: Mapped[float | None] = mapped_column(
         Numeric,
-        nullable=False,
+        nullable=True,
     )
 
     # Store the estimated waist measurement.
-    waist: Mapped[float] = mapped_column(
+    waist: Mapped[float | None] = mapped_column(
         Numeric,
-        nullable=False,
+        nullable=True,
     )
 
     # Store the estimated hip measurement.
-    hips: Mapped[float] = mapped_column(
+    hips: Mapped[float | None] = mapped_column(
         Numeric,
-        nullable=False,
+        nullable=True,
     )
 
     # Store the estimated shoulder width.
@@ -101,5 +102,29 @@ class BodyMeasurement(Base):
     # Store the estimated inseam measurement.
     inseam: Mapped[float] = mapped_column(
         Numeric,
+        nullable=False,
+    )
+
+    # A value between 0 and 1 representing the reliability of the
+    # processed frames. It supports transparent presentation of these
+    # estimates to users and future calibration work.
+    confidence_score: Mapped[float] = mapped_column(
+        Numeric(3, 2),
+        nullable=False,
+        default=0,
+    )
+
+    # Identifies the measurement algorithm used for this record so
+    # future improvements remain traceable.
+    processing_version: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        default="pose-v1",
+    )
+
+    # Timestamp recording when SmartFit created this estimate.
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )

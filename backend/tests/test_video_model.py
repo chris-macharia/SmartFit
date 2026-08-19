@@ -39,6 +39,8 @@ def test_video_table_columns():
         "user_id",
         "video_path",
         "processing_status",
+        "user_height_cm",
+        "processing_error",
         "uploaded_at",
     }
 
@@ -69,4 +71,5 @@ def test_video_user_id_is_foreign_key():
     # Confirm that the column has exactly one foreign key.
     assert len(foreign_keys) == 1
 
-    # Confirm that the foreign key references users.user_id.    
+    # Confirm that the foreign key references users.user_id.
+    assert foreign_keys[0].target_fullname == "users.user_id"

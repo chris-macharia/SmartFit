@@ -15,9 +15,10 @@ import { apiRequest } from "./api";
  * Upload a video for the authenticated user.
  *
  * @param {File} file - Video selected by the user
+ * @param {number} userHeightCm - User's declared height in centimetres
  * @returns {Promise<Object>} Uploaded video information
  */
-export async function uploadVideo(file) {
+export async function uploadVideo(file, userHeightCm) {
 
     /*
      * Create a FormData object because the FastAPI
@@ -34,6 +35,16 @@ export async function uploadVideo(file) {
     formData.append(
         "file",
         file
+    );
+
+
+    /*
+     * The backend uses the declared height as a scale reference when
+     * converting pose-landmark proportions into centimetre estimates.
+     */
+    formData.append(
+        "user_height_cm",
+        String(userHeightCm)
     );
 
 

@@ -21,3 +21,6 @@ Thumbs.db
 
 # Uploaded  Videos
 backend/uploads/videos*
+
+# Downloaded MediaPipe model assets
+backend/models/*.task

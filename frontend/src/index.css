@@ -1311,26 +1311,33 @@ button {
 
 
 /* ============================================================
-   QUICK ACTION CARDS
+   DASHBOARD FEATURE CARDS
    ============================================================ */
 
-.dashboard-actions {
+/* Match the two-by-two card layout used by the video-recording guidelines.
+   Dashboard.jsx renders four features inside .dashboard-grid. */
+.dashboard-actions,
+.dashboard-grid {
   display: grid;
 
   grid-template-columns: repeat(2, 1fr);
 
-  gap: 1.25rem;
+  gap: 1rem;
 }
 
 
 .dashboard-card {
-  display: block;
+  display: flex;
 
-  padding: 1.75rem;
+  flex-direction: column;
+
+  min-height: 220px;
+
+  padding: 1.5rem;
 
   border: 1px solid var(--border-color);
 
-  border-radius: 16px;
+  border-radius: 14px;
 
   background-color: var(--surface-color);
 
@@ -1382,14 +1389,36 @@ button {
 }
 
 
-.dashboard-card-link {
-  display: inline-block;
+/* Push the action label to the bottom so every tile has a consistent
+   visual rhythm even when descriptions wrap across different lines. */
+.dashboard-card-action {
+  display: block;
 
-  margin-top: 1.25rem;
+  margin-top: auto;
+
+  padding-top: 1.25rem;
 
   font-size: 0.9rem;
 
   font-weight: 600;
+}
+
+
+/* Coming-soon cards deliberately look inactive and do not use the hover
+   elevation reserved for navigable dashboard actions. */
+.dashboard-card-disabled {
+  cursor: default;
+
+  opacity: 0.65;
+}
+
+
+.dashboard-card-disabled:hover {
+  transform: none;
+
+  border-color: var(--border-color);
+
+  box-shadow: none;
 }
 
 
@@ -1540,7 +1569,8 @@ button {
 
 @media (max-width: 800px) {
 
-  .dashboard-actions {
+  .dashboard-actions,
+  .dashboard-grid {
     grid-template-columns: 1fr;
   }
 
@@ -1659,6 +1689,15 @@ button {
 
 .upload-content {
   width: 100%;
+}
+
+
+/* Keep the height calibration control readable without introducing a
+   separate visual language from SmartFit's existing form fields. */
+.upload-height-field {
+  width: min(100%, 28rem);
+
+  margin: 0 auto 1.5rem;
 }
 
 

@@ -11,7 +11,7 @@ SmartFit database design.
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, String, Text
+from sqlalchemy import DateTime, ForeignKey, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -70,6 +70,24 @@ class Video(Base):
     processing_status: Mapped[str] = mapped_column(
         String(30),
         nullable=False,
+    )
+
+    # Height supplied by the user in centimetres.
+    #
+    # A standard phone video has no reliable real-world scale by
+    # itself. This value calibrates landmark proportions produced by
+    # the computer-vision pipeline.
+    user_height_cm: Mapped[float | None] = mapped_column(
+        Numeric(5, 2),
+        nullable=True,
+    )
+
+    # A safe, user-facing explanation when processing cannot finish.
+    # Detailed technical exceptions are logged on the server instead
+    # of being exposed to the frontend.
+    processing_error: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
     )
 
     # Date and time when the video was uploaded.

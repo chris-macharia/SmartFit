@@ -48,6 +48,9 @@ def test_body_measurement_table_columns():
         "hips",
         "shoulder_width",
         "inseam",
+        "confidence_score",
+        "processing_version",
+        "created_at",
     }
 
     # Retrieve the actual column names registered by SQLAlchemy.
@@ -101,4 +104,4 @@ def test_body_measurement_video_id_is_unique():
     video_id_column = body_measurements_table.columns["video_id"]
 
     # Confirm that the column is unique.
-    assert video_id_column.unique is True    
+    assert video_id_column.unique is True

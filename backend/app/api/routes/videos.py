@@ -14,7 +14,8 @@ If a user records or selects an incorrect video, the existing video
 can be deleted and a new video can be uploaded instead.
 
 The computer-vision processing pipeline will be connected later.
-For now, newly uploaded videos receive the status "uploaded".
+Newly uploaded videos are processed in the background and transition
+through uploaded, processing, completed, or failed states.
 """
 
 import uuid
@@ -22,8 +23,10 @@ from pathlib import Path
 
 from fastapi import (
     APIRouter,
+    BackgroundTasks,
     Depends,
     File,
+    Form,
     HTTPException,
     UploadFile,
     status,
@@ -35,6 +38,7 @@ from app.db.database import get_db
 from app.models.user import User
 from app.models.video import Video
 from app.schemas.video import VideoResponse
+from app.services.video_processor import process_video
 
 
 # ============================================================
@@ -86,6 +90,10 @@ ALLOWED_VIDEO_TYPES = {
     "video/webm",
 }
 
+# Maximum accepted upload size: 500 MB. The backend enforces this limit
+# while streaming the file because client-side validation can be bypassed.
+MAX_VIDEO_SIZE_BYTES = 500 * 1024 * 1024
+
 
 # ============================================================
 # CREATE - Upload Video
@@ -97,7 +105,9 @@ ALLOWED_VIDEO_TYPES = {
     status_code=status.HTTP_201_CREATED,
 )
 async def upload_video(
+    background_tasks: BackgroundTasks,
     file: UploadFile = File(...),
+    user_height_cm: float = Form(...),
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -113,10 +123,21 @@ async def upload_video(
     2. Saved to the video upload directory.
     3. Stored in the database.
     4. Assigned the initial processing status "uploaded".
-
-    The computer-vision processing pipeline will later pick up
-    the video for measurement and avatar generation.
+    5. Queued for background measurement processing.
     """
+
+    # --------------------------------------------------------
+    # Validate the supplied measurement calibration data.
+    # --------------------------------------------------------
+
+    # A normal camera video has no inherent centimetre scale. SmartFit
+    # therefore requires a plausible user-declared height before it can
+    # estimate measurements from normalized pose landmarks.
+    if not 100 <= user_height_cm <= 250:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Height must be between 100 cm and 250 cm.",
+        )
 
     # --------------------------------------------------------
     # Validate the uploaded file type.
@@ -164,6 +185,8 @@ async def upload_video(
     # --------------------------------------------------------
 
     try:
+        bytes_written = 0
+
         with file_path.open("wb") as buffer:
 
             # Read the uploaded file in 1 MB chunks.
@@ -171,9 +194,29 @@ async def upload_video(
             # This prevents large videos from being loaded
             # completely into memory.
             while chunk := await file.read(1024 * 1024):
+                bytes_written += len(chunk)
+
+                # Stop before writing beyond SmartFit's maximum. The partial
+                # file is removed below so oversized uploads leave no orphaned
+                # data in the video storage directory.
+                if bytes_written > MAX_VIDEO_SIZE_BYTES:
+                    raise HTTPException(
+                        status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
+                        detail="Video files must not exceed 500 MB.",
+                    )
+
                 buffer.write(chunk)
 
+    except HTTPException:
+        if file_path.exists():
+            file_path.unlink()
+
+        raise
+
     except Exception as exc:
+        if file_path.exists():
+            file_path.unlink()
+
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Unable to save the uploaded video.",
@@ -192,6 +235,7 @@ async def upload_video(
         user_id=current_user.user_id,
         video_path=str(file_path),
         processing_status="uploaded",
+        user_height_cm=user_height_cm,
     )
 
     try:
@@ -213,7 +257,51 @@ async def upload_video(
             detail="Unable to create the video record.",
         ) from exc
 
-    # Return the newly created video.
+    # Start processing after the upload response is prepared. The background
+    # service creates its own database session because this request session
+    # will be closed once FastAPI returns the response.
+    background_tasks.add_task(process_video, video.video_id)
+
+    # Return the newly created video. Its processing state will transition
+    # independently from "uploaded" to "processing" and then a final state.
+    return video
+
+
+# ============================================================
+# READ - Retrieve Video Status
+# ============================================================
+
+@router.get(
+    "/{video_id}",
+    response_model=VideoResponse,
+    status_code=status.HTTP_200_OK,
+)
+def get_video(
+    video_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Return one video owned by the authenticated user.
+
+    The frontend can call this endpoint to poll processing status without
+    being able to inspect another user's uploaded body video.
+    """
+
+    video = (
+        db.query(Video)
+        .filter(
+            Video.video_id == video_id,
+            Video.user_id == current_user.user_id,
+        )
+        .first()
+    )
+
+    if video is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Video not found.",
+        )
+
     return video
 
 

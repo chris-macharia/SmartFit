@@ -52,13 +52,15 @@ class User(Base):
         nullable=False,
     )
 
-    # Store the securely hashed password.
+    # Securely hashed password.
     hashed_password: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
     )
 
-    # User role, for example:
+    # User role.
+    #
+    # Possible roles include:
     # - customer
     # - retailer
     role: Mapped[str] = mapped_column(
@@ -82,9 +84,12 @@ class User(Base):
 
     # One user can upload many videos.
     #
-    # The cascade option ensures that when a User is deleted
-    # through SQLAlchemy, their associated Video records are
-    # also deleted.
+    # Deleting a User through SQLAlchemy deletes their associated
+    # Video records as well.
+    #
+    # Because Video -> BodyMeasurement also cascades, deleting a
+    # user ultimately removes the user's derived measurements and
+    # avatars as well.
     videos = relationship(
         "Video",
         back_populates="user",

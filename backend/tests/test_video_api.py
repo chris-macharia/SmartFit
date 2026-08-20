@@ -32,6 +32,7 @@ from fastapi.testclient import TestClient
 from app.core.security import hash_password, create_access_token
 from app.db.database import SessionLocal
 from app.main import app
+from app.models.body_measurements import BodyMeasurement
 from app.models.user import User
 from app.models.video import Video
 
@@ -87,10 +88,11 @@ def create_test_user(email: str, password: str):
 
 def delete_user_by_email(email: str):
     """
-    Delete a test user and all associated test videos.
+    Delete a test user and all associated test data.
 
-    Physical video files are removed before the database
-    records are deleted.
+    Physical video files are removed first. BodyMeasurement records
+    are deleted before their parent Video records because
+    body_measurements.video_id references videos.video_id.
 
     This helper makes the video API tests safe to run repeatedly
     without leftover test data affecting later tests.
@@ -106,25 +108,57 @@ def delete_user_by_email(email: str):
             .first()
         )
 
-        if user:
+        if user is None:
+            return
 
-            # Remove physical video files associated with
-            # this test user.
-            for video in user.videos:
+        # Collect the user's videos before deleting anything.
+        videos = list(user.videos)
 
-                video_path = Path(video.video_path)
+        # ---------------------------------------------------------
+        # Step 1: Remove physical video files.
+        # ---------------------------------------------------------
 
-                if video_path.exists():
-                    video_path.unlink()
+        for video in videos:
+            video_path = Path(video.video_path)
 
-            # Delete the user.
-            #
-            # The User -> Video relationship is configured with
-            # cascade deletion, so the associated Video records
-            # are also removed.
-            db.delete(user)
+            if video_path.exists():
+                video_path.unlink()
 
-            db.commit()
+        # ---------------------------------------------------------
+        # Step 2: Delete body measurements.
+        # ---------------------------------------------------------
+        #
+        # BodyMeasurement.video_id is a foreign key referencing
+        # videos.video_id, so measurements must be removed before
+        # their parent videos can be deleted.
+
+        for video in videos:
+            measurements = (
+                db.query(BodyMeasurement)
+                .filter(
+                    BodyMeasurement.video_id == video.video_id
+                )
+                .all()
+            )
+
+            for measurement in measurements:
+                db.delete(measurement)
+
+        # Make sure BodyMeasurement DELETE statements are sent
+        # before the User -> Video cascade attempts to remove videos.
+        db.flush()
+
+        # ---------------------------------------------------------
+        # Step 3: Delete the user.
+        # ---------------------------------------------------------
+        #
+        # The existing User -> Video cascade can now safely remove
+        # the associated Video records because their dependent
+        # BodyMeasurement records have already been deleted.
+
+        db.delete(user)
+
+        db.commit()
 
     except Exception:
         db.rollback()
@@ -227,9 +261,10 @@ def test_authenticated_user_can_upload_video():
 
             assert video is not None
             assert video.user_id is not None
-            # TestClient completes background tasks before returning control.
-            # The intentionally invalid test bytes therefore produce the
-            # expected terminal failed state after a successful upload.
+
+            # TestClient completes background tasks before returning
+            # control. The intentionally invalid test bytes therefore
+            # produce the expected terminal failed state.
             assert video.processing_status == "failed"
 
         finally:
@@ -866,7 +901,8 @@ def test_authenticated_user_cannot_get_another_users_video():
             headers=viewer_headers,
         )
 
-        # The API returns 404 to avoid leaking existence of other users' videos.
+        # The API returns 404 to avoid leaking existence of
+        # another user's video.
         assert response.status_code == 404
         assert response.json()["detail"] == "Video not found."
 

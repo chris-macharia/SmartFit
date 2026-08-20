@@ -24,3 +24,7 @@ backend/uploads/videos*
 
 # Downloaded MediaPipe model assets
 backend/models/*.task
+
+
+# Test Videos 
+backend/tests/*

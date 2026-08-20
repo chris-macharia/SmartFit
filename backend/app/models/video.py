@@ -22,7 +22,8 @@ class Video(Base):
     """
     SQLAlchemy model representing a user-uploaded body video.
 
-    Each Video belongs to exactly one User.
+    Each Video belongs to exactly one User and may have one
+    BodyMeasurement record generated from its processing.
     """
 
     __tablename__ = "videos"
@@ -74,15 +75,16 @@ class Video(Base):
 
     # Height supplied by the user in centimetres.
     #
-    # A standard phone video has no reliable real-world scale by
-    # itself. This value calibrates landmark proportions produced by
-    # the computer-vision pipeline.
+    # A standard camera video has no reliable real-world scale
+    # by itself. This value calibrates the normalized pose
+    # landmarks produced by the computer-vision pipeline.
     user_height_cm: Mapped[float | None] = mapped_column(
         Numeric(5, 2),
         nullable=True,
     )
 
-    # A safe, user-facing explanation when processing cannot finish.
+    # Safe, user-facing explanation when processing cannot finish.
+    #
     # Detailed technical exceptions are logged on the server instead
     # of being exposed to the frontend.
     processing_error: Mapped[str | None] = mapped_column(
@@ -105,4 +107,18 @@ class Video(Base):
     user = relationship(
         "User",
         back_populates="videos",
+    )
+
+    # A video can produce one body measurement record.
+    #
+    # The BodyMeasurement is derived from this video, so it should
+    # not continue to exist after the source video is deleted.
+    #
+    # cascade="all, delete-orphan" ensures SQLAlchemy removes the
+    # associated measurement when the Video is deleted.
+    measurement = relationship(
+        "BodyMeasurement",
+        back_populates="video",
+        uselist=False,
+        cascade="all, delete-orphan",
     )

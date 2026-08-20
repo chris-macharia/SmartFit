@@ -14,10 +14,9 @@ a user's uploaded body video.
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Text
+from sqlalchemy import DateTime, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.database import Base
 
@@ -26,56 +25,63 @@ class Avatar(Base):
     """
     SQLAlchemy model representing a personalized digital avatar.
 
-    Each Avatar record stores the location of the generated avatar
-    file and identifies the body measurement record used to create it.
-
-    The measurement_id field identifies the body measurements from
-    which the avatar was generated. The foreign-key relationship will
-    be implemented later when the database relationships are refined.
+    Each Avatar is generated from exactly one BodyMeasurement.
     """
 
-    # Define the name of the PostgreSQL database table.
     __tablename__ = "avatars"
 
-    # Generate a unique UUID for each avatar.
-    #
-    # UUIDs provide globally unique identifiers for avatar records
-    # and are consistent with the documented SmartFit database design.
+    # --------------------------------------------------------
+    # Primary Key
+    # --------------------------------------------------------
+
     avatar_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         primary_key=True,
         default=uuid.uuid4,
     )
 
+    # --------------------------------------------------------
+    # Measurement Foreign Key
+    # --------------------------------------------------------
+
     # Store the UUID of the body measurement record used
     # to generate this avatar.
     #
-    # This field is currently stored as a UUID without a foreign-key
-    # constraint. The relationship will be refined later when the
-    # database entity relationships are finalized.
+    # ON DELETE CASCADE ensures that the avatar is removed
+    # when its source measurement is deleted.
     measurement_id: Mapped[uuid.UUID] = mapped_column(
-    UUID(as_uuid=True),
-    ForeignKey("body_measurements.measurement_id"),
-    unique=True,
-    nullable=False,
+        UUID(as_uuid=True),
+        ForeignKey(
+            "body_measurements.measurement_id",
+            ondelete="CASCADE",
+        ),
+        unique=True,
+        nullable=False,
     )
 
-    # Store the path or location of the generated avatar file.
-    #
-    # The actual avatar file will be handled by the application's
-    # file storage system. This field stores the reference to where
-    # the generated avatar can be accessed.
+    # --------------------------------------------------------
+    # Avatar Information
+    # --------------------------------------------------------
+
+    # Path or location of the generated avatar file.
     avatar_path: Mapped[str] = mapped_column(
         Text,
         nullable=False,
     )
 
-    # Store the date and time when the avatar was generated.
-    #
-    # A timezone-aware UTC timestamp is used to ensure that timestamps
-    # remain consistent regardless of the server's local timezone.
+    # Date and time when the avatar was generated.
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
+    )
+
+    # --------------------------------------------------------
+    # Relationships
+    # --------------------------------------------------------
+
+    # Each avatar is generated from one body measurement.
+    measurement = relationship(
+        "BodyMeasurement",
+        back_populates="avatar",
     )

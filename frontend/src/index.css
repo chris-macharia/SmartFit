@@ -2463,3 +2463,1501 @@ button {
   }
 
 }
+
+
+/* ============================================================
+   VIDEO PROCESSING STATUS
+   ============================================================ */
+
+.video-status-card {
+  margin-top: 1.5rem;
+
+  padding: 1.5rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 18px;
+
+  background-color: var(--surface-color);
+}
+
+
+.video-status-header {
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  gap: 1.5rem;
+
+  margin-bottom: 1.5rem;
+}
+
+
+.video-status-header h2 {
+  margin: 0;
+
+  font-size: 1.4rem;
+}
+
+
+/* ============================================================
+   STATUS BADGES
+   ============================================================ */
+
+.status-badge {
+  flex-shrink: 0;
+
+  padding: 0.45rem 0.75rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 999px;
+
+  font-size: 0.8rem;
+
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+
+.status-badge-processing {
+  color: var(--secondary-text-color);
+}
+
+
+.status-badge-complete {
+  border-color: #16a34a;
+
+  color: #16a34a;
+
+  background-color: rgba(22, 163, 74, 0.08);
+}
+
+
+.status-badge-failed {
+  border-color: #dc2626;
+
+  color: #dc2626;
+
+  background-color: rgba(220, 38, 38, 0.08);
+}
+
+
+/* ============================================================
+   PROCESSING STATE
+   ============================================================ */
+
+.processing-state {
+  display: flex;
+
+  align-items: center;
+
+  gap: 1rem;
+
+  margin-bottom: 1.5rem;
+
+  padding: 1rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 12px;
+
+  background-color: var(--background-color);
+}
+
+
+.processing-state strong {
+  display: block;
+
+  margin-bottom: 0.35rem;
+}
+
+
+.processing-state p {
+  margin: 0;
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.9rem;
+
+  line-height: 1.5;
+}
+
+
+/* ============================================================
+   PROCESSING SPINNER
+   ============================================================ */
+
+.processing-spinner {
+  width: 24px;
+
+  height: 24px;
+
+  flex-shrink: 0;
+
+  border: 3px solid var(--border-color);
+
+  border-top-color: var(--text-color);
+
+  border-radius: 50%;
+
+  animation: video-processing-spin 0.8s linear infinite;
+}
+
+
+@keyframes video-processing-spin {
+
+  to {
+    transform: rotate(360deg);
+  }
+
+}
+
+
+/* ============================================================
+   VIDEO RESULT INFORMATION
+   ============================================================ */
+
+.video-upload-result {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 0.75rem;
+
+  margin-top: 1.5rem;
+
+  padding: 1rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 12px;
+
+  background-color: var(--background-color);
+}
+
+
+.video-result-row {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  padding-bottom: 0.75rem;
+
+  border-bottom: 1px solid var(--border-color);
+
+  font-size: 0.9rem;
+}
+
+
+.video-result-row:last-child {
+  padding-bottom: 0;
+
+  border-bottom: none;
+}
+
+
+.video-result-row span {
+  color: var(--secondary-text-color);
+}
+
+
+.video-id {
+  max-width: 60%;
+
+  overflow-wrap: anywhere;
+
+  text-align: right;
+}
+
+
+/* ============================================================
+   PROCESSING ERROR
+   ============================================================ */
+
+.processing-error-text {
+  margin: 0.5rem 0 0;
+
+  line-height: 1.5;
+}
+
+
+/* ============================================================
+   DELETE VIDEO
+   ============================================================ */
+
+.delete-video-button {
+  width: 100%;
+
+  margin-top: 1.5rem;
+
+  cursor: pointer;
+}
+
+
+.delete-video-button:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* ============================================================
+   UPLOAD BUTTON STATES
+   ============================================================ */
+
+.upload-submit:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* ============================================================
+   VIDEO PROCESSING RESPONSIVENESS
+   ============================================================ */
+
+@media (max-width: 700px) {
+
+  .video-status-header {
+    flex-direction: column;
+  }
+
+
+  .status-badge {
+    align-self: flex-start;
+  }
+
+
+  .video-result-row {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 0.3rem;
+  }
+
+
+  .video-id {
+    max-width: 100%;
+
+    text-align: left;
+  }
+
+
+  .processing-state {
+    align-items: flex-start;
+  }
+
+}
+
+  .video-status-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+
+  .result-row {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 0.35rem;
+  }
+
+
+  .result-row strong {
+    text-align: left;
+  }
+
+
+  .processing-state,
+  .processing-complete {
+    align-items: flex-start;
+  }
+
+
+/* ============================================================
+   VIDEO PROCESSING CARD
+   ============================================================ */
+
+.video-processing-card {
+  padding: 1.5rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 18px;
+
+  background-color: var(--surface-color);
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+
+/* ============================================================
+   VIDEO STATUS HEADER
+   ============================================================ */
+
+.video-status-header {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 1.5rem;
+
+  margin-bottom: 1.5rem;
+}
+
+
+.video-status-header h2 {
+  margin: 0;
+
+  font-size: 1.4rem;
+}
+
+
+/* ============================================================
+   STATUS BADGE
+   ============================================================ */
+
+.video-status-badge {
+  padding: 0.4rem 0.75rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 999px;
+
+  font-size: 0.8rem;
+
+  font-weight: 600;
+
+  text-transform: capitalize;
+
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   PROCESSING STATE
+   ============================================================ */
+
+.processing-state {
+  display: flex;
+
+  align-items: center;
+
+  gap: 1rem;
+
+  padding: 1.25rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 12px;
+
+  background-color: var(--background-color);
+}
+
+
+.processing-state strong {
+  display: block;
+
+  margin-bottom: 0.35rem;
+}
+
+
+.processing-state p {
+  margin: 0;
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.9rem;
+
+  line-height: 1.5;
+}
+
+
+/* ============================================================
+   PROCESSING SPINNER
+   ============================================================ */
+
+.processing-spinner {
+  width: 24px;
+
+  height: 24px;
+
+  flex-shrink: 0;
+
+  border: 3px solid var(--border-color);
+
+  border-top-color: var(--text-color);
+
+  border-radius: 50%;
+
+  animation:
+    video-processing-spin 0.8s linear infinite;
+}
+
+
+@keyframes video-processing-spin {
+
+  to {
+    transform: rotate(360deg);
+  }
+
+}
+
+
+/* ============================================================
+   PROCESSING COMPLETED
+   ============================================================ */
+
+.processing-complete {
+  display: flex;
+
+  align-items: center;
+
+  gap: 1rem;
+
+  padding: 1.25rem;
+
+  border: 1px solid #16a34a;
+
+  border-radius: 12px;
+
+  background-color: rgba(22, 163, 74, 0.08);
+
+  color: #16a34a;
+}
+
+
+.processing-complete strong {
+  display: block;
+
+  margin-bottom: 0.35rem;
+}
+
+
+.processing-complete p {
+  margin: 0;
+
+  color: var(--secondary-text-color);
+
+  line-height: 1.5;
+}
+
+
+.status-icon {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  width: 32px;
+
+  height: 32px;
+
+  flex-shrink: 0;
+
+  border-radius: 50%;
+
+  background-color: #16a34a;
+
+  color: white;
+
+  font-weight: bold;
+}
+
+
+/* ============================================================
+   PROCESSING FAILED
+   ============================================================ */
+
+.processing-failed {
+  padding: 1.25rem;
+
+  border: 1px solid #dc2626;
+
+  border-radius: 12px;
+
+  background-color: rgba(220, 38, 38, 0.08);
+
+  color: #dc2626;
+}
+
+
+.processing-failed strong {
+  display: block;
+
+  margin-bottom: 0.5rem;
+}
+
+
+.processing-failed p {
+  margin: 0;
+
+  color: var(--secondary-text-color);
+
+  line-height: 1.5;
+}
+
+
+/* ============================================================
+   VIDEO UPLOAD RESULT
+   ============================================================ */
+
+.video-upload-result {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 0;
+
+  margin-top: 1.5rem;
+
+  border-top: 1px solid var(--border-color);
+}
+
+
+.result-row {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 1.5rem;
+
+  padding: 0.9rem 0;
+
+  border-bottom: 1px solid var(--border-color);
+
+  font-size: 0.9rem;
+}
+
+
+.result-row span {
+  color: var(--secondary-text-color);
+}
+
+
+.result-row strong {
+  text-align: right;
+
+  word-break: break-word;
+}
+
+
+/* ============================================================
+   DELETE VIDEO BUTTON
+   ============================================================ */
+
+.delete-video-button {
+  width: 100%;
+
+  margin-top: 1.5rem;
+
+  cursor: pointer;
+}
+
+
+.delete-video-button:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* ============================================================
+   UPLOAD FEEDBACK
+   ============================================================ */
+
+.upload-feedback {
+  margin-top: 1rem;
+}
+
+
+/* ============================================================
+   VIDEO PROCESSING STATUS
+   ============================================================ */
+
+.upload-success {
+  margin-top: 1.5rem;
+}
+
+
+.processing-status-card {
+  margin-top: 2rem;
+
+  padding: 1.5rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 18px;
+
+  background-color: var(--surface-color);
+}
+
+
+/* ============================================================
+   PROCESSING HEADER
+   ============================================================ */
+
+.processing-status-header {
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  gap: 1.5rem;
+
+  padding-bottom: 1.5rem;
+
+  border-bottom: 1px solid var(--border-color);
+}
+
+
+.processing-status-header h2 {
+  margin: 0;
+
+  font-size: 1.5rem;
+}
+
+
+.processing-status-badge {
+  display: inline-flex;
+
+  align-items: center;
+
+  padding: 0.4rem 0.75rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 999px;
+
+  font-size: 0.8rem;
+
+  font-weight: 700;
+
+  text-transform: capitalize;
+
+  white-space: nowrap;
+}
+
+
+.status-processing {
+  color: var(--secondary-text-color);
+}
+
+
+.status-completed {
+  color: #16a34a;
+
+  border-color: #16a34a;
+
+  background-color: rgba(22, 163, 74, 0.08);
+}
+
+
+.status-failed {
+  color: #dc2626;
+
+  border-color: #dc2626;
+
+  background-color: rgba(220, 38, 38, 0.08);
+}
+
+
+/* ============================================================
+   PROCESSING TIMELINE
+   ============================================================ */
+
+.processing-timeline {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 1.25rem;
+
+  margin-top: 1.5rem;
+}
+
+
+.processing-step {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 1rem;
+}
+
+
+.processing-step-marker {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  width: 32px;
+
+  height: 32px;
+
+  flex-shrink: 0;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 50%;
+
+  background-color: var(--background-color);
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.85rem;
+
+  font-weight: 700;
+}
+
+
+.processing-step-active
+.processing-step-marker {
+  border-color: var(--text-color);
+
+  background-color: var(--text-color);
+
+  color: var(--background-color);
+}
+
+
+.processing-step strong {
+  display: block;
+
+  margin-top: 0.25rem;
+}
+
+
+.processing-step p {
+  margin: 0.4rem 0 0;
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.9rem;
+
+  line-height: 1.5;
+}
+
+
+/* ============================================================
+   PROCESSING PROGRESS
+   ============================================================ */
+
+.processing-step-progress {
+  margin-left: 48px;
+
+  padding: 1rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 12px;
+
+  background-color: var(--background-color);
+}
+
+
+.processing-step-progress-label {
+  display: flex;
+
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  margin-bottom: 0.6rem;
+
+  font-size: 0.85rem;
+}
+
+
+/* ============================================================
+   INDETERMINATE PROCESSING PROGRESS
+   ============================================================ */
+
+.processing-progress-track {
+  position: relative;
+
+  width: 100%;
+
+  height: 8px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background-color: var(--border-color);
+}
+
+
+.processing-progress-bar {
+  position: absolute;
+
+  top: 0;
+  left: -35%;
+
+  width: 35%;
+
+  height: 100%;
+
+  border-radius: inherit;
+
+  background-color: var(--text-color);
+
+  animation: processing-slide 1.4s ease-in-out infinite;
+}
+
+
+@keyframes processing-slide {
+
+  0% {
+    left: -35%;
+  }
+
+  50% {
+    left: 60%;
+  }
+
+  100% {
+    left: 110%;
+  }
+
+}
+
+
+/* ============================================================
+   PROCESSING MEASUREMENTS
+   ============================================================ */
+
+.processing-measurements {
+  margin-top: 2rem;
+
+  padding-top: 1.5rem;
+
+  border-top: 1px solid var(--border-color);
+}
+
+
+.processing-measurements .section-label {
+  margin-bottom: 1rem;
+}
+
+
+/* ============================================================
+   DELETE VIDEO
+   ============================================================ */
+
+.delete-video-button {
+  width: 100%;
+
+  margin-top: 1.5rem;
+
+  cursor: pointer;
+}
+
+
+.delete-video-button:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* ============================================================
+   PROCESSING RESPONSIVENESS
+   ============================================================ */
+
+@media (max-width: 600px) {
+
+  .processing-status-header {
+    flex-direction: column;
+  }
+
+
+  .processing-step-progress {
+    margin-left: 0;
+  }
+
+}
+
+
+/* ============================================================
+   VIDEO PROCESSING STATUS
+   ============================================================ */
+
+/*
+ * Main processing status card.
+ *
+ * This appears after the video has successfully been uploaded.
+ */
+.processing-status-card {
+  margin-top: 2rem;
+
+  padding: 2rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 18px;
+
+  background-color: var(--surface-color);
+
+  color: var(--text-color);
+
+  scroll-margin-top: 2rem;
+}
+
+
+/* ============================================================
+   PROCESSING HEADER
+   ============================================================ */
+
+.processing-status-header {
+  max-width: 700px;
+
+  margin-bottom: 2rem;
+}
+
+
+.processing-status-header h2 {
+  margin: 0;
+
+  font-size: clamp(1.5rem, 3vw, 2rem);
+
+  line-height: 1.2;
+}
+
+
+.processing-status-header p:not(.section-label) {
+  margin-top: 0.75rem;
+
+  color: var(--secondary-text-color);
+
+  line-height: 1.6;
+}
+
+
+/* ============================================================
+   PROCESSING TIMELINE
+   ============================================================ */
+
+.processing-timeline {
+  width: 100%;
+
+  max-width: 800px;
+
+  margin: 0 auto;
+}
+
+
+/*
+ * Individual processing step.
+ *
+ * The marker appears on the left while the description
+ * appears beside it.
+ */
+.processing-step {
+  display: flex;
+
+  align-items: center;
+
+  gap: 1rem;
+
+  min-height: 58px;
+}
+
+
+/*
+ * Circular status marker.
+ */
+.processing-step-marker {
+  width: 36px;
+
+  height: 36px;
+
+  flex-shrink: 0;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 50%;
+
+  background-color: var(--background-color);
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.9rem;
+
+  font-weight: 700;
+}
+
+
+/*
+ * Completed step.
+ */
+.processing-step.completed
+  .processing-step-marker {
+  background-color: var(--text-color);
+
+  border-color: var(--text-color);
+
+  color: var(--background-color);
+}
+
+
+/*
+ * Active processing step.
+ */
+.processing-step.active
+  .processing-step-marker {
+  border-color: var(--text-color);
+
+  color: var(--text-color);
+
+  animation: processing-pulse 1.5s ease-in-out infinite;
+}
+
+
+/*
+ * Failed processing step.
+ */
+.processing-step.failed
+  .processing-step-marker {
+  border-color: #dc2626;
+
+  color: #dc2626;
+
+  background-color: rgba(220, 38, 38, 0.08);
+}
+
+
+/* ============================================================
+   PROCESSING STEP CONTENT
+   ============================================================ */
+
+.processing-step-content {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 0.25rem;
+}
+
+
+.processing-step-content strong {
+  font-size: 0.95rem;
+}
+
+
+.processing-step-content span {
+  color: var(--secondary-text-color);
+
+  font-size: 0.85rem;
+
+  line-height: 1.4;
+}
+
+
+/* ============================================================
+   PROCESSING TIMELINE CONNECTOR
+   ============================================================ */
+
+.processing-step-line {
+  position: relative;
+
+  width: 2px;
+
+  height: 45px;
+
+  margin-left: 17px;
+
+  overflow: hidden;
+
+  background-color: var(--border-color);
+}
+
+
+/*
+ * Animated connector between Uploaded and Processing.
+ *
+ * The animation gives the impression that processing
+ * is actively progressing.
+ */
+.processing-step-line-progress {
+  width: 100%;
+
+  height: 45%;
+
+  background-color: var(--text-color);
+
+  animation: processing-line-progress 1.8s ease-in-out infinite;
+}
+
+
+/*
+ * Completed connector.
+ */
+.processing-step-line-progress.completed {
+  height: 100%;
+
+  animation: none;
+}
+
+
+/* ============================================================
+   PROCESSING ANIMATION
+   ============================================================ */
+
+.processing-animation {
+  margin-top: 1rem;
+
+  margin-left: 52px;
+
+  max-width: 600px;
+}
+
+
+/*
+ * Processing progress track.
+ */
+.processing-progress-track {
+  position: relative;
+
+  width: 100%;
+
+  height: 8px;
+
+  overflow: hidden;
+
+  border-radius: 999px;
+
+  background-color: var(--border-color);
+}
+
+
+/*
+ * Moving processing indicator.
+ *
+ * Notice that this is intentionally NOT a normal
+ * 0-100% progress bar.
+ *
+ * The indicator continuously moves across the bar
+ * without ever communicating a fake percentage.
+ */
+.processing-progress-bar {
+  width: 35%;
+
+  height: 100%;
+
+  border-radius: inherit;
+
+  background-color: var(--text-color);
+
+  animation: processing-slide 1.8s ease-in-out infinite;
+}
+
+
+.processing-animation span {
+  display: block;
+
+  margin-top: 0.6rem;
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.8rem;
+}
+
+
+/* ============================================================
+   CURRENT STATUS
+   ============================================================ */
+
+.processing-current-status {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  margin-top: 2rem;
+
+  padding-top: 1rem;
+
+  border-top: 1px solid var(--border-color);
+
+  font-size: 0.9rem;
+}
+
+
+.processing-current-status span {
+  color: var(--secondary-text-color);
+}
+
+
+.processing-current-status strong {
+  font-weight: 600;
+}
+
+
+/* ============================================================
+   MEASUREMENTS RESULT
+   ============================================================ */
+
+.measurements-result {
+  margin-top: 1.5rem;
+
+  padding: 1.5rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 14px;
+
+  background-color: var(--background-color);
+}
+
+
+.measurements-header {
+  margin-bottom: 1.25rem;
+}
+
+
+.measurements-header .section-label {
+  margin-bottom: 0.5rem;
+}
+
+
+.measurements-header h3 {
+  margin: 0;
+
+  font-size: 1.3rem;
+}
+
+
+/*
+ * Measurement grid.
+ *
+ * We reuse the existing SmartFit measurement styling
+ * concept but keep it scoped to this upload result.
+ */
+.measurements-result .measurement-grid {
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 0.75rem;
+}
+
+
+.measurements-result .measurement-item {
+  padding: 1rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 10px;
+
+  background-color: var(--surface-color);
+}
+
+
+.measurements-result .measurement-item span {
+  display: block;
+
+  margin-bottom: 0.35rem;
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.8rem;
+}
+
+
+.measurements-result .measurement-item strong {
+  font-size: 1rem;
+}
+
+
+/* ============================================================
+   PROCESSING ERROR
+   ============================================================ */
+
+.processing-error {
+  margin-top: 1.5rem;
+}
+
+
+/* ============================================================
+   DELETE VIDEO
+   ============================================================ */
+
+.delete-video-button {
+  width: 100%;
+
+  margin-top: 1.5rem;
+
+  cursor: pointer;
+
+  text-align: center;
+}
+
+
+.delete-video-button:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* ============================================================
+   PROCESSING ANIMATIONS
+   ============================================================ */
+
+/*
+ * Pulse the active processing marker.
+ */
+@keyframes processing-pulse {
+
+  0%,
+  100% {
+    transform: scale(1);
+
+    opacity: 1;
+  }
+
+  50% {
+    transform: scale(1.08);
+
+    opacity: 0.65;
+  }
+
+}
+
+
+/*
+ * Move the indicator through the timeline connector.
+ */
+@keyframes processing-line-progress {
+
+  0% {
+    transform: translateY(-100%);
+  }
+
+  100% {
+    transform: translateY(220%);
+  }
+
+}
+
+
+/*
+ * Move the processing indicator from left to right.
+ *
+ * Because the bar itself is only 35% wide, it never
+ * represents a fake percentage such as 80% or 90%.
+ */
+@keyframes processing-slide {
+
+  0% {
+    transform: translateX(-120%);
+  }
+
+  50% {
+    transform: translateX(185%);
+  }
+
+  100% {
+    transform: translateX(300%);
+  }
+
+}
+
+
+/* ============================================================
+   PROCESSING RESPONSIVENESS
+   ============================================================ */
+
+@media (max-width: 600px) {
+
+  .processing-status-card {
+    padding: 1.5rem;
+  }
+
+
+  .processing-status-header {
+    margin-bottom: 1.5rem;
+  }
+
+
+  .processing-step {
+    align-items: flex-start;
+  }
+
+
+  .processing-step-marker {
+    width: 32px;
+
+    height: 32px;
+
+    font-size: 0.8rem;
+  }
+
+
+  .processing-step-line {
+    margin-left: 15px;
+
+    height: 40px;
+  }
+
+
+  .processing-animation {
+    margin-left: 48px;
+  }
+
+
+  .processing-current-status {
+    align-items: flex-start;
+
+    flex-direction: column;
+
+    gap: 0.35rem;
+  }
+
+
+  .measurements-result .measurement-grid {
+    grid-template-columns: 1fr;
+  }
+
+}

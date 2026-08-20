@@ -20,45 +20,18 @@ import { apiRequest } from "./api";
  */
 export async function uploadVideo(file, userHeightCm) {
 
-    /*
-     * Create a FormData object because the FastAPI
-     * endpoint expects a multipart file upload.
-     */
     const formData = new FormData();
 
-
-    /*
-     * The field name MUST match the FastAPI endpoint:
-     *
-     *     file: UploadFile = File(...)
-     */
     formData.append(
         "file",
         file
     );
 
-
-    /*
-     * The backend uses the declared height as a scale reference when
-     * converting pose-landmark proportions into centimetre estimates.
-     */
     formData.append(
         "user_height_cm",
         String(userHeightCm)
     );
 
-
-    /*
-     * Send the video to the backend.
-     *
-     * apiRequest() automatically:
-     *
-     * 1. Retrieves the JWT from localStorage.
-     * 2. Adds the Authorization header.
-     * 3. Detects that this is FormData.
-     * 4. Allows the browser to create the multipart
-     *    Content-Type and boundary.
-     */
     const response = await apiRequest(
         "/api/videos/",
         {
@@ -68,44 +41,76 @@ export async function uploadVideo(file, userHeightCm) {
     );
 
 
-    // ========================================================
-    // HANDLE UPLOAD ERROR
-    // ========================================================
-
     if (!response.ok) {
 
         let message =
             "Failed to upload video.";
-
 
         try {
 
             const errorData =
                 await response.json();
 
-
             if (errorData.detail) {
-
-                message =
-                    errorData.detail;
+                message = errorData.detail;
             }
 
         } catch {
-
-            /*
-             * Keep the default error message if the
-             * response is not valid JSON.
-             */
+            // Keep the default error message.
         }
-
 
         throw new Error(message);
     }
 
 
-    // ========================================================
-    // RETURN BACKEND RESPONSE
-    // ========================================================
+    return response.json();
+}
+
+
+// ============================================================
+// GET VIDEO
+// ============================================================
+
+/**
+ * Get a single video belonging to the authenticated user.
+ *
+ * This endpoint is used by the frontend to monitor the
+ * processing status after the upload has completed.
+ *
+ * @param {string} videoId - UUID of the video
+ * @returns {Promise<Object>} Current video information
+ */
+export async function getVideo(videoId) {
+
+    const response = await apiRequest(
+        `/api/videos/${videoId}`,
+        {
+            method: "GET",
+        }
+    );
+
+
+    if (!response.ok) {
+
+        let message =
+            "Failed to retrieve video.";
+
+        try {
+
+            const errorData =
+                await response.json();
+
+            if (errorData.detail) {
+                message = errorData.detail;
+            }
+
+        } catch {
+            // Keep the default error message.
+        }
+
+        throw new Error(message);
+    }
+
 
     return response.json();
 }
@@ -122,9 +127,6 @@ export async function uploadVideo(file, userHeightCm) {
  */
 export async function deleteVideo(videoId) {
 
-    /*
-     * apiRequest() automatically attaches the JWT.
-     */
     const response = await apiRequest(
         `/api/videos/${videoId}`,
         {
@@ -133,35 +135,23 @@ export async function deleteVideo(videoId) {
     );
 
 
-    // ========================================================
-    // HANDLE DELETE ERROR
-    // ========================================================
-
     if (!response.ok) {
 
         let message =
             "Failed to delete video.";
-
 
         try {
 
             const errorData =
                 await response.json();
 
-
             if (errorData.detail) {
-
-                message =
-                    errorData.detail;
+                message = errorData.detail;
             }
 
         } catch {
-
-            /*
-             * Keep the default error message.
-             */
+            // Keep the default error message.
         }
-
 
         throw new Error(message);
     }

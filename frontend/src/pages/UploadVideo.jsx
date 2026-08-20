@@ -4,84 +4,103 @@
  * This page provides the interface for uploading a user's
  * body video for the SmartFit virtual fitting process.
  *
- * Current frontend responsibilities:
+ * Frontend responsibilities:
  *
  * 1. Allow the user to select a video file.
  * 2. Validate the selected file.
  * 3. Display a video preview.
- * 4. Display the selected file's information.
- * 5. Allow the user to remove or replace the video.
- * 6. Upload the video to the SmartFit FastAPI backend.
- *
- * Backend workflow:
- *
- *     Video Upload
- *          ↓
- *     FastAPI API
- *          ↓
- *     PostgreSQL Video Record
- *          ↓
- *     Computer Vision Processing
- *          ↓
- *     Body Measurements
- *          ↓
- *     Digital Avatar
+ * 4. Collect the user's height.
+ * 5. Upload the video to the SmartFit backend.
+ * 6. Poll the backend for processing status.
+ * 7. Display processing progress.
+ * 8. Display body measurements when processing completes.
+ * 9. Allow the user to delete the uploaded video.
  */
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { uploadVideo } from "../services/videoService";
+import {
+  uploadVideo,
+  getVideo,
+  deleteVideo,
+} from "../services/videoService";
 
 
 function UploadVideo() {
+
   // ============================================================
   // FILE INPUT REFERENCE
   // ============================================================
 
   // Reference to the hidden file input.
-  //
-  // This allows the custom upload interface to trigger
-  // the browser's native file selection dialog.
   const fileInputRef = useRef(null);
+
+
+  // ============================================================
+  // PROCESSING SECTION REFERENCE
+  // ============================================================
+
+  /*
+   * Reference to the processing status section.
+   *
+   * After a successful upload, the page automatically
+   * scrolls this section into view so the user can see
+   * what SmartFit is currently doing.
+   */
+  const processingSectionRef = useRef(null);
 
 
   // ============================================================
   // COMPONENT STATE
   // ============================================================
 
-  // Store the selected video file.
+  // Store the selected local video file.
   const [selectedFile, setSelectedFile] = useState(null);
 
-  // Store the user's declared height. SmartFit uses this value as the
-  // real-world scale reference for the initial measurement estimates.
+
+  // Store the user's declared height.
   const [userHeightCm, setUserHeightCm] = useState("");
 
-  // Store the temporary browser URL used to preview the video.
+
+  // Store the temporary browser URL used for video preview.
   const [previewUrl, setPreviewUrl] = useState("");
+
 
   // Store validation or API errors.
   const [error, setError] = useState("");
 
+
   // Track whether the upload request is currently running.
   const [uploading, setUploading] = useState(false);
 
-  // Store upload progress.
+
+  // Upload progress.
   //
-  // At this stage, the Fetch API does not provide upload
-  // progress events, so this is used for the upload state.
-  // Real upload progress can be added later if required.
+  // Fetch does not provide upload progress events.
+  // Therefore this represents the upload request state.
   const [uploadProgress, setUploadProgress] = useState(0);
+
 
   // Store a successful upload message.
   const [success, setSuccess] = useState("");
 
-  // Store the video returned by the backend.
-  //
-  // This is useful during development because it allows us
-  // to confirm that FastAPI successfully created the video
-  // database record.
+
+  /*
+   * Store the video returned by the backend.
+   *
+   * This object is also updated during polling so the UI
+   * always reflects the latest backend processing state.
+   */
   const [uploadedVideo, setUploadedVideo] = useState(null);
+
+
+  // Track whether processing is currently being polled.
+  const [processing, setProcessing] = useState(false);
+
+
+  // Track whether the delete request is running.
+  const [deleting, setDeleting] = useState(false);
 
 
   // ============================================================
@@ -91,19 +110,13 @@ function UploadVideo() {
   /**
    * Maximum accepted video size.
    *
-   * Five hundred megabytes accommodates realistic short body videos,
-   * particularly those recorded by modern mobile phones.
-   *
-   * The backend should also enforce its own upload limits.
+   * 500 MB.
    */
   const MAX_FILE_SIZE = 500 * 1024 * 1024;
 
 
   /**
-   * Accepted video formats.
-   *
-   * These match the formats accepted by the FastAPI
-   * video endpoint.
+   * Accepted video MIME types.
    */
   const ACCEPTED_VIDEO_TYPES = [
     "video/mp4",
@@ -122,14 +135,16 @@ function UploadVideo() {
    * @param {File} file - Selected video file.
    */
   function handleFileSelect(file) {
+
     // Clear previous feedback.
     setError("");
     setSuccess("");
     setUploadedVideo(null);
+    setProcessing(false);
     setUploadProgress(0);
 
 
-    // Make sure a file was actually selected.
+    // Make sure a file exists.
     if (!file) {
       return;
     }
@@ -140,6 +155,7 @@ function UploadVideo() {
     // ----------------------------------------------------------
 
     if (!ACCEPTED_VIDEO_TYPES.includes(file.type)) {
+
       setError(
         "Please select an MP4, WebM, or MOV video file."
       );
@@ -153,8 +169,9 @@ function UploadVideo() {
     // ----------------------------------------------------------
 
     if (file.size > MAX_FILE_SIZE) {
+
       setError(
-        "The selected video is too large. Please choose a video smaller than 50 MB."
+        "The selected video is too large. Please choose a video smaller than 500 MB."
       );
 
       return;
@@ -177,7 +194,7 @@ function UploadVideo() {
     const videoUrl = URL.createObjectURL(file);
 
 
-    // Store the selected file and preview.
+    // Store selected file and preview.
     setSelectedFile(file);
     setPreviewUrl(videoUrl);
   }
@@ -188,9 +205,10 @@ function UploadVideo() {
   // ============================================================
 
   /**
-   * Handle selection through the standard file picker.
+   * Handle selection through the file picker.
    */
   function handleInputChange(event) {
+
     const file = event.target.files[0];
 
     handleFileSelect(file);
@@ -205,6 +223,7 @@ function UploadVideo() {
    * Open the browser's native file selection dialog.
    */
   function openFilePicker() {
+
     fileInputRef.current?.click();
   }
 
@@ -217,6 +236,7 @@ function UploadVideo() {
    * Handle drag-and-drop uploads.
    */
   function handleDrop(event) {
+
     event.preventDefault();
 
     const file = event.dataTransfer.files[0];
@@ -229,40 +249,37 @@ function UploadVideo() {
    * Prevent the browser from opening the dropped file directly.
    */
   function handleDragOver(event) {
+
     event.preventDefault();
   }
 
 
   // ============================================================
-  // REMOVE SELECTED VIDEO
+  // REMOVE LOCAL VIDEO
   // ============================================================
 
   /**
-   * Remove the currently selected video from the page.
+   * Remove the currently selected local video.
    *
-   * This only removes the selected local file.
-   *
-   * It does NOT delete a video that has already been
-   * uploaded to the backend.
+   * This does NOT delete an already-uploaded backend video.
    */
   function removeVideo() {
-    // Release the temporary browser URL.
+
+    // Release temporary browser URL.
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
 
 
-    // Reset the upload state.
+    // Reset local upload state.
     setSelectedFile(null);
     setPreviewUrl("");
     setError("");
     setSuccess("");
     setUploadProgress(0);
-    setUploadedVideo(null);
 
 
-    // Reset the file input so the same file can be
-    // selected again if necessary.
+    // Reset file input.
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -275,46 +292,61 @@ function UploadVideo() {
 
   /**
    * Upload the selected video to the SmartFit backend.
-   *
-   * The request is handled by videoService.js, which sends
-   * the file to:
-   *
-   *     POST /api/videos/
-   *
-   * The backend authenticates the user using the JWT.
    */
   async function handleUpload() {
-    // Make sure a file has been selected.
+
+    // Make sure a file was selected.
     if (!selectedFile) {
-      setError("Please select a video before continuing.");
+
+      setError(
+        "Please select a video before continuing."
+      );
 
       return;
     }
 
 
-    // A camera video does not contain a dependable centimetre scale by
-    // itself, so height is required before the backend can process it.
+    // ----------------------------------------------------------
+    // Validate height
+    // ----------------------------------------------------------
+
     const parsedHeight = Number(userHeightCm);
 
-    if (!Number.isFinite(parsedHeight) || parsedHeight < 100 || parsedHeight > 250) {
-      setError("Please enter your height between 100 cm and 250 cm.");
+
+    if (
+      !Number.isFinite(parsedHeight) ||
+      parsedHeight < 100 ||
+      parsedHeight > 250
+    ) {
+
+      setError(
+        "Please enter your height between 100 cm and 250 cm."
+      );
 
       return;
     }
 
 
-    // Clear previous feedback.
+    // ----------------------------------------------------------
+    // Clear previous feedback
+    // ----------------------------------------------------------
+
     setError("");
     setSuccess("");
     setUploadedVideo(null);
+    setProcessing(false);
 
 
-    // Begin upload state.
+    // ----------------------------------------------------------
+    // Begin upload
+    // ----------------------------------------------------------
+
     setUploading(true);
     setUploadProgress(0);
 
 
     try {
+
       // --------------------------------------------------------
       // Send video to FastAPI
       // --------------------------------------------------------
@@ -332,13 +364,17 @@ function UploadVideo() {
       setUploadedVideo(video);
 
 
-      // The request has completed successfully.
+      // Upload request completed.
       setUploadProgress(100);
+
+
+      // Begin processing state.
+      setProcessing(true);
 
 
       // Display success message.
       setSuccess(
-        "Video uploaded successfully. Processing will begin shortly."
+        "Video uploaded successfully."
       );
 
 
@@ -352,22 +388,19 @@ function UploadVideo() {
 
 
       // --------------------------------------------------------
-      // Clear selected file
+      // Clear selected local file
       // --------------------------------------------------------
 
       setSelectedFile(null);
       setPreviewUrl("");
 
 
-      // Reset the file input.
+      // Reset file input.
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
 
     } catch (err) {
-      // --------------------------------------------------------
-      // Handle API error
-      // --------------------------------------------------------
 
       setError(
         err.message ||
@@ -375,9 +408,205 @@ function UploadVideo() {
       );
 
     } finally {
-      // Upload request has finished regardless of success
-      // or failure.
+
       setUploading(false);
+    }
+  }
+
+
+  // ============================================================
+  // POLL VIDEO PROCESSING STATUS
+  // ============================================================
+
+  useEffect(() => {
+
+    /*
+     * Do not poll if there is no uploaded video.
+     */
+    if (!uploadedVideo?.video_id) {
+      return;
+    }
+
+
+    /*
+     * If the backend already says completed or failed,
+     * there is nothing left to poll.
+     */
+    if (
+      uploadedVideo.processing_status === "completed" ||
+      uploadedVideo.processing_status === "failed"
+    ) {
+
+      setProcessing(false);
+
+      return;
+    }
+
+
+    /*
+     * Start polling the backend.
+     *
+     * The frontend does not perform any computer vision.
+     * It simply asks the backend for the latest state.
+     */
+    setProcessing(true);
+
+
+    const pollInterval = setInterval(async () => {
+
+      try {
+
+        const latestVideo = await getVideo(
+          uploadedVideo.video_id
+        );
+
+
+        // Update the UI with the latest backend state.
+        setUploadedVideo(latestVideo);
+
+
+        /*
+         * Stop polling when processing finishes.
+         */
+        if (
+          latestVideo.processing_status === "completed" ||
+          latestVideo.processing_status === "failed"
+        ) {
+
+          clearInterval(pollInterval);
+
+          setProcessing(false);
+        }
+
+      } catch (err) {
+
+        /*
+         * Stop polling if the status request itself fails.
+         */
+        clearInterval(pollInterval);
+
+        setProcessing(false);
+
+        setError(
+          err.message ||
+          "Unable to check the video processing status."
+        );
+      }
+
+    }, 2000);
+
+
+    /*
+     * Clean up the polling interval when the component
+     * unmounts or the video changes.
+     */
+    return () => {
+      clearInterval(pollInterval);
+    };
+
+  }, [
+    uploadedVideo?.video_id,
+    uploadedVideo?.processing_status,
+  ]);
+
+
+  // ============================================================
+  // SCROLL TO ACTIVE PROCESSING SECTION
+  // ============================================================
+
+  useEffect(() => {
+
+    /*
+     * Only scroll after a video has successfully been
+     * uploaded and a video ID exists.
+     */
+    if (!uploadedVideo?.video_id) {
+      return;
+    }
+
+
+    /*
+     * Give React time to render the processing section
+     * before scrolling to it.
+     */
+    const timeoutId = setTimeout(() => {
+
+      processingSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+
+    }, 100);
+
+
+    /*
+     * Clean up the timeout if necessary.
+     */
+    return () => {
+      clearTimeout(timeoutId);
+    };
+
+  }, [uploadedVideo?.video_id]);
+
+
+  // ============================================================
+  // DELETE UPLOADED VIDEO
+  // ============================================================
+
+  /**
+   * Delete the uploaded video from the backend.
+   */
+  async function handleDeleteVideo() {
+
+    if (!uploadedVideo?.video_id) {
+      return;
+    }
+
+
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this video?"
+    );
+
+
+    if (!confirmed) {
+      return;
+    }
+
+
+    setDeleting(true);
+    setError("");
+
+
+    try {
+
+      await deleteVideo(
+        uploadedVideo.video_id
+      );
+
+
+      // Reset backend video state.
+      setUploadedVideo(null);
+
+
+      // Stop processing state.
+      setProcessing(false);
+
+
+      // Clear success message.
+      setSuccess(
+        "Video deleted successfully."
+      );
+
+    } catch (err) {
+
+      setError(
+        err.message ||
+        "Failed to delete the video."
+      );
+
+    } finally {
+
+      setDeleting(false);
     }
   }
 
@@ -387,18 +616,67 @@ function UploadVideo() {
   // ============================================================
 
   /**
-   * Format the file size into a readable value.
+   * Format bytes into a readable file size.
    *
    * @param {number} bytes - File size in bytes.
    * @returns {string} Formatted file size.
    */
   function formatFileSize(bytes) {
+
     if (bytes < 1024 * 1024) {
+
       return `${(bytes / 1024).toFixed(1)} KB`;
     }
 
-    return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+
+    return `${(
+      bytes /
+      (1024 * 1024)
+    ).toFixed(2)} MB`;
   }
+
+
+  // ============================================================
+  // PROCESSING STATUS HELPERS
+  // ============================================================
+
+  /**
+   * Convert the backend status into a user-friendly label.
+   */
+  function getStatusLabel(status) {
+
+    switch (status) {
+
+      case "uploaded":
+        return "Uploaded";
+
+      case "processing":
+        return "Processing";
+
+      case "completed":
+        return "Processing completed";
+
+      case "failed":
+        return "Processing failed";
+
+      default:
+        return status || "Waiting";
+    }
+  }
+
+
+  /**
+   * Determine whether processing has failed.
+   */
+  const processingFailed =
+    uploadedVideo?.processing_status === "failed";
+
+
+  /**
+   * Determine whether processing has completed.
+   */
+  const processingCompleted =
+    uploadedVideo?.processing_status === "completed";
 
 
   // ============================================================
@@ -406,11 +684,12 @@ function UploadVideo() {
   // ============================================================
 
   return (
+
     <main className="upload-page">
 
-      {/* =====================================================
+      {/* ======================================================
           PAGE HEADER
-          ===================================================== */}
+          ====================================================== */}
 
       <section className="upload-header">
 
@@ -441,21 +720,22 @@ function UploadVideo() {
       </section>
 
 
-      {/* =====================================================
+      {/* ======================================================
           UPLOAD CONTENT
-          ===================================================== */}
+          ====================================================== */}
 
       <section className="upload-content">
 
-        {/*
-          Height calibrates normalized pose landmarks to centimetres. It is
-          collected alongside the video rather than inferred from one
-          uncalibrated camera recording.
-        */}
+        {/* ====================================================
+            HEIGHT
+            ==================================================== */}
+
         <div className="form-group upload-height-field">
+
           <label htmlFor="user-height-cm">
             Your height (cm)
           </label>
+
 
           <input
             id="user-height-cm"
@@ -464,18 +744,22 @@ function UploadVideo() {
             max="250"
             step="0.1"
             value={userHeightCm}
-            onChange={(event) => setUserHeightCm(event.target.value)}
+            onChange={(event) =>
+              setUserHeightCm(event.target.value)
+            }
             placeholder="e.g. 175"
             required
             disabled={uploading}
           />
+
         </div>
 
-        {!selectedFile ? (
 
-          /* =================================================
-             FILE DROP AREA
-             ================================================= */
+        {/* ====================================================
+            FILE SELECTION
+            ==================================================== */}
+
+        {!selectedFile && !uploadedVideo ? (
 
           <div
             className="upload-dropzone"
@@ -493,13 +777,13 @@ function UploadVideo() {
             </h2>
 
 
-              <p>
-                Drag and drop your video here or choose a file
-                from your computer.
-              </p>
+            <p>
+              Drag and drop your video here or choose a file
+              from your computer.
+            </p>
 
 
-              <button
+            <button
               type="button"
               className="primary-button"
               onClick={openFilePicker}
@@ -523,11 +807,11 @@ function UploadVideo() {
 
           </div>
 
-        ) : (
+        ) : selectedFile ? (
 
-          /* =================================================
+          /* ==================================================
              VIDEO PREVIEW
-             ================================================= */
+             ================================================== */
 
           <div className="video-preview-card">
 
@@ -556,7 +840,9 @@ function UploadVideo() {
 
 
                 <p>
-                  {formatFileSize(selectedFile.size)}
+                  {formatFileSize(
+                    selectedFile.size
+                  )}
                 </p>
 
               </div>
@@ -574,11 +860,12 @@ function UploadVideo() {
             </div>
 
 
-            {/* =================================================
+            {/* ==================================================
                 UPLOAD PROGRESS
-                ================================================= */}
+                ================================================== */}
 
             {uploading && (
+
               <div className="upload-progress">
 
                 <div className="upload-progress-header">
@@ -610,59 +897,9 @@ function UploadVideo() {
             )}
 
 
-            {/* =================================================
-                SUCCESS MESSAGE
-                ================================================= */}
-
-            {success && (
-              <div
-                className="form-message success-message"
-                role="status"
-              >
-                {success}
-              </div>
-            )}
-
-
-            {/* =================================================
-                BACKEND RESPONSE
-                ================================================= */}
-
-            {uploadedVideo && (
-              <div className="video-upload-result">
-
-                <p>
-                  <strong>
-                    Video ID:
-                  </strong>{" "}
-                  {uploadedVideo.video_id}
-                </p>
-
-
-                <p>
-                  <strong>
-                    Processing status:
-                  </strong>{" "}
-                  {uploadedVideo.processing_status}
-                </p>
-
-
-                {uploadedVideo.processing_error && (
-                  <p>
-                    <strong>
-                      Processing note:
-                    </strong>{" "}
-                    {uploadedVideo.processing_error}
-                  </p>
-                )}
-
-              </div>
-            )}
-
-
-            {/* =================================================
+            {/* ==================================================
                 UPLOAD BUTTON
-                ================================================= */}
+                ================================================== */}
 
             <button
               type="button"
@@ -677,28 +914,348 @@ function UploadVideo() {
 
           </div>
 
+        ) : null}
+
+
+        {/* ====================================================
+            PROCESSING STATUS
+            ==================================================== */}
+
+        {uploadedVideo && (
+
+          <section
+            ref={processingSectionRef}
+            className="processing-status-card"
+          >
+
+            <div className="processing-status-header">
+
+              <p className="section-label">
+                VIDEO PROCESSING
+              </p>
+
+
+              <h2>
+                {processingFailed
+                  ? "Processing failed"
+                  : processingCompleted
+                    ? "Your measurements are ready"
+                    : "Analyzing your video"}
+              </h2>
+
+
+              <p>
+                {processingFailed
+                  ? "SmartFit could not finish processing this video."
+                  : processingCompleted
+                    ? "SmartFit has successfully processed your video."
+                    : "SmartFit is analyzing your video to estimate your body measurements."}
+              </p>
+
+            </div>
+
+
+            {/* ==================================================
+                PROCESSING TIMELINE
+                ================================================== */}
+
+            <div className="processing-timeline">
+
+              {/* ------------------------------------------------
+                  UPLOADED
+                  ------------------------------------------------ */}
+
+              <div className="processing-step completed">
+
+                <div className="processing-step-marker">
+                  ✓
+                </div>
+
+
+                <div className="processing-step-content">
+
+                  <strong>
+                    Uploaded
+                  </strong>
+
+
+                  <span>
+                    Video successfully received
+                  </span>
+
+                </div>
+
+              </div>
+
+
+              {/* ------------------------------------------------
+                  CONNECTOR
+                  ------------------------------------------------ */}
+
+              <div className="processing-step-line">
+
+                <div
+                  className={
+                    `processing-step-line-progress ${
+                      uploadedVideo.processing_status === "processing"
+                        ? ""
+                        : "completed"
+                    }`
+                  }
+                />
+
+              </div>  
+
+
+              {/* ------------------------------------------------
+                  PROCESSING
+                  ------------------------------------------------ */}
+
+              <div
+                className={
+                  `processing-step ${
+                    processingFailed
+                      ? "failed"
+                      : processingCompleted
+                        ? "completed"
+                        : "active"
+                  }`
+                }
+              >
+
+                <div className="processing-step-marker">
+
+                  {processingFailed
+                    ? "!"
+                    : processingCompleted
+                      ? "✓"
+                      : "●"}
+
+                </div>
+
+
+                <div className="processing-step-content">
+
+                  <strong>
+                    {processingFailed
+                      ? "Processing failed"
+                      : processingCompleted
+                        ? "Processed"
+                        : "Processing"}
+                  </strong>
+
+
+                  <span>
+                    {processingFailed
+                      ? "SmartFit could not process this video"
+                      : processingCompleted
+                        ? "Body measurements generated"
+                        : "Analyzing body movement and proportions"}
+                  </span>
+
+                </div>
+
+              </div>
+
+
+              {/* ------------------------------------------------
+                  PROCESSING ANIMATION
+                  ------------------------------------------------ */}
+
+              {processing && !processingFailed && !processingCompleted && (
+
+                <div className="processing-animation">
+
+                  <div className="processing-progress-track">
+
+                    <div className="processing-progress-bar" />
+
+                  </div>
+
+
+                  <span>
+                    Processing your video...
+                  </span>
+
+                </div>
+
+              )}
+
+
+              {/* ------------------------------------------------
+                  COMPLETED CONNECTOR
+                  ------------------------------------------------ */}
+
+              {processingCompleted && (
+
+                <div className="processing-step-line completed-line">
+
+                  <div className="processing-step-line-progress completed" />
+
+                </div>
+
+              )}
+
+
+              {/* ------------------------------------------------
+                  MEASUREMENTS
+                  ------------------------------------------------ */}
+
+              {processingCompleted && uploadedVideo.measurements && (
+
+                <div className="measurements-result">
+
+                  <div className="measurements-header">
+
+                    <p className="section-label">
+                      BODY MEASUREMENTS
+                    </p>
+
+
+                    <h3>
+                      Your measurements
+                    </h3>
+
+                  </div>
+
+
+                  <div className="measurement-grid">
+
+                    {Object.entries(
+                      uploadedVideo.measurements
+                    ).map(([key, value]) => (
+
+                      <div
+                        className="measurement-item"
+                        key={key}
+                      >
+
+                        <span>
+                          {key
+                            .replaceAll("_", " ")
+                            .replace(
+                              /\b\w/g,
+                              (char) =>
+                                char.toUpperCase()
+                            )}
+                        </span>
+
+
+                        <strong>
+                          {typeof value === "number"
+                            ? `${value.toFixed(2)} cm`
+                            : value}
+                        </strong>
+
+                      </div>
+
+                    ))}
+
+                  </div>
+
+                </div>
+
+              )}
+
+
+              {/* ------------------------------------------------
+                  PROCESSING ERROR
+                  ------------------------------------------------ */}
+
+              {processingFailed && (
+
+                <div
+                  className="form-message error-message processing-error"
+                  role="alert"
+                >
+
+                  {uploadedVideo.processing_error ||
+                    "SmartFit was unable to process this video. Please try uploading another video."}
+
+                </div>
+
+              )}
+
+            </div>
+
+
+            {/* ==================================================
+                CURRENT STATUS
+                ================================================== */}
+
+            <div className="processing-current-status">
+
+              <span>
+                Current status
+              </span>
+
+
+              <strong>
+                {getStatusLabel(
+                  uploadedVideo.processing_status
+                )}
+              </strong>
+
+            </div>
+
+
+            {/* ==================================================
+                DELETE VIDEO
+                ================================================== */}
+
+            <button
+              type="button"
+              className="secondary-button delete-video-button"
+              onClick={handleDeleteVideo}
+              disabled={deleting}
+            >
+              {deleting
+                ? "Deleting..."
+                : "Delete Video"}
+            </button>
+
+          </section>
+
         )}
 
 
-        {/* =====================================================
+        {/* ====================================================
+            SUCCESS MESSAGE
+            ==================================================== */}
+
+        {success && !uploadedVideo && (
+
+          <div
+            className="form-message success-message upload-success"
+            role="status"
+          >
+            {success}
+          </div>
+
+        )}
+
+
+        {/* ====================================================
             ERROR MESSAGE
-            ===================================================== */}
+            ==================================================== */}
 
         {error && (
+
           <div
             className="form-message error-message upload-error"
             role="alert"
           >
             {error}
           </div>
+
         )}
 
       </section>
 
 
-      {/* =====================================================
+      {/* ======================================================
           VIDEO GUIDELINES
-          ===================================================== */}
+          ====================================================== */}
 
       <section className="upload-guidelines">
 

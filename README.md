@@ -1,200 +1,109 @@
 # 👕 SmartFit
 
-SmartFit is a web-based virtual fitting system designed to improve the online clothing shopping experience by helping users estimate their body measurements, generate personalized digital avatars, and receive clothing size recommendations.
+SmartFit is a web-based virtual fitting system designed to revolutionize the online clothing shopping experience. By leveraging computer vision and 3D modeling, SmartFit enables users to estimate body measurements from simple video uploads, generate personalized 3D digital avatars, and receive precise clothing size recommendations.
 
-The system uses a React frontend, FastAPI backend, PostgreSQL database, SQLAlchemy ORM, and computer vision technologies.
-
----
-
-## 🚀 Current Development Status
-
-### 🗄️ Milestone 1 — Database and Persistence Layer
-
-**Status: ✅ Complete**
-
-The current version of SmartFit includes:
-
-* 🐘 PostgreSQL database integration
-* 🔗 SQLAlchemy ORM configuration
-* 🧩 Database session management
-* ⚙️ Database initialization
-* 🆔 UUID-based primary keys
-* 👤 User model
-* 🎥 Video model
-* 📏 Body Measurement model
-* 🧍 Avatar model
-* 👕 Garment model
-* 🪞 Virtual Fitting model
-* 🔗 Foreign key relationships between entities
-* 🔄 One-to-one relationships for body measurements and avatars
-* 🧪 CRUD persistence tests
-* 🔍 Database model validation tests
+The project is built with a **React** frontend, **FastAPI** backend, **PostgreSQL** database with **SQLAlchemy ORM**, **OpenCV/MediaPipe** pose estimation, and **Three.js** 3D visual rendering.
 
 ---
 
-### 🔐 Milestone 2 — API Foundation
+## 🚀 Development Status & Roadmap
 
-**Status: ✅ Complete**
+<details>
+<summary><b>🗄️ Milestone 1 — Database & Persistence Layer (✅ Complete)</b></summary>
 
-The SmartFit backend API foundation has been implemented and tested. It currently includes:
+* 🐘 **Database:** PostgreSQL integration with SQLAlchemy ORM and session management.
+* 🆔 **Entity Identifiers:** UUID-based primary keys across all relational entities.
+* 📐 **Data Schemas:** User, Video, Body Measurement, Avatar, Garment, and Virtual Fitting models.
+* 🔗 **Entity Mapping:** Configured foreign key relationships and strict one-to-one constraints.
+* 🧪 **Testing:** Automated CRUD persistence and schema validation test suites.
+</details>
 
-* ⚡ FastAPI API structure
-* 👤 User registration API (`POST /api/users/`)
-* 📧 Email uniqueness validation
-* 🔐 Secure password hashing using bcrypt
-* 🔑 Password verification
-* 🔓 User login API (`POST /api/users/login`)
-* 🎟️ JWT access token generation
-* 🛡️ JWT authentication and validation
-* 👤 Protected current-user profile endpoint (`GET /api/users/me`)
-* 🎥 Video upload API (`POST /api/videos/`)
-* 🗑️ Video delete API (`DELETE /api/videos/{video_id}`)
-* 🔗 Shared database session dependency
-* 🌐 CORS configuration for the React/Vite frontend
-* 🧪 Isolated PostgreSQL test database
-* 🔄 Repeatable automated API tests
-* 🔒 Secure API responses that do not expose password hashes
+<details>
+<summary><b>🔐 Milestone 2 — API Foundation (✅ Complete)</b></summary>
 
----
+* ⚡ **Framework:** FastAPI modular router structure with shared database dependencies.
+* 👤 **User Management:** User registration (`POST /api/users/`) with email uniqueness validation.
+* 🔐 **Security:** Password hashing using `bcrypt` and JWT token authentication (`POST /api/users/login`).
+* 🛡️ **Protected Routes:** Bearer token authentication middleware and user profile route (`GET /api/users/me`).
+* 🎥 **Media API:** Video upload (`POST /api/videos/`) and deletion endpoints (`DELETE /api/videos/{video_id}`).
+* 🌐 **Integration Prep:** CORS policies configured for React/Vite frontend integration.
+* 🧪 **Test Isolation:** Dedicated PostgreSQL test database (`SmartFit_Test_db`) setup.
+</details>
 
-### 💻 Milestone 3 — Frontend Foundation
+<details>
+<summary><b>💻 Milestone 3 — Frontend Foundation (✅ Complete)</b></summary>
 
-**Status: ✅ Complete**
+* ⚛️ **Framework:** React 19 + Vite 8 app shell configured with React Router 7 navigation.
+* 🎨 **UI Engine:** Modern responsive layout featuring dark mode toggling and reusable UI components.
+* 📱 **User Experience:** Complete dashboard, login, registration, video upload, and avatar viewer pages.
+</details>
 
-The initial SmartFit React frontend has been implemented as a stable user interface foundation. It currently includes:
+<details>
+<summary><b>🔗 Milestone 4 — Frontend & Backend Integration (✅ Complete)</b></summary>
 
-* ⚛️ React and Vite frontend setup
-* 🧭 React Router navigation
-* 🏠 Home page
-* 🔐 Login page
-* 📝 Registration page
-* 📊 User dashboard
-* 🎥 Video upload interface
-* 🧍 Avatar interface
-* 🧱 Shared main layout
-* 🦶 Shared footer
-* 🌙 Dark mode toggle
-* 📱 Responsive frontend structure
-* 🧩 Reusable frontend components and layouts
+* 🔗 **API Client:** Centralized HTTP service (`src/services/api.js`) with automatic JWT Bearer header injection.
+* 🧠 **State Management:** `AuthContext` provider handling application-wide authentication state.
+* 🛡️ **Route Guards:** `ProtectedRoute` component managing session restoration and route authorization.
+* 🎥 **Upload Flow:** Video upload interface with declared height inputs (100–250 cm) and 500 MB file validation.
+* 🚪 **Auth Lifecycle:** Full integration of login, user registration, profile hydration, and session destruction.
+</details>
 
----
+<details>
+<summary><b>👁️ Milestone 5 — Video Processing & Body Measurement (✅ Complete)</b></summary>
 
-### 🔗 Milestone 4 — Frontend & Backend Integration
+* 🎥 **Background Jobs:** Asynchronous video processing workflow using FastAPI `BackgroundTasks`.
+* 👁️ **Computer Vision:** Integrated OpenCV and MediaPipe Pose Landmarker (`pose_estimator.py`).
+* 📏 **Estimation Engine:** Height-calibrated shoulder-width and inseam calculation (`measurement_estimator.py`).
+* 💾 **Persistence:** Stored measurement models complete with confidence metrics and algorithm versioning.
+* 📊 **Progress UI:** Real-time frontend video status polling, progress indicators, and status UI tracking (`GET /api/videos/{video_id}`).
+* 🛡️ **Data Isolation:** Strict multi-tenant security verification preventing cross-user video and measurement access.
+</details>
 
-**Status: 🟡 In Progress (Core integration complete)**
+<details open>
+<summary><b>🔮 Milestone 6 — Avatar Generation & Virtual Fitting (🟡 In Progress)</b></summary>
 
-The React frontend is connected to the FastAPI backend for authentication and video upload. Completed integration work includes:
-
-* 🔗 Shared frontend API client (`src/services/api.js`)
-* 🌍 Frontend environment configuration (`VITE_API_URL`)
-* 📝 Registration API integration (`/api/users/`)
-* 🔐 Login API integration (`/api/users/login`)
-* 🎟️ JWT token storage in `localStorage` and automatic Bearer authentication header injection
-* 🧠 Centralized authentication state (`AuthContext`)
-* 🛡️ Protected frontend routes (`ProtectedRoute`) with session restoration
-* 👤 Current-user profile integration on Dashboard (`/api/users/me`) and Navbar
-* 🚪 Logout functionality
-* 🎥 Video upload API integration (`/api/videos/`) with user-declared height input (100–250 cm) and 500 MB limit
-* 📋 Display of initial video upload response and processing notes/errors on the upload page
-
-Remaining Milestone 4 work (Planned / Not Yet Implemented):
-
-* 🗑️ Video deletion integration in the frontend UI (the `deleteVideo` service function exists, but no UI action is yet provided)
-* 🔄 Video processing status polling (updating video state from `uploaded` to `processing` and `completed` / `failed`)
-* 📏 Display of estimated body measurements on the Dashboard or Avatar page
-* 📜 Uploaded video history and status list
-* 🧪 Frontend integration testing and UI polish
-* ⚠️ Consistent error handling across integrated pages
+* ✅ **Avatar Generation Service:** Backend logic to transform estimated body measurements into digital avatar data (`feat(avatar): implement avatar generation and retrieval`).
+* ✅ **Pipeline Integration:** Seamless connection linking video measurement outputs directly to the avatar generation flow (`Connect video measurements to avatar generation flow`).
+* ✅ **Backend Verification:** Dedicated unit/integration test suite covering avatar creation and retrieval.
+* 🟡 **3D Avatar Rendering:** *(Active Focus)* Building the frontend 3D canvas using **Three.js** / **React Three Fiber** to render personalized avatars based on backend measurements.
+* ⬜ **Garment Management System:** Retailer API for uploading 3D clothing items with dimensional metadata.
+* ⬜ **Virtual Fitting Engine:** Collision detection and fit scoring algorithms for accurate size recommendations.
+</details>
 
 ---
 
-### 🔮 Milestone 5 — Video Processing & Body Measurement
+## 📊 Test Status
 
-**Status: 🟡 In Progress (Core backend pipeline complete)**
+**80 automated backend tests — ✅ All Passing**
 
-The first video processing slice includes:
-
-* 🎥 Background processing orchestration for uploaded body videos via FastAPI `BackgroundTasks`
-* 👁️ OpenCV and MediaPipe Pose Landmarker integration (`pose_estimator.py`)
-* 📏 Deterministic, height-calibrated shoulder-width and inseam estimation service (`measurement_estimator.py`)
-* 🔄 `uploaded → processing → completed/failed` status transitions
-* 💾 Persisted body-measurement records with confidence metadata and algorithm version tracking
-* 🔍 Video status retrieval API endpoint (`GET /api/videos/{video_id}`)
-* 🛡️ Multi-tenant ownership checks preventing cross-user video inspection
-
-Remaining Milestone 5 work (Planned / Not Yet Implemented):
-
-* 🔄 Frontend polling for real-time video processing completion
-* 📊 Frontend visualization of extracted body measurements
-* 📐 Chest, waist, and hip circumferences (intentionally deferred until 2D silhouette analysis with controlled front and side views is implemented)
-
----
-
-### 🔮 Milestone 6 — Avatar Generation & Virtual Fitting
-
-**Status: ⬜ Planned**
-
-* 🧍 Digital avatar generation from body measurements
-* 👕 Garment upload and management (retailer workflow)
-* 🪞 Virtual fitting engine
-* 📊 Size recommendation logic
-* 🎨 3D visualization (Three.js)
-* 📈 Fit result display
-
----
-
-### 📊 Test Status
-
-**67 automated backend tests — ✅ All Passing**
-
-The automated test suite covers:
-
-* 🔌 Database connectivity
-* 🗄️ Database model registration
-* 📋 Table columns and UUID primary keys
-* 🔗 Foreign key and one-to-one relationships
-* 💾 CRUD persistence for all models
-* 👤 User registration and schema validation
-* 🔐 Password hashing and verification
-* 🔑 JWT authentication and authorization dependencies
-* 🛡️ Protected API endpoints
-* 🎥 Video upload, retrieval, and delete API behaviour
-* 📏 Body measurement estimation calculations from synthetic pose frames
-* 🪞 Virtual fitting relationships
+The backend test suite verifies system integrity across all layers:
+* 🔌 Database connectivity & clean schema resets
+* 💾 CRUD persistence and foreign key constraints
+* 🔐 Password hashing, JWT token generation, and authorization dependencies
+* 🎥 Multi-tenant video upload, status polling, and deletion
+* 📏 Pose landmarker detection and body measurement calculations
+* 🧍 Avatar entity creation and video-to-avatar data transformations
 
 ---
 
 ## 🛠️ Technology Stack
 
 ### ⚙️ Backend
-
-* 🐍 Python
-* ⚡ FastAPI
-* 🔗 SQLAlchemy
-* 🐘 PostgreSQL
-* 📦 Pydantic
-* 🔐 Passlib / bcrypt
-* 🔑 JWT
-* 🧪 Pytest
+* **Language:** Python 3.12+
+* **API Framework:** FastAPI
+* **Database & ORM:** PostgreSQL, SQLAlchemy
+* **Authentication:** Passlib (`bcrypt`), PyJWT
+* **Computer Vision & ML:** OpenCV, MediaPipe Pose Landmarker
+* **Testing:** Pytest
 
 ### 💻 Frontend
+* **Core:** React 19, Vite 8
+* **Routing:** React Router 7
+* **Styling:** CSS3 (Modern Flex/Grid with CSS variables for dark/light themes)
+* **Networking:** Fetch API with custom HTTP client interceptors
 
-* ⚛️ React 19
-* ⚡ Vite 8
-* 🧭 React Router 7
-* 📡 Fetch API (via shared `apiRequest` client)
-* 🎨 CSS
-
-### 🔮 Planned Processing & Visualization
-
-* 👁️ OpenCV + MediaPipe (body measurement extraction)
-* 🎨 Three.js (virtual fitting visualization)
-
-### 🔧 Development Tools
-
-* 📂 Git
-* 🐙 GitHub
-* 📝 Visual Studio Code
+### 🔮 3D Visualization & Engine
+* **Render Engine:** Three.js / React Three Fiber
 
 ---
 
@@ -208,7 +117,8 @@ SmartFit/
 │   │   ├── api/
 │   │   │   ├── routes/
 │   │   │   │   ├── users.py
-│   │   │   │   └── videos.py
+│   │   │   │   ├── videos.py
+│   │   │   │   └── avatars.py
 │   │   │   ├── dependencies.py
 │   │   │   └── router.py
 │   │   ├── core/
@@ -217,21 +127,23 @@ SmartFit/
 │   │   ├── db/
 │   │   ├── models/
 │   │   ├── schemas/
+│   │   ├── services/
+│   │   │   ├── pose_estimator.py
+│   │   │   ├── measurement_estimator.py
+│   │   │   └── avatar_service.py
 │   │   └── main.py
 │   │
-│   ├── tests/
-│   ├── uploads/
+│   ├── models/            # MediaPipe model assets (.task)
+│   ├── tests/             # Pytest automated test suite
+│   ├── uploads/           # Local video storage directory
 │   ├── .env.example
-│   ├── requirements.txt
-│   └── pytest.ini
+│   └── requirements.txt
 │
 ├── frontend/
-│   ├── public/
 │   ├── src/
 │   │   ├── components/
 │   │   ├── context/
 │   │   │   └── AuthContext.jsx
-│   │   ├── layouts/
 │   │   ├── pages/
 │   │   ├── services/
 │   │   │   ├── api.js
@@ -240,347 +152,82 @@ SmartFit/
 │   │   ├── App.jsx
 │   │   └── main.jsx
 │   ├── .env.example
-│   ├── package.json
-│   └── vite.config.js
+│   └── package.json
 │
 ├── docs/
-│   └── uml/
-│
-├── .gitignore
 └── README.md
 ```
 
 ---
 
-# 🖥️ Backend Setup
+## ⚡ Quick Start Guide
 
-## 📋 Requirements
-
-Before setting up the SmartFit backend, install the following:
-
-* 🐍 Python 3.12 or later
-* 🐘 PostgreSQL
-* 📂 Git
-
----
-
-## 1️⃣ Clone the Repository
-
-Clone the SmartFit repository from GitHub:
-
-```powershell
-git clone https://github.com/chris-macharia/SmartFit
-```
-
-Navigate into the project:
-
-```powershell
-cd SmartFit
-```
-
----
-
-## 2️⃣ Navigate to the Backend
+### 1️⃣ Backend Setup
 
 ```powershell
 cd backend
-```
 
----
-
-## 3️⃣ Create a Python Virtual Environment
-
-Create a virtual environment named `.venv`:
-
-```powershell
+# Create and activate Python virtual environment
 python -m venv .venv
-```
+.venv\Scripts\Activate.ps1   # On macOS/Linux: source .venv/bin/activate
 
----
-
-## 4️⃣ Activate the Virtual Environment
-
-On Windows PowerShell:
-
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
-The terminal should now display:
-
-```text
-(.venv)
-```
-
-before the current directory.
-
----
-
-## 5️⃣ Install Python Dependencies
-
-Install the required backend packages:
-
-```powershell
+# Install dependencies
 pip install -r requirements.txt
-```
 
----
-
-# 🐘 PostgreSQL Database Setup
-
-SmartFit currently requires a PostgreSQL database named:
-
-```text
-SmartFit_db
-```
-
-The database must be created before initializing the SmartFit tables.
-
-You can create the database using **pgAdmin** or the PostgreSQL command-line tools.
-
-The expected development database configuration is:
-
-```text
-Host:     localhost
-Port:     5432
-Database: SmartFit_db
-User:     postgres
-```
-
-For automated testing, SmartFit uses a separate PostgreSQL database:
-
-```text
-SmartFit_Test_db
-```
-
-The test database is used exclusively by the automated test suite to prevent tests from modifying the development database.
-
----
-
-## 6️⃣ Configure Backend Environment Variables 🔐
-
-Create a local `.env` file by copying the provided example:
-
-```powershell
+# Configure environment variables
 Copy-Item .env.example .env
 ```
 
-Open `.env` and replace the placeholder values with your local configuration:
-
-```env
-# Development Database
-DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/SmartFit_db
-
-# Test Database
-TEST_DATABASE_URL=postgresql://postgres:YOUR_PASSWORD@localhost:5432/SmartFit_Test_db
-
-# JWT Authentication
-SECRET_KEY=YOUR_SECRET_KEY
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-```
-
-**⚠️ Important:** Do not commit the `.env` file to Git.
-
-The `.env` file contains local configuration and credentials and is excluded from version control.
-
-The `.env.example` file is provided as a safe configuration template.
-
----
-
-# 🗃️ Database Initialization & Schema Management
-
-## 7️⃣ Create SmartFit Database Tables
-
-After creating the `SmartFit_db` database and configuring `.env`, initialize the SmartFit database tables:
+Ensure PostgreSQL is running with databases `SmartFit_db` and `SmartFit_Test_db`, then initialize and start:
 
 ```powershell
+# Initialize database tables
 python -m app.db.init_db
-```
 
-A successful initialization should display:
-
-```text
-Database tables initialized successfully.
-```
-
-### 🔄 Database Schema Management During Development
-
-> [!NOTE]
-> The PostgreSQL database currently contains only disposable development and test data.
->
-> During local development, schema changes are handled by rebuilding or resetting the development and test database schema from the current SQLAlchemy models using the existing reset script. A full production migration strategy (e.g. Alembic migrations) will be established later before production deployment. No manual migration scripts are required for Milestone 5.
-
-To recreate the database schema cleanly from the SQLAlchemy models, stop the FastAPI server and run the existing, guarded reset utility from the `backend` directory:
-
-```powershell
-# Reset only SmartFit_db (the default target)
-python -m scripts.reset_databases --target development
-
-# Reset only SmartFit_Test_db
-python -m scripts.reset_databases --target test
-
-# Reset both disposable local databases
-python -m scripts.reset_databases --target both
-```
-
-The script requires typing the exact confirmation phrase `RESET SMARTFIT DATABASES` before executing. Never use it against a database containing data you need to retain.
-
-### 🤖 Computer Vision Model Setup
-
-Milestone 5 uses the MediaPipe Pose Landmarker model. Download the `.task` model file to the location configured by `POSE_LANDMARKER_MODEL_PATH` in `.env` (default: `backend/models/pose_landmarker_lite.task`). The downloaded `.task` model file is intentionally excluded from Git via `.gitignore`.
-
-The current database contains the following core entities:
-
-```text
-👤 Users
-🎥 Videos
-📏 BodyMeasurements
-🧍 Avatars
-👕 Garments
-🪞 VirtualFittings
-```
-
----
-
-# 🧪 Running Tests
-
-## 8️⃣ Run the Automated Test Suite
-
-From the `backend` directory, run:
-
-```powershell
+# Execute test suite
 pytest -v
-```
 
-The current expected result is:
-
-```text
-67 passed
-```
-
-The test suite uses the isolated `SmartFit_Test_db` database and verifies:
-
-* 🔌 Database connectivity
-* 🗄️ Database model registration
-* 📋 Table columns
-* 🆔 UUID primary keys
-* 🔗 Foreign key relationships
-* 🔄 One-to-one constraints
-* 💾 CRUD persistence
-* 👤 User registration
-* 🔐 Password hashing and verification
-* 🔑 JWT authentication
-* 🛡️ Protected API endpoints
-* 🎥 Video upload and delete API behaviour
-* 🪞 Virtual fitting relationships
-
-All tests should pass before changes are merged into the `main` branch.
-
----
-
-# ⚡ Running the FastAPI Backend
-
-## 9️⃣ Start the Development Server
-
-From the `backend` directory:
-
-```powershell
+# Run FastAPI development server
 uvicorn app.main:app --reload
 ```
-
-The FastAPI development server will start locally at:
-
-```text
-http://127.0.0.1:8000
-```
-
-The interactive API documentation can be accessed at:
-
-```text
-http://127.0.0.1:8000/docs
-```
+*Interactive API Documentation:* `http://127.0.0.1:8000/docs`
 
 ---
 
-# 💻 Frontend Setup
-
-## 📋 Frontend Requirements
-
-Before running the SmartFit frontend, install:
-
-* 🟢 Node.js
-* 📦 npm
-
----
-
-## 🔟 Navigate to the Frontend
-
-From the SmartFit project root:
+### 2️⃣ Frontend Setup
 
 ```powershell
 cd frontend
-```
 
----
-
-## 1️⃣1️⃣ Install Frontend Dependencies
-
-```powershell
+# Install Node modules
 npm install
-```
 
----
-
-## 1️⃣2️⃣ Configure Frontend Environment Variables
-
-Create a local `.env` file by copying the provided example:
-
-```powershell
+# Configure environment
 Copy-Item .env.example .env
-```
 
-The default configuration should be:
-
-```env
-VITE_API_URL=http://127.0.0.1:8000
-```
-
-**⚠️ Important:** Do not commit the `.env` file to Git.
-
-Frontend environment files containing `VITE_*` variables should not contain sensitive backend credentials or secrets, because Vite exposes these variables to frontend code.
-
----
-
-## 1️⃣3️⃣ Start the Frontend Development Server
-
-```powershell
+# Run Vite dev server
 npm run dev
 ```
-
-Vite will provide a local development address in the terminal (typically `http://localhost:5173`).
-
-Open the displayed address in your browser to access the SmartFit frontend.
+*Application Client:* `http://localhost:5173`
 
 ---
 
-# 🔌 Current API Endpoints
+## 🔌 Current API Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| `GET` | `/` | No | API health check |
-| `POST` | `/api/users/` | No | Register a new user |
-| `POST` | `/api/users/login` | No | Authenticate and receive JWT |
-| `GET` | `/api/users/me` | Yes | Get current user profile |
-| `POST` | `/api/videos/` | Yes | Upload a body video (up to 500 MB) with declared height; starts processing |
-| `GET` | `/api/videos/{video_id}` | Yes | Get a user's video processing status |
-| `DELETE` | `/api/videos/{video_id}` | Yes | Delete a user's video |
-
-Models exist in the database layer for avatars, garments, body measurements, and virtual fittings, but API routes for those features have not been implemented yet.
+| Method | Endpoint | Auth Required | Description |
+|--------|----------|---------------|-------------|
+| `GET` | `/` | No | Health check endpoint |
+| `POST` | `/api/users/` | No | User registration |
+| `POST` | `/api/users/login` | No | User login & JWT issuance |
+| `GET` | `/api/users/me` | Yes | Retrieve logged-in user profile |
+| `POST` | `/api/videos/` | Yes | Upload body video with height metadata |
+| `GET` | `/api/videos/{video_id}` | Yes | Query video processing & measurement status |
+| `DELETE` | `/api/videos/{video_id}` | Yes | Delete user video |
+| `GET/POST` | `/api/avatars/` | Yes | Generate & retrieve avatar data from measurements |
 
 ---
 
-# 🌿 Development Workflow
+## 🌿 Development Workflow
 
 SmartFit uses Git branches to separate stable code from ongoing development.
 
@@ -621,82 +268,6 @@ main
 | 1 — Database & Persistence Layer | ✅ Complete |
 | 2 — API Foundation | ✅ Complete |
 | 3 — Frontend Foundation | ✅ Complete |
-| 4 — Frontend & Backend Integration | 🟡 In Progress |
-| 5 — Video Processing & Body Measurement | 🟡 In Progress |
-| 6 — Avatar Generation & Virtual Fitting | ⬜ Planned |
-
----
-
-# 🔐 Security Notes
-
-Never commit sensitive credentials to GitHub.
-
-The following files should remain local:
-
-```text
-backend/.env
-frontend/.env
-```
-
-The following files may be committed:
-
-```text
-backend/.env.example
-frontend/.env.example
-```
-
-The `.env.example` files contain configuration placeholders only and do not contain real credentials.
-
-Frontend environment files containing `VITE_*` variables should also not contain sensitive backend credentials or secrets, because Vite exposes these variables to frontend code.
-
-Passwords are hashed on the backend using bcrypt. JWT access tokens are stored in the browser's `localStorage` under the key `smartfit_token`.
-
----
-
-# 🧠 Project Development Philosophy
-
-SmartFit is developed incrementally using a test-driven and milestone-based approach.
-
-Each major milestone follows the process:
-
-```text
-📝 Design
-   ↓
-💻 Implementation
-   ↓
-🧪 Automated Testing
-   ↓
-🔍 Verification
-   ↓
-📦 Git Commit
-   ↓
-🚀 Merge into main
-```
-
-The objective is to ensure that the `main` branch remains a **stable, reproducible, and functional version** of the SmartFit system throughout development.
-
----
-
-## 👨‍💻 Project Status
-
-**SmartFit — Virtual Fitting System**
-
-🚧 **Currently in active development**
-
-**Completed:**
-
-* ✅ Database & Persistence Layer
-* ✅ API Foundation
-* ✅ Frontend Foundation
-
-**In Progress:**
-
-* 🟡 Frontend & Backend Integration (auth and video upload connected)
-* 🟡 Video Processing & Body Measurement (initial pose-based pipeline)
-
-**Upcoming:**
-
-* ⬜ Avatar Generation
-* ⬜ Garment Management
-* ⬜ Virtual Fitting & Size Recommendations
-* ⬜ 3D Visualization
+| 4 — Frontend & Backend Integration | ✅ Complete |
+| 5 — Video Processing & Body Measurement | ✅ Complete |
+| 6 — Avatar Generation & Virtual Fitting | 🟡 In Progress |

@@ -11,7 +11,7 @@ through this central router.
 
 from fastapi import APIRouter
 
-from app.api.routes import users, videos
+from app.api.routes import avatars, users, videos
 
 
 # Create the central API router.
@@ -47,4 +47,15 @@ api_router.include_router(
 #
 api_router.include_router(
     videos.router
+)
+
+
+# Register the Avatar API routes.
+#
+# This makes avatar generation and retrieval available under:
+#
+#     /api/avatars
+#
+api_router.include_router(
+    avatars.router
 )

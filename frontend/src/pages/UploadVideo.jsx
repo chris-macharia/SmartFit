@@ -14,7 +14,8 @@
  * 6. Poll the backend for processing status.
  * 7. Display processing progress.
  * 8. Display body measurements when processing completes.
- * 9. Allow the user to delete the uploaded video.
+ * 9. Remember the completed video ID for the Avatar page.
+ * 10. Allow the user to delete the uploaded video.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -33,7 +34,6 @@ function UploadVideo() {
   // FILE INPUT REFERENCE
   // ============================================================
 
-  // Reference to the hidden file input.
   const fileInputRef = useRef(null);
 
 
@@ -41,13 +41,6 @@ function UploadVideo() {
   // PROCESSING SECTION REFERENCE
   // ============================================================
 
-  /*
-   * Reference to the processing status section.
-   *
-   * After a successful upload, the page automatically
-   * scrolls this section into view so the user can see
-   * what SmartFit is currently doing.
-   */
   const processingSectionRef = useRef(null);
 
 
@@ -55,51 +48,24 @@ function UploadVideo() {
   // COMPONENT STATE
   // ============================================================
 
-  // Store the selected local video file.
   const [selectedFile, setSelectedFile] = useState(null);
 
-
-  // Store the user's declared height.
   const [userHeightCm, setUserHeightCm] = useState("");
 
-
-  // Store the temporary browser URL used for video preview.
   const [previewUrl, setPreviewUrl] = useState("");
 
-
-  // Store validation or API errors.
   const [error, setError] = useState("");
 
-
-  // Track whether the upload request is currently running.
   const [uploading, setUploading] = useState(false);
 
-
-  // Upload progress.
-  //
-  // Fetch does not provide upload progress events.
-  // Therefore this represents the upload request state.
   const [uploadProgress, setUploadProgress] = useState(0);
 
-
-  // Store a successful upload message.
   const [success, setSuccess] = useState("");
 
-
-  /*
-   * Store the video returned by the backend.
-   *
-   * This object is also updated during polling so the UI
-   * always reflects the latest backend processing state.
-   */
   const [uploadedVideo, setUploadedVideo] = useState(null);
 
-
-  // Track whether processing is currently being polled.
   const [processing, setProcessing] = useState(false);
 
-
-  // Track whether the delete request is running.
   const [deleting, setDeleting] = useState(false);
 
 
@@ -129,14 +95,8 @@ function UploadVideo() {
   // FILE SELECTION
   // ============================================================
 
-  /**
-   * Validate and store a selected video file.
-   *
-   * @param {File} file - Selected video file.
-   */
   function handleFileSelect(file) {
 
-    // Clear previous feedback.
     setError("");
     setSuccess("");
     setUploadedVideo(null);
@@ -144,14 +104,13 @@ function UploadVideo() {
     setUploadProgress(0);
 
 
-    // Make sure a file exists.
     if (!file) {
       return;
     }
 
 
     // ----------------------------------------------------------
-    // Validate file type
+    // Validate file type.
     // ----------------------------------------------------------
 
     if (!ACCEPTED_VIDEO_TYPES.includes(file.type)) {
@@ -165,7 +124,7 @@ function UploadVideo() {
 
 
     // ----------------------------------------------------------
-    // Validate file size
+    // Validate file size.
     // ----------------------------------------------------------
 
     if (file.size > MAX_FILE_SIZE) {
@@ -179,7 +138,7 @@ function UploadVideo() {
 
 
     // ----------------------------------------------------------
-    // Release previous preview URL
+    // Release previous preview URL.
     // ----------------------------------------------------------
 
     if (previewUrl) {
@@ -188,13 +147,12 @@ function UploadVideo() {
 
 
     // ----------------------------------------------------------
-    // Create new preview URL
+    // Create new preview URL.
     // ----------------------------------------------------------
 
     const videoUrl = URL.createObjectURL(file);
 
 
-    // Store selected file and preview.
     setSelectedFile(file);
     setPreviewUrl(videoUrl);
   }
@@ -204,9 +162,6 @@ function UploadVideo() {
   // FILE INPUT HANDLER
   // ============================================================
 
-  /**
-   * Handle selection through the file picker.
-   */
   function handleInputChange(event) {
 
     const file = event.target.files[0];
@@ -219,9 +174,6 @@ function UploadVideo() {
   // OPEN FILE PICKER
   // ============================================================
 
-  /**
-   * Open the browser's native file selection dialog.
-   */
   function openFilePicker() {
 
     fileInputRef.current?.click();
@@ -232,9 +184,6 @@ function UploadVideo() {
   // DRAG AND DROP
   // ============================================================
 
-  /**
-   * Handle drag-and-drop uploads.
-   */
   function handleDrop(event) {
 
     event.preventDefault();
@@ -245,9 +194,6 @@ function UploadVideo() {
   }
 
 
-  /**
-   * Prevent the browser from opening the dropped file directly.
-   */
   function handleDragOver(event) {
 
     event.preventDefault();
@@ -258,20 +204,13 @@ function UploadVideo() {
   // REMOVE LOCAL VIDEO
   // ============================================================
 
-  /**
-   * Remove the currently selected local video.
-   *
-   * This does NOT delete an already-uploaded backend video.
-   */
   function removeVideo() {
 
-    // Release temporary browser URL.
     if (previewUrl) {
       URL.revokeObjectURL(previewUrl);
     }
 
 
-    // Reset local upload state.
     setSelectedFile(null);
     setPreviewUrl("");
     setError("");
@@ -279,7 +218,6 @@ function UploadVideo() {
     setUploadProgress(0);
 
 
-    // Reset file input.
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -290,12 +228,8 @@ function UploadVideo() {
   // UPLOAD VIDEO
   // ============================================================
 
-  /**
-   * Upload the selected video to the SmartFit backend.
-   */
   async function handleUpload() {
 
-    // Make sure a file was selected.
     if (!selectedFile) {
 
       setError(
@@ -305,10 +239,6 @@ function UploadVideo() {
       return;
     }
 
-
-    // ----------------------------------------------------------
-    // Validate height
-    // ----------------------------------------------------------
 
     const parsedHeight = Number(userHeightCm);
 
@@ -327,19 +257,11 @@ function UploadVideo() {
     }
 
 
-    // ----------------------------------------------------------
-    // Clear previous feedback
-    // ----------------------------------------------------------
-
     setError("");
     setSuccess("");
     setUploadedVideo(null);
     setProcessing(false);
 
-
-    // ----------------------------------------------------------
-    // Begin upload
-    // ----------------------------------------------------------
 
     setUploading(true);
     setUploadProgress(0);
@@ -348,7 +270,7 @@ function UploadVideo() {
     try {
 
       // --------------------------------------------------------
-      // Send video to FastAPI
+      // Upload video.
       // --------------------------------------------------------
 
       const video = await uploadVideo(
@@ -358,28 +280,33 @@ function UploadVideo() {
 
 
       // --------------------------------------------------------
-      // Store backend response
+      // Store backend response.
       // --------------------------------------------------------
 
       setUploadedVideo(video);
 
-
-      // Upload request completed.
       setUploadProgress(100);
 
-
-      // Begin processing state.
       setProcessing(true);
 
 
-      // Display success message.
       setSuccess(
         "Video uploaded successfully."
       );
 
 
       // --------------------------------------------------------
-      // Release local preview
+      // Remember the video ID.
+      // --------------------------------------------------------
+
+      localStorage.setItem(
+        "smartfit_latest_video_id",
+        video.video_id
+      );
+
+
+      // --------------------------------------------------------
+      // Release local preview.
       // --------------------------------------------------------
 
       if (previewUrl) {
@@ -387,15 +314,10 @@ function UploadVideo() {
       }
 
 
-      // --------------------------------------------------------
-      // Clear selected local file
-      // --------------------------------------------------------
-
       setSelectedFile(null);
       setPreviewUrl("");
 
 
-      // Reset file input.
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -420,18 +342,11 @@ function UploadVideo() {
 
   useEffect(() => {
 
-    /*
-     * Do not poll if there is no uploaded video.
-     */
     if (!uploadedVideo?.video_id) {
       return;
     }
 
 
-    /*
-     * If the backend already says completed or failed,
-     * there is nothing left to poll.
-     */
     if (
       uploadedVideo.processing_status === "completed" ||
       uploadedVideo.processing_status === "failed"
@@ -443,12 +358,6 @@ function UploadVideo() {
     }
 
 
-    /*
-     * Start polling the backend.
-     *
-     * The frontend does not perform any computer vision.
-     * It simply asks the backend for the latest state.
-     */
     setProcessing(true);
 
 
@@ -461,13 +370,19 @@ function UploadVideo() {
         );
 
 
-        // Update the UI with the latest backend state.
         setUploadedVideo(latestVideo);
 
 
-        /*
-         * Stop polling when processing finishes.
-         */
+        // ------------------------------------------------------
+        // Keep the video ID persisted.
+        // ------------------------------------------------------
+
+        localStorage.setItem(
+          "smartfit_latest_video_id",
+          latestVideo.video_id
+        );
+
+
         if (
           latestVideo.processing_status === "completed" ||
           latestVideo.processing_status === "failed"
@@ -480,9 +395,6 @@ function UploadVideo() {
 
       } catch (err) {
 
-        /*
-         * Stop polling if the status request itself fails.
-         */
         clearInterval(pollInterval);
 
         setProcessing(false);
@@ -496,10 +408,6 @@ function UploadVideo() {
     }, 2000);
 
 
-    /*
-     * Clean up the polling interval when the component
-     * unmounts or the video changes.
-     */
     return () => {
       clearInterval(pollInterval);
     };
@@ -511,24 +419,16 @@ function UploadVideo() {
 
 
   // ============================================================
-  // SCROLL TO ACTIVE PROCESSING SECTION
+  // SCROLL TO PROCESSING SECTION
   // ============================================================
 
   useEffect(() => {
 
-    /*
-     * Only scroll after a video has successfully been
-     * uploaded and a video ID exists.
-     */
     if (!uploadedVideo?.video_id) {
       return;
     }
 
 
-    /*
-     * Give React time to render the processing section
-     * before scrolling to it.
-     */
     const timeoutId = setTimeout(() => {
 
       processingSectionRef.current?.scrollIntoView({
@@ -539,9 +439,6 @@ function UploadVideo() {
     }, 100);
 
 
-    /*
-     * Clean up the timeout if necessary.
-     */
     return () => {
       clearTimeout(timeoutId);
     };
@@ -553,9 +450,6 @@ function UploadVideo() {
   // DELETE UPLOADED VIDEO
   // ============================================================
 
-  /**
-   * Delete the uploaded video from the backend.
-   */
   async function handleDeleteVideo() {
 
     if (!uploadedVideo?.video_id) {
@@ -584,15 +478,19 @@ function UploadVideo() {
       );
 
 
-      // Reset backend video state.
+      // --------------------------------------------------------
+      // Remove the remembered video ID.
+      // --------------------------------------------------------
+
+      localStorage.removeItem(
+        "smartfit_latest_video_id"
+      );
+
+
       setUploadedVideo(null);
 
-
-      // Stop processing state.
       setProcessing(false);
 
-
-      // Clear success message.
       setSuccess(
         "Video deleted successfully."
       );
@@ -615,12 +513,6 @@ function UploadVideo() {
   // FORMAT FILE SIZE
   // ============================================================
 
-  /**
-   * Format bytes into a readable file size.
-   *
-   * @param {number} bytes - File size in bytes.
-   * @returns {string} Formatted file size.
-   */
   function formatFileSize(bytes) {
 
     if (bytes < 1024 * 1024) {
@@ -640,9 +532,6 @@ function UploadVideo() {
   // PROCESSING STATUS HELPERS
   // ============================================================
 
-  /**
-   * Convert the backend status into a user-friendly label.
-   */
   function getStatusLabel(status) {
 
     switch (status) {
@@ -665,16 +554,10 @@ function UploadVideo() {
   }
 
 
-  /**
-   * Determine whether processing has failed.
-   */
   const processingFailed =
     uploadedVideo?.processing_status === "failed";
 
 
-  /**
-   * Determine whether processing has completed.
-   */
   const processingCompleted =
     uploadedVideo?.processing_status === "completed";
 
@@ -961,10 +844,6 @@ function UploadVideo() {
 
             <div className="processing-timeline">
 
-              {/* ------------------------------------------------
-                  UPLOADED
-                  ------------------------------------------------ */}
-
               <div className="processing-step completed">
 
                 <div className="processing-step-marker">
@@ -988,10 +867,6 @@ function UploadVideo() {
               </div>
 
 
-              {/* ------------------------------------------------
-                  CONNECTOR
-                  ------------------------------------------------ */}
-
               <div className="processing-step-line">
 
                 <div
@@ -1004,12 +879,8 @@ function UploadVideo() {
                   }
                 />
 
-              </div>  
+              </div>
 
-
-              {/* ------------------------------------------------
-                  PROCESSING
-                  ------------------------------------------------ */}
 
               <div
                 className={
@@ -1058,109 +929,199 @@ function UploadVideo() {
               </div>
 
 
-              {/* ------------------------------------------------
+              {/* ==================================================
                   PROCESSING ANIMATION
-                  ------------------------------------------------ */}
+                  ================================================== */}
 
-              {processing && !processingFailed && !processingCompleted && (
+              {processing &&
+                !processingFailed &&
+                !processingCompleted && (
 
-                <div className="processing-animation">
+                  <div className="processing-animation">
 
-                  <div className="processing-progress-track">
+                    <div className="processing-progress-track">
 
-                    <div className="processing-progress-bar" />
+                      <div className="processing-progress-bar" />
+
+                    </div>
+
+
+                    <span>
+                      Processing your video...
+                    </span>
 
                   </div>
-
-
-                  <span>
-                    Processing your video...
-                  </span>
-
-                </div>
-
               )}
 
 
-              {/* ------------------------------------------------
-                  COMPLETED CONNECTOR
-                  ------------------------------------------------ */}
-
-              {processingCompleted && (
-
-                <div className="processing-step-line completed-line">
-
-                  <div className="processing-step-line-progress completed" />
-
-                </div>
-
-              )}
-
-
-              {/* ------------------------------------------------
+              {/* ==================================================
                   MEASUREMENTS
-                  ------------------------------------------------ */}
+                  ================================================== */}
 
-              {processingCompleted && uploadedVideo.measurements && (
+              {processingCompleted &&
+                uploadedVideo.measurement && (
 
-                <div className="measurements-result">
+                  <div className="measurements-result">
 
-                  <div className="measurements-header">
+                    <div className="measurements-header">
 
-                    <p className="section-label">
-                      BODY MEASUREMENTS
-                    </p>
-
-
-                    <h3>
-                      Your measurements
-                    </h3>
-
-                  </div>
+                      <p className="section-label">
+                        BODY MEASUREMENTS
+                      </p>
 
 
-                  <div className="measurement-grid">
+                      <h3>
+                        Your measurements
+                      </h3>
 
-                    {Object.entries(
-                      uploadedVideo.measurements
-                    ).map(([key, value]) => (
+                    </div>
 
-                      <div
-                        className="measurement-item"
-                        key={key}
-                      >
+
+                    <div className="measurement-grid">
+
+                      {/* Height */}
+
+                      <div className="measurement-item">
 
                         <span>
-                          {key
-                            .replaceAll("_", " ")
-                            .replace(
-                              /\b\w/g,
-                              (char) =>
-                                char.toUpperCase()
-                            )}
+                          Height
                         </span>
 
-
                         <strong>
-                          {typeof value === "number"
-                            ? `${value.toFixed(2)} cm`
-                            : value}
+                          {uploadedVideo.measurement.height?.toFixed(2)} cm
                         </strong>
 
                       </div>
 
-                    ))}
+
+                      {/* Chest */}
+
+                      <div className="measurement-item">
+
+                        <span>
+                          Chest
+                        </span>
+
+                        <strong>
+                          {uploadedVideo.measurement.chest !== null
+                            ? `${uploadedVideo.measurement.chest.toFixed(2)} cm`
+                            : "Not available"}
+                        </strong>
+
+                      </div>
+
+
+                      {/* Waist */}
+
+                      <div className="measurement-item">
+
+                        <span>
+                          Waist
+                        </span>
+
+                        <strong>
+                          {uploadedVideo.measurement.waist !== null
+                            ? `${uploadedVideo.measurement.waist.toFixed(2)} cm`
+                            : "Not available"}
+                        </strong>
+
+                      </div>
+
+
+                      {/* Hips */}
+
+                      <div className="measurement-item">
+
+                        <span>
+                          Hips
+                        </span>
+
+                        <strong>
+                          {uploadedVideo.measurement.hips !== null
+                            ? `${uploadedVideo.measurement.hips.toFixed(2)} cm`
+                            : "Not available"}
+                        </strong>
+
+                      </div>
+
+
+                      {/* Shoulder Width */}
+
+                      <div className="measurement-item">
+
+                        <span>
+                          Shoulder Width
+                        </span>
+
+                        <strong>
+                          {uploadedVideo.measurement.shoulder_width.toFixed(2)} cm
+                        </strong>
+
+                      </div>
+
+
+                      {/* Inseam */}
+
+                      <div className="measurement-item">
+
+                        <span>
+                          Inseam
+                        </span>
+
+                        <strong>
+                          {uploadedVideo.measurement.inseam.toFixed(2)} cm
+                        </strong>
+
+                      </div>
+
+
+                      {/* Confidence */}
+
+                      <div className="measurement-item">
+
+                        <span>
+                          Confidence
+                        </span>
+
+                        <strong>
+                          {(
+                            uploadedVideo.measurement.confidence_score * 100
+                          ).toFixed(1)}%
+                        </strong>
+
+                      </div>
+
+                    </div>
+
+
+                    {/* ==================================================
+                        GENERATE AVATAR BUTTON
+                        ================================================== */}
+
+                    <div className="avatar-generation-action">
+
+                        <Link
+                          to="/avatar"
+                          state={{
+                            videoId: uploadedVideo.video_id,
+                          }}
+                          className="primary-button generate-avatar-button"
+                          style={{
+                            marginTop: "24px",
+                          }}
+                        >
+                          Generate Avatar →
+                        </Link>
+
+                    </div>
 
                   </div>
-
-                </div>
-
               )}
 
 
-              {/* ------------------------------------------------
+              {/* ==================================================
                   PROCESSING ERROR
-                  ------------------------------------------------ */}
+                  ================================================== */}
 
               {processingFailed && (
 
@@ -1257,120 +1218,116 @@ function UploadVideo() {
           VIDEO GUIDELINES
           ====================================================== */}
 
-      <section className="upload-guidelines">
+      {!uploadedVideo && (
 
-        <div className="upload-guidelines-header">
+        <section className="upload-guidelines">
 
-          <p className="section-label">
-            VIDEO GUIDELINES
-          </p>
+          <div className="upload-guidelines-header">
 
-
-          <h2>
-            How to record your video
-          </h2>
+            <p className="section-label">
+              VIDEO GUIDELINES
+            </p>
 
 
-          <p>
-            A clear and consistent video helps SmartFit produce
-            more accurate body measurements.
-          </p>
-
-        </div>
-
-
-        <div className="guidelines-grid">
-
-          {/* Guideline 1 */}
-
-          <div className="guideline-card">
-
-            <span className="guideline-number">
-              01
-            </span>
-
-
-            <h3>
-              Stand upright
-            </h3>
+            <h2>
+              How to record your video
+            </h2>
 
 
             <p>
-              Stand straight with your arms slightly away from
-              your body so your body outline remains visible.
+              A clear and consistent video helps SmartFit produce
+              more accurate body measurements.
             </p>
 
           </div>
 
 
-          {/* Guideline 2 */}
+          <div className="guidelines-grid">
 
-          <div className="guideline-card">
+            <div className="guideline-card">
 
-            <span className="guideline-number">
-              02
-            </span>
-
-
-            <h3>
-              Use good lighting
-            </h3>
+              <span className="guideline-number">
+                01
+              </span>
 
 
-            <p>
-              Record in a well-lit environment where your body
-              can be clearly distinguished from the background.
-            </p>
+              <h3>
+                Stand upright
+              </h3>
+
+
+              <p>
+                Stand straight with your arms slightly away from
+                your body so your body outline remains visible.
+              </p>
+
+            </div>
+
+
+            <div className="guideline-card">
+
+              <span className="guideline-number">
+                02
+              </span>
+
+
+              <h3>
+                Use good lighting
+              </h3>
+
+
+              <p>
+                Record in a well-lit environment where your body
+                can be clearly distinguished from the background.
+              </p>
+
+            </div>
+
+
+            <div className="guideline-card">
+
+              <span className="guideline-number">
+                03
+              </span>
+
+
+              <h3>
+                Keep your full body visible
+              </h3>
+
+
+              <p>
+                Make sure your entire body remains inside the
+                camera frame throughout the recording.
+              </p>
+
+            </div>
+
+
+            <div className="guideline-card">
+
+              <span className="guideline-number">
+                04
+              </span>
+
+
+              <h3>
+                Move slowly
+              </h3>
+
+
+              <p>
+                Rotate slowly and steadily so the system can
+                capture enough information for processing.
+              </p>
+
+            </div>
 
           </div>
 
+        </section>
 
-          {/* Guideline 3 */}
-
-          <div className="guideline-card">
-
-            <span className="guideline-number">
-              03
-            </span>
-
-
-            <h3>
-              Keep your full body visible
-            </h3>
-
-
-            <p>
-              Make sure your entire body remains inside the
-              camera frame throughout the recording.
-            </p>
-
-          </div>
-
-
-          {/* Guideline 4 */}
-
-          <div className="guideline-card">
-
-            <span className="guideline-number">
-              04
-            </span>
-
-
-            <h3>
-              Move slowly
-            </h3>
-
-
-            <p>
-              Rotate slowly and steadily so the system can
-              capture enough information for processing.
-            </p>
-
-          </div>
-
-        </div>
-
-      </section>
+      )}
 
     </main>
   );

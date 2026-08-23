@@ -22,7 +22,12 @@ class User(Base):
     """
     SQLAlchemy model representing a SmartFit user.
 
-    A user can have multiple uploaded videos.
+    A user can have multiple uploaded videos and garments.
+
+    Users can currently have one of two roles:
+
+    - customer
+    - retailer
     """
 
     __tablename__ = "users"
@@ -60,7 +65,7 @@ class User(Base):
 
     # User role.
     #
-    # Possible roles include:
+    # Supported roles:
     # - customer
     # - retailer
     role: Mapped[str] = mapped_column(
@@ -83,15 +88,19 @@ class User(Base):
     # --------------------------------------------------------
 
     # One user can upload many videos.
-    #
-    # Deleting a User through SQLAlchemy deletes their associated
-    # Video records as well.
-    #
-    # Because Video -> BodyMeasurement also cascades, deleting a
-    # user ultimately removes the user's derived measurements and
-    # avatars as well.
     videos = relationship(
         "Video",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    # One user can upload many garments.
+    #
+    # Garments uploaded by a customer should be prevented at
+    # the API authorization level. The database relationship
+    # itself remains user-based.
+    garments = relationship(
+        "Garment",
         back_populates="user",
         cascade="all, delete-orphan",
     )

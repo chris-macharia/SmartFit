@@ -10,72 +10,87 @@ Pydantic schemas are separate from SQLAlchemy database models:
 - Pydantic schemas define how data enters and leaves the API.
 """
 
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, EmailStr
 
 
+# ============================================================
+# User Creation
+# ============================================================
+
 class UserCreate(BaseModel):
     """
     Schema used when creating a new SmartFit user.
 
-    This schema defines the data that the API expects from
-    the client when registering a new user.
+    A SmartFit account can currently have one of two roles:
 
-    The password is received as plain text at the API boundary.
-    It must be securely hashed before being stored in the database.
+    - customer
+    - retailer
+
+    The password is received as plain text at the API boundary
+    and must be securely hashed before being stored.
     """
 
     full_name: str
     email: EmailStr
     password: str
-    role: str
+    role: Literal["customer", "retailer"]
 
+
+# ============================================================
+# User Login
+# ============================================================
 
 class UserLogin(BaseModel):
     """
     Schema used when a user attempts to log in.
 
     The user provides their registered email address and
-    plain-text password. The password is verified against
-    the securely stored password hash.
+    plain-text password.
     """
 
     email: EmailStr
     password: str
 
 
+# ============================================================
+# Authentication Response
+# ============================================================
+
 class TokenResponse(BaseModel):
     """
     Schema returned after successful user authentication.
 
-    The access_token is a signed JWT that the client can use
+    The access_token is a signed JWT that the client uses
     to authenticate subsequent requests.
 
-    token_type identifies the authentication scheme used by
-    the client when sending the token in the Authorization header.
+    token_type identifies the authentication scheme used
+    in the Authorization header.
     """
 
     access_token: str
     token_type: str
 
 
+# ============================================================
+# User Response
+# ============================================================
+
 class UserResponse(BaseModel):
     """
     Schema used when returning a user through the API.
 
-    Sensitive information such as the user's hashed password
-    is deliberately excluded from API responses.
-
-    The user's UUID is returned so that the client can identify
-    the created user.
+    Sensitive information such as the hashed password is
+    deliberately excluded from API responses.
     """
 
     user_id: UUID
     full_name: str
     email: EmailStr
-    role: str
+    role: Literal["customer", "retailer"]
 
     # Allows Pydantic to read data directly from SQLAlchemy
-    # model instances when generating API responses.
+    # model instances.
     model_config = ConfigDict(from_attributes=True)

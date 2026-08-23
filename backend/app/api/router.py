@@ -11,51 +11,46 @@ through this central router.
 
 from fastapi import APIRouter
 
-from app.api.routes import avatars, users, videos
+from app.api.routes import avatars, garments, users, videos
 
 
 # Create the central API router.
-#
-# Individual route modules are included below.
-# This keeps app/main.py clean and provides a single location
-# for managing the application's API routes.
 api_router = APIRouter(
     prefix="/api"
 )
 
 
-# Register the User API routes.
-#
-# This makes the user endpoints available under:
-#
-#     /api/users
-#
-# For example:
-#
-#     POST /api/users/
-#
+# ============================================================
+# User Routes
+# ============================================================
+
 api_router.include_router(
     users.router
 )
 
 
-# Register the Video API routes.
-#
-# This makes the video upload endpoint available under:
-#
-#     /api/videos/
-#
+# ============================================================
+# Video Routes
+# ============================================================
+
 api_router.include_router(
     videos.router
 )
 
 
-# Register the Avatar API routes.
-#
-# This makes avatar generation and retrieval available under:
-#
-#     /api/avatars
-#
+# ============================================================
+# Avatar Routes
+# ============================================================
+
 api_router.include_router(
     avatars.router
+)
+
+
+# ============================================================
+# Garment Routes
+# ============================================================
+
+api_router.include_router(
+    garments.router
 )

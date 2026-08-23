@@ -10,6 +10,7 @@ the avatar.
 """
 
 import uuid
+from pathlib import Path
 
 from fastapi import (
     APIRouter,
@@ -17,6 +18,7 @@ from fastapi import (
     HTTPException,
     status,
 )
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_user
@@ -107,6 +109,56 @@ def generate_avatar(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(exc),
         ) from exc
+
+
+# ============================================================
+# READ - Retrieve Avatar File
+# ============================================================
+
+@router.get(
+    "/{avatar_id}/file",
+    status_code=status.HTTP_200_OK,
+)
+def get_avatar_file(
+    avatar_id: uuid.UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Serve the generated GLB file for an avatar.
+
+    The avatar must belong to the authenticated user.
+
+    The physical file path is stored internally in the Avatar
+    database record. The client receives the GLB file itself
+    rather than the server-side filesystem path.
+    """
+
+    avatar = get_avatar_by_id(
+        db=db,
+        avatar_id=avatar_id,
+        user_id=current_user.user_id,
+    )
+
+    if avatar is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Avatar not found.",
+        )
+
+    file_path = Path(avatar.avatar_path)
+
+    if not file_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Avatar file not found.",
+        )
+
+    return FileResponse(
+        path=file_path,
+        media_type="model/gltf-binary",
+        filename=file_path.name,
+    )
 
 
 # ============================================================

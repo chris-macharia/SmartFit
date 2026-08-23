@@ -25,6 +25,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import UploadVideo from "./pages/UploadVideo";
+import GenerateAvatar from "./pages/GenerateAvatar";
 import Avatar from "./pages/Avatar";
 
 
@@ -93,7 +94,25 @@ function App() {
             />
 
 
-            {/* Authenticated avatar page. */}
+            {/*
+             * Avatar generation page.
+             *
+             * This page retrieves the body measurements
+             * associated with the processed video and
+             * requests avatar generation.
+             */}
+            <Route
+              path="/generate-avatar"
+              element={<GenerateAvatar />}
+            />
+
+
+            {/*
+             * Generated avatar viewer.
+             *
+             * This page loads the generated GLB file and
+             * displays it as an interactive 3D model.
+             */}
             <Route
               path="/avatar"
               element={<Avatar />}

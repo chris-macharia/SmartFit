@@ -14,12 +14,19 @@
  * 6. Poll the backend for processing status.
  * 7. Display processing progress.
  * 8. Display body measurements when processing completes.
- * 9. Remember the completed video ID for the Avatar page.
+ * 9. Remember the completed video ID for the avatar-generation page.
  * 10. Allow the user to delete the uploaded video.
  */
 
-import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
+import {
+  Link,
+} from "react-router-dom";
 
 import {
   uploadVideo,
@@ -78,7 +85,8 @@ function UploadVideo() {
    *
    * 500 MB.
    */
-  const MAX_FILE_SIZE = 500 * 1024 * 1024;
+  const MAX_FILE_SIZE =
+    500 * 1024 * 1024;
 
 
   /**
@@ -113,7 +121,11 @@ function UploadVideo() {
     // Validate file type.
     // ----------------------------------------------------------
 
-    if (!ACCEPTED_VIDEO_TYPES.includes(file.type)) {
+    if (
+      !ACCEPTED_VIDEO_TYPES.includes(
+        file.type
+      )
+    ) {
 
       setError(
         "Please select an MP4, WebM, or MOV video file."
@@ -142,7 +154,9 @@ function UploadVideo() {
     // ----------------------------------------------------------
 
     if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
+      URL.revokeObjectURL(
+        previewUrl
+      );
     }
 
 
@@ -150,10 +164,12 @@ function UploadVideo() {
     // Create new preview URL.
     // ----------------------------------------------------------
 
-    const videoUrl = URL.createObjectURL(file);
+    const videoUrl =
+      URL.createObjectURL(file);
 
 
     setSelectedFile(file);
+
     setPreviewUrl(videoUrl);
   }
 
@@ -164,7 +180,8 @@ function UploadVideo() {
 
   function handleInputChange(event) {
 
-    const file = event.target.files[0];
+    const file =
+      event.target.files[0];
 
     handleFileSelect(file);
   }
@@ -188,7 +205,8 @@ function UploadVideo() {
 
     event.preventDefault();
 
-    const file = event.dataTransfer.files[0];
+    const file =
+      event.dataTransfer.files[0];
 
     handleFileSelect(file);
   }
@@ -207,18 +225,26 @@ function UploadVideo() {
   function removeVideo() {
 
     if (previewUrl) {
-      URL.revokeObjectURL(previewUrl);
+
+      URL.revokeObjectURL(
+        previewUrl
+      );
     }
 
 
     setSelectedFile(null);
+
     setPreviewUrl("");
+
     setError("");
+
     setSuccess("");
+
     setUploadProgress(0);
 
 
     if (fileInputRef.current) {
+
       fileInputRef.current.value = "";
     }
   }
@@ -240,7 +266,8 @@ function UploadVideo() {
     }
 
 
-    const parsedHeight = Number(userHeightCm);
+    const parsedHeight =
+      Number(userHeightCm);
 
 
     if (
@@ -258,12 +285,15 @@ function UploadVideo() {
 
 
     setError("");
+
     setSuccess("");
+
     setUploadedVideo(null);
+
     setProcessing(false);
 
-
     setUploading(true);
+
     setUploadProgress(0);
 
 
@@ -273,10 +303,11 @@ function UploadVideo() {
       // Upload video.
       // --------------------------------------------------------
 
-      const video = await uploadVideo(
-        selectedFile,
-        parsedHeight
-      );
+      const video =
+        await uploadVideo(
+          selectedFile,
+          parsedHeight
+        );
 
 
       // --------------------------------------------------------
@@ -310,15 +341,20 @@ function UploadVideo() {
       // --------------------------------------------------------
 
       if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
+
+        URL.revokeObjectURL(
+          previewUrl
+        );
       }
 
 
       setSelectedFile(null);
+
       setPreviewUrl("");
 
 
       if (fileInputRef.current) {
+
         fileInputRef.current.value = "";
       }
 
@@ -348,8 +384,10 @@ function UploadVideo() {
 
 
     if (
-      uploadedVideo.processing_status === "completed" ||
-      uploadedVideo.processing_status === "failed"
+      uploadedVideo.processing_status ===
+        "completed" ||
+      uploadedVideo.processing_status ===
+        "failed"
     ) {
 
       setProcessing(false);
@@ -361,55 +399,71 @@ function UploadVideo() {
     setProcessing(true);
 
 
-    const pollInterval = setInterval(async () => {
+    const pollInterval =
+      setInterval(
+        async () => {
 
-      try {
+          try {
 
-        const latestVideo = await getVideo(
-          uploadedVideo.video_id
-        );
-
-
-        setUploadedVideo(latestVideo);
-
-
-        // ------------------------------------------------------
-        // Keep the video ID persisted.
-        // ------------------------------------------------------
-
-        localStorage.setItem(
-          "smartfit_latest_video_id",
-          latestVideo.video_id
-        );
+            const latestVideo =
+              await getVideo(
+                uploadedVideo.video_id
+              );
 
 
-        if (
-          latestVideo.processing_status === "completed" ||
-          latestVideo.processing_status === "failed"
-        ) {
+            setUploadedVideo(
+              latestVideo
+            );
 
-          clearInterval(pollInterval);
 
-          setProcessing(false);
-        }
+            // --------------------------------------------------
+            // Keep the video ID persisted.
+            // --------------------------------------------------
 
-      } catch (err) {
+            localStorage.setItem(
+              "smartfit_latest_video_id",
+              latestVideo.video_id
+            );
 
-        clearInterval(pollInterval);
 
-        setProcessing(false);
+            if (
+              latestVideo.processing_status ===
+                "completed" ||
+              latestVideo.processing_status ===
+                "failed"
+            ) {
 
-        setError(
-          err.message ||
-          "Unable to check the video processing status."
-        );
-      }
+              clearInterval(
+                pollInterval
+              );
 
-    }, 2000);
+              setProcessing(false);
+            }
+
+          } catch (err) {
+
+            clearInterval(
+              pollInterval
+            );
+
+            setProcessing(false);
+
+            setError(
+              err.message ||
+              "Unable to check the video processing status."
+            );
+          }
+
+        },
+        2000
+      );
 
 
     return () => {
-      clearInterval(pollInterval);
+
+      clearInterval(
+        pollInterval
+      );
     };
 
   }, [
@@ -429,21 +483,27 @@ function UploadVideo() {
     }
 
 
-    const timeoutId = setTimeout(() => {
+    const timeoutId =
+      setTimeout(() => {
 
-      processingSectionRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "center",
-      });
+        processingSectionRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
 
-    }, 100);
+      }, 100);
 
 
     return () => {
-      clearTimeout(timeoutId);
+
+      clearTimeout(
+        timeoutId
+      );
     };
 
-  }, [uploadedVideo?.video_id]);
+  }, [
+    uploadedVideo?.video_id,
+  ]);
 
 
   // ============================================================
@@ -457,9 +517,10 @@ function UploadVideo() {
     }
 
 
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this video?"
-    );
+    const confirmed =
+      window.confirm(
+        "Are you sure you want to delete this video?"
+      );
 
 
     if (!confirmed) {
@@ -468,6 +529,7 @@ function UploadVideo() {
 
 
     setDeleting(true);
+
     setError("");
 
 
@@ -515,9 +577,14 @@ function UploadVideo() {
 
   function formatFileSize(bytes) {
 
-    if (bytes < 1024 * 1024) {
+    if (
+      bytes <
+      1024 * 1024
+    ) {
 
-      return `${(bytes / 1024).toFixed(1)} KB`;
+      return `${(
+        bytes / 1024
+      ).toFixed(1)} KB`;
     }
 
 
@@ -555,11 +622,13 @@ function UploadVideo() {
 
 
   const processingFailed =
-    uploadedVideo?.processing_status === "failed";
+    uploadedVideo?.processing_status ===
+    "failed";
 
 
   const processingCompleted =
-    uploadedVideo?.processing_status === "completed";
+    uploadedVideo?.processing_status ===
+    "completed";
 
 
   // ============================================================
@@ -628,7 +697,9 @@ function UploadVideo() {
             step="0.1"
             value={userHeightCm}
             onChange={(event) =>
-              setUserHeightCm(event.target.value)
+              setUserHeightCm(
+                event.target.value
+              )
             }
             placeholder="e.g. 175"
             required
@@ -642,7 +713,8 @@ function UploadVideo() {
             FILE SELECTION
             ==================================================== */}
 
-        {!selectedFile && !uploadedVideo ? (
+        {!selectedFile &&
+        !uploadedVideo ? (
 
           <div
             className="upload-dropzone"
@@ -872,7 +944,8 @@ function UploadVideo() {
                 <div
                   className={
                     `processing-step-line-progress ${
-                      uploadedVideo.processing_status === "processing"
+                      uploadedVideo.processing_status ===
+                      "processing"
                         ? ""
                         : "completed"
                     }`
@@ -934,23 +1007,23 @@ function UploadVideo() {
                   ================================================== */}
 
               {processing &&
-                !processingFailed &&
-                !processingCompleted && (
+              !processingFailed &&
+              !processingCompleted && (
 
-                  <div className="processing-animation">
+                <div className="processing-animation">
 
-                    <div className="processing-progress-track">
+                  <div className="processing-progress-track">
 
-                      <div className="processing-progress-bar" />
-
-                    </div>
-
-
-                    <span>
-                      Processing your video...
-                    </span>
+                    <div className="processing-progress-bar" />
 
                   </div>
+
+
+                  <span>
+                    Processing your video...
+                  </span>
+
+                </div>
               )}
 
 
@@ -959,163 +1032,187 @@ function UploadVideo() {
                   ================================================== */}
 
               {processingCompleted &&
-                uploadedVideo.measurement && (
+              uploadedVideo.measurement && (
 
-                  <div className="measurements-result">
+                <div className="measurements-result">
 
-                    <div className="measurements-header">
+                  <div className="measurements-header">
 
-                      <p className="section-label">
-                        BODY MEASUREMENTS
-                      </p>
-
-
-                      <h3>
-                        Your measurements
-                      </h3>
-
-                    </div>
+                    <p className="section-label">
+                      BODY MEASUREMENTS
+                    </p>
 
 
-                    <div className="measurement-grid">
+                    <h3>
+                      Your measurements
+                    </h3>
 
-                      {/* Height */}
-
-                      <div className="measurement-item">
-
-                        <span>
-                          Height
-                        </span>
-
-                        <strong>
-                          {uploadedVideo.measurement.height?.toFixed(2)} cm
-                        </strong>
-
-                      </div>
+                  </div>
 
 
-                      {/* Chest */}
+                  <div className="measurement-grid">
 
-                      <div className="measurement-item">
+                    {/* Height */}
 
-                        <span>
-                          Chest
-                        </span>
+                    <div className="measurement-item">
 
-                        <strong>
-                          {uploadedVideo.measurement.chest !== null
-                            ? `${uploadedVideo.measurement.chest.toFixed(2)} cm`
-                            : "Not available"}
-                        </strong>
-
-                      </div>
+                      <span>
+                        Height
+                      </span>
 
 
-                      {/* Waist */}
-
-                      <div className="measurement-item">
-
-                        <span>
-                          Waist
-                        </span>
-
-                        <strong>
-                          {uploadedVideo.measurement.waist !== null
-                            ? `${uploadedVideo.measurement.waist.toFixed(2)} cm`
-                            : "Not available"}
-                        </strong>
-
-                      </div>
-
-
-                      {/* Hips */}
-
-                      <div className="measurement-item">
-
-                        <span>
-                          Hips
-                        </span>
-
-                        <strong>
-                          {uploadedVideo.measurement.hips !== null
-                            ? `${uploadedVideo.measurement.hips.toFixed(2)} cm`
-                            : "Not available"}
-                        </strong>
-
-                      </div>
-
-
-                      {/* Shoulder Width */}
-
-                      <div className="measurement-item">
-
-                        <span>
-                          Shoulder Width
-                        </span>
-
-                        <strong>
-                          {uploadedVideo.measurement.shoulder_width.toFixed(2)} cm
-                        </strong>
-
-                      </div>
-
-
-                      {/* Inseam */}
-
-                      <div className="measurement-item">
-
-                        <span>
-                          Inseam
-                        </span>
-
-                        <strong>
-                          {uploadedVideo.measurement.inseam.toFixed(2)} cm
-                        </strong>
-
-                      </div>
-
-
-                      {/* Confidence */}
-
-                      <div className="measurement-item">
-
-                        <span>
-                          Confidence
-                        </span>
-
-                        <strong>
-                          {(
-                            uploadedVideo.measurement.confidence_score * 100
-                          ).toFixed(1)}%
-                        </strong>
-
-                      </div>
+                      <strong>
+                        {uploadedVideo.measurement.height?.toFixed(
+                          2
+                        )} cm
+                      </strong>
 
                     </div>
 
 
-                    {/* ==================================================
-                        GENERATE AVATAR BUTTON
-                        ================================================== */}
+                    {/* Chest */}
 
-                    <div className="avatar-generation-action">
+                    <div className="measurement-item">
 
-                        <Link
-                          to="/avatar"
-                          state={{
-                            videoId: uploadedVideo.video_id,
-                          }}
-                          className="primary-button generate-avatar-button"
-                          style={{
-                            marginTop: "24px",
-                          }}
-                        >
-                          Generate Avatar →
-                        </Link>
+                      <span>
+                        Chest
+                      </span>
+
+
+                      <strong>
+                        {uploadedVideo.measurement.chest !==
+                        null
+                          ? `${uploadedVideo.measurement.chest.toFixed(
+                              2
+                            )} cm`
+                          : "Not available"}
+                      </strong>
+
+                    </div>
+
+
+                    {/* Waist */}
+
+                    <div className="measurement-item">
+
+                      <span>
+                        Waist
+                      </span>
+
+
+                      <strong>
+                        {uploadedVideo.measurement.waist !==
+                        null
+                          ? `${uploadedVideo.measurement.waist.toFixed(
+                              2
+                            )} cm`
+                          : "Not available"}
+                      </strong>
+
+                    </div>
+
+
+                    {/* Hips */}
+
+                    <div className="measurement-item">
+
+                      <span>
+                        Hips
+                      </span>
+
+
+                      <strong>
+                        {uploadedVideo.measurement.hips !==
+                        null
+                          ? `${uploadedVideo.measurement.hips.toFixed(
+                              2
+                            )} cm`
+                          : "Not available"}
+                      </strong>
+
+                    </div>
+
+
+                    {/* Shoulder Width */}
+
+                    <div className="measurement-item">
+
+                      <span>
+                        Shoulder Width
+                      </span>
+
+
+                      <strong>
+                        {uploadedVideo.measurement.shoulder_width.toFixed(
+                          2
+                        )} cm
+                      </strong>
+
+                    </div>
+
+
+                    {/* Inseam */}
+
+                    <div className="measurement-item">
+
+                      <span>
+                        Inseam
+                      </span>
+
+
+                      <strong>
+                        {uploadedVideo.measurement.inseam.toFixed(
+                          2
+                        )} cm
+                      </strong>
+
+                    </div>
+
+
+                    {/* Confidence */}
+
+                    <div className="measurement-item">
+
+                      <span>
+                        Confidence
+                      </span>
+
+
+                      <strong>
+                        {(
+                          uploadedVideo.measurement.confidence_score *
+                          100
+                        ).toFixed(1)}%
+                      </strong>
 
                     </div>
 
                   </div>
+
+
+                  {/* ==================================================
+                      GENERATE AVATAR BUTTON
+                      ================================================== */}
+
+                  <div className="avatar-generation-action">
+
+                    <Link
+                      to="/generate-avatar"
+                      state={{
+                        videoId:
+                          uploadedVideo.video_id,
+                      }}
+                      className="primary-button generate-avatar-button"
+                      style={{
+                        marginTop: "24px",
+                      }}
+                    >
+                      Generate Avatar →
+                    </Link>
+
+                  </div>
+
+                </div>
               )}
 
 

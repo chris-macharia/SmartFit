@@ -1,27 +1,28 @@
 /**
- * SmartFit Generate Avatar Page
+ * SmartFit Avatar Page
  *
- * This page represents Step 2 of the SmartFit body profile
- * creation process.
+ * Displays the generated SmartFit digital avatar as an
+ * interactive 3D model.
  *
- * Step 1:
+ * Workflow:
  *
- *     Body Video
- *          ↓
- *     Body Measurement Extraction
- *
- * Step 2:
- *
- *     Retrieve Body Measurements
- *          ↓
- *     Generate Digital Avatar
- *
- * The page receives a video ID from the Upload Video page.
- * It then retrieves the latest video information from the
- * backend. The backend response contains the body measurement
- * generated from the uploaded video.
- *
- * Avatar generation is performed by the SmartFit backend.
+ *     GenerateAvatar.jsx
+ *            ↓
+ *       generateAvatar()
+ *            ↓
+ *       avatar_id
+ *            ↓
+ *         Avatar.jsx
+ *            ↓
+ *       getAvatarFile()
+ *            ↓
+ *          GLB Blob
+ *            ↓
+ *       Browser Object URL
+ *            ↓
+ *       React Three Fiber
+ *            ↓
+ *       Interactive Avatar
  */
 
 import {
@@ -31,15 +32,76 @@ import {
 } from "react-router-dom";
 
 import {
+  Suspense,
   useEffect,
   useState,
 } from "react";
 
-import { getVideo } from "../services/videoService";
-import { generateAvatar } from "../services/avatarService";
+import {
+  Canvas,
+} from "@react-three/fiber";
+
+import {
+  OrbitControls,
+  useGLTF,
+} from "@react-three/drei";
+
+import {
+  getAvatarFile,
+} from "../services/avatarService";
 
 
-function GenerateAvatar() {
+// ============================================================
+// AVATAR MODEL
+// ============================================================
+
+/**
+ * Load and render the GLB avatar.
+ *
+ * @param {Object} props
+ * @param {string} props.url - Browser object URL of the GLB.
+ */
+function AvatarModel({ url }) {
+
+  const { scene } = useGLTF(url);
+
+
+  return (
+    <primitive
+      object={scene}
+      scale={1}
+      position={[0, 0, 0]}
+    />
+  );
+}
+
+
+// ============================================================
+// MODEL LOADING FALLBACK
+// ============================================================
+
+function ModelLoading() {
+
+  return (
+
+    <div className="avatar-viewer-message">
+
+      <div className="avatar-spinner" />
+
+      <p>
+        Loading your 3D avatar...
+      </p>
+
+    </div>
+  );
+}
+
+
+// ============================================================
+// AVATAR PAGE
+// ============================================================
+
+function Avatar() {
 
   // ============================================================
   // ROUTER
@@ -51,23 +113,27 @@ function GenerateAvatar() {
 
 
   // ============================================================
-  // VIDEO ID
+  // ROUTER STATE
   // ============================================================
 
   /*
-   * The Upload Video page passes the completed video ID
-   * through React Router state.
-   *
-   * Example:
-   *
-   *     navigate("/generate-avatar", {
-   *         state: {
-   *             videoId: video.video_id
-   *         }
-   *     });
-   *
-   * The video ID is then used to retrieve the latest
-   * video information from the backend.
+   * GenerateAvatar.jsx passes the generated avatar through
+   * React Router state.
+   */
+  const avatar =
+    location.state?.avatar || null;
+
+
+  /*
+   * Body measurements are also passed through so they can
+   * be displayed alongside the avatar.
+   */
+  const measurements =
+    location.state?.measurements || null;
+
+
+  /*
+   * Video ID is preserved for future use.
    */
   const videoId =
     location.state?.videoId || null;
@@ -78,51 +144,88 @@ function GenerateAvatar() {
   // ============================================================
 
   /*
-   * Store the video returned by the backend.
+   * Browser object URL pointing to the downloaded GLB file.
    */
-  const [video, setVideo] = useState(null);
+  const [modelUrl, setModelUrl] =
+    useState(null);
 
 
   /*
-   * Store the body measurement returned by the backend.
+   * Track whether the GLB is currently being downloaded.
    */
-  const [measurements, setMeasurements] = useState(null);
+  const [loading, setLoading] =
+    useState(true);
 
 
   /*
-   * Track the initial loading state.
+   * Store any loading error.
    */
-  const [loading, setLoading] = useState(true);
-
-
-  /*
-   * Track avatar generation.
-   */
-  const [generating, setGenerating] = useState(false);
-
-
-  /*
-   * Store API errors.
-   */
-  const [error, setError] = useState("");
+  const [error, setError] =
+    useState("");
 
 
   // ============================================================
-  // LOAD VIDEO AND MEASUREMENTS
+  // DEBUG INFORMATION
+  // ============================================================
+
+  /*
+   * These logs make the avatar workflow visible during
+   * development.
+   *
+   * They can be removed once everything is confirmed working.
+   */
+
+  useEffect(() => {
+
+    console.log(
+      "SmartFit Avatar Page loaded."
+    );
+
+    console.log(
+      "Avatar:",
+      avatar
+    );
+
+    console.log(
+      "Avatar ID:",
+      avatar?.avatar_id
+    );
+
+    console.log(
+      "Measurements:",
+      measurements
+    );
+
+    console.log(
+      "Video ID:",
+      videoId
+    );
+
+  }, [
+    avatar,
+    measurements,
+    videoId,
+  ]);
+
+
+  // ============================================================
+  // LOAD AVATAR GLB
   // ============================================================
 
   useEffect(() => {
 
     /*
-     * There is no video ID available.
-     *
-     * This can happen if the user navigates directly to
-     * /generate-avatar without first uploading a video.
+     * Do not attempt to retrieve the GLB unless an
+     * avatar ID was actually supplied.
      */
-    if (!videoId) {
+    if (!avatar?.avatar_id) {
+
+      console.error(
+        "SmartFit Avatar: No avatar_id was provided."
+      );
 
       setError(
-        "No processed video was provided. Please upload and process your body video first."
+        "No generated avatar was provided. Please generate your avatar first."
       );
 
       setLoading(false);
@@ -131,194 +234,143 @@ function GenerateAvatar() {
     }
 
 
-    /*
-     * Retrieve the latest video information from the
-     * backend.
-     */
-    async function loadVideo() {
+    let objectUrl = null;
+
+    let cancelled = false;
+
+
+    async function loadAvatar() {
 
       setLoading(true);
+
       setError("");
+
+      setModelUrl(null);
 
 
       try {
 
-        const latestVideo =
-          await getVideo(videoId);
+        console.log(
+          "SmartFit Avatar: Requesting GLB file..."
+        );
+
+        console.log(
+          "Avatar ID:",
+          avatar.avatar_id
+        );
 
 
         /*
-         * Store the complete video response.
-         */
-        setVideo(latestVideo);
-
-
-        /*
-         * Make sure video processing has completed.
-         */
-        if (
-          latestVideo.processing_status !==
-          "completed"
-        ) {
-
-          setError(
-            "Your body video has not finished processing yet. Please return to the upload page."
-          );
-
-          return;
-        }
-
-
-        /*
-         * The backend includes the generated body
-         * measurement in:
+         * Call the authenticated avatar file endpoint.
          *
-         *     latestVideo.measurement
+         * This should result in:
+         *
+         * GET /api/avatars/{avatar_id}/file
          */
-        if (!latestVideo.measurement) {
-
-          setError(
-            "No body measurements were found for this video."
+        objectUrl =
+          await getAvatarFile(
+            avatar.avatar_id
           );
+
+
+        console.log(
+          "SmartFit Avatar: GLB file received."
+        );
+
+        console.log(
+          "Object URL:",
+          objectUrl
+        );
+
+
+        /*
+         * The component may have been unmounted while
+         * the request was running.
+         */
+        if (cancelled) {
+
+          if (objectUrl) {
+
+            URL.revokeObjectURL(
+              objectUrl
+            );
+          }
 
           return;
         }
 
 
         /*
-         * Store the measurement.
+         * Store the temporary browser URL.
          */
-        setMeasurements(
-          latestVideo.measurement
+        setModelUrl(
+          objectUrl
         );
 
       } catch (err) {
 
-        setError(
-          err.message ||
-          "Unable to retrieve your body measurements."
+        console.error(
+          "SmartFit Avatar: Failed to load GLB.",
+          err
         );
+
+
+        if (!cancelled) {
+
+          setError(
+            err.message ||
+            "Unable to load your generated avatar."
+          );
+        }
 
       } finally {
 
-        setLoading(false);
+        if (!cancelled) {
+
+          setLoading(false);
+        }
       }
     }
 
 
-    loadVideo();
-
-  }, [videoId]);
+    loadAvatar();
 
 
-  // ============================================================
-  // GENERATE AVATAR
-  // ============================================================
+    // ----------------------------------------------------------
+    // CLEANUP
+    // ----------------------------------------------------------
 
-  /**
-   * Request digital avatar generation from the backend.
-   */
-  async function handleGenerateAvatar() {
+    return () => {
 
-    /*
-     * Make sure the measurement exists.
-     */
-    if (!measurements?.measurement_id) {
+      cancelled = true;
 
-      setError(
-        "No body measurement record is available for avatar generation."
-      );
-
-      return;
-    }
-
-
-    setGenerating(true);
-    setError("");
-
-
-    try {
 
       /*
-       * Send the measurement UUID to the existing
-       * avatar generation endpoint.
+       * Release the browser object URL when the component
+       * is unmounted or when another avatar is loaded.
        */
-      const avatar =
-        await generateAvatar(
-          measurements.measurement_id
+      if (objectUrl) {
+
+        console.log(
+          "SmartFit Avatar: Releasing GLB object URL."
         );
 
+        URL.revokeObjectURL(
+          objectUrl
+        );
+      }
+    };
 
-      /*
-       * Navigate to the Avatar page after successful
-       * generation.
-       *
-       * Pass both the generated avatar and measurements
-       * so the next page can display them immediately.
-       */
-      navigate(
-        "/avatar",
-        {
-          state: {
-            avatar,
-            measurements,
-            measurementId:
-              measurements.measurement_id,
-            videoId,
-          },
-        }
-      );
-
-    } catch (err) {
-
-      setError(
-        err.message ||
-        "SmartFit could not generate your avatar."
-      );
-
-    } finally {
-
-      setGenerating(false);
-    }
-  }
+  }, [
+    avatar?.avatar_id,
+  ]);
 
 
   // ============================================================
-  // MEASUREMENT FORMATTER
+  // NO AVATAR
   // ============================================================
 
-  /**
-   * Format a measurement value for display.
-   *
-   * @param {number|null} value
-   * @returns {string}
-   */
-  function formatMeasurement(value) {
-
-    if (
-      value === null ||
-      value === undefined
-    ) {
-
-      return "—";
-    }
-
-
-    if (typeof value === "number") {
-
-      return `${value.toFixed(2)} cm`;
-    }
-
-
-    return value;
-  }
-
-
-  // ============================================================
-  // RENDER - LOADING
-  // ============================================================
-
-  if (loading) {
+  if (!avatar?.avatar_id) {
 
     return (
 
@@ -340,12 +392,13 @@ function GenerateAvatar() {
 
 
           <h1>
-            Preparing your avatar
+            No Avatar Available
           </h1>
 
 
           <p>
-            SmartFit is retrieving your body measurements.
+            Generate your SmartFit avatar before opening
+            the 3D viewer.
           </p>
 
         </section>
@@ -365,29 +418,30 @@ function GenerateAvatar() {
 
 
                 <h2>
-                  Loading your measurements...
+                  Avatar not found
                 </h2>
 
 
                 <p>
-                  SmartFit is retrieving the measurements
-                  generated from your body video.
+                  No generated avatar was provided to this page.
                 </p>
-
-
-                <div className="avatar-loading">
-
-                  <div className="avatar-spinner" />
-
-                  <span>
-                    Loading...
-                  </span>
-
-                </div>
 
               </div>
 
             </div>
+
+
+            <button
+              type="button"
+              className="primary-button avatar-generate-button"
+              onClick={() =>
+                navigate(
+                  "/generate-avatar"
+                )
+              }
+            >
+              Generate Avatar
+            </button>
 
           </div>
 
@@ -399,16 +453,9 @@ function GenerateAvatar() {
 
 
   // ============================================================
-  // RENDER - NO VIDEO / ERROR
+  // ERROR
   // ============================================================
 
-  /*
-   * If there is no video ID, or if retrieving the video
-   * or measurements failed, show the error state.
-   *
-   * The user is given a clear way to return to the
-   * Upload Video page.
-   */
   if (error) {
 
     return (
@@ -431,13 +478,13 @@ function GenerateAvatar() {
 
 
           <h1>
-            Generate your SmartFit Avatar
+            Your SmartFit Avatar
           </h1>
 
 
           <p>
-            Before generating your avatar, SmartFit needs
-            a processed body video and its measurements.
+            The avatar was generated, but SmartFit could
+            not load the 3D model.
           </p>
 
         </section>
@@ -457,7 +504,7 @@ function GenerateAvatar() {
 
 
                 <h2>
-                  Unable to continue
+                  Unable to load avatar
                 </h2>
 
 
@@ -473,55 +520,37 @@ function GenerateAvatar() {
             </div>
 
 
-            {/* =================================================
-                RETURN TO UPLOAD VIDEO
-                ================================================= */}
+            <div className="avatar-error-actions">
 
-            <Link
-              to="/upload-video"
-              className="primary-button avatar-generate-button"
-            >
-              Go to Upload Video
-            </Link>
-
-          </div>
-
-        </section>
+              <button
+                type="button"
+                className="primary-button"
+                onClick={() =>
+                  window.location.reload()
+                }
+              >
+                Try Again
+              </button>
 
 
-        {/* =====================================================
-            EXPLANATION
-            ===================================================== */}
+              <button
+                type="button"
+                className="secondary-button"
+                onClick={() =>
+                  navigate(
+                    "/generate-avatar",
+                    {
+                      state: {
+                        videoId,
+                      },
+                    }
+                  )
+                }
+              >
+                Back to Avatar Generation
+              </button>
 
-        <section className="avatar-explanation">
-
-          <div>
-
-            <p className="section-label">
-              SMARTFIT PROFILE
-            </p>
-
-
-            <h2>
-              Start with your body video.
-            </h2>
-
-          </div>
-
-
-          <div className="avatar-explanation-text">
-
-            <p>
-              SmartFit needs a processed body video before
-              your body measurements can be retrieved.
-            </p>
-
-
-            <p>
-              Upload your video and allow SmartFit to finish
-              extracting your measurements before returning
-              here to generate your digital avatar.
-            </p>
+            </div>
 
           </div>
 
@@ -533,16 +562,16 @@ function GenerateAvatar() {
 
 
   // ============================================================
-  // RENDER - MAIN PAGE
+  // MAIN AVATAR VIEWER
   // ============================================================
 
   return (
 
     <main className="avatar-page">
 
-      {/* =====================================================
+      {/* ======================================================
           PAGE HEADER
-          ===================================================== */}
+          ====================================================== */}
 
       <section className="avatar-header">
 
@@ -560,49 +589,180 @@ function GenerateAvatar() {
 
 
         <h1>
-          Generate your SmartFit Avatar
+          Your SmartFit Avatar
         </h1>
 
 
         <p>
-          Your body measurements have been extracted from
-          your uploaded video. Review them below before
-          generating your digital avatar.
+          Your personalized digital avatar has been
+          generated from your body measurements.
         </p>
 
       </section>
 
 
-      {/* =====================================================
-          WORKSPACE
-          ===================================================== */}
+      {/* ======================================================
+          AVATAR WORKSPACE
+          ====================================================== */}
 
-      {measurements && (
+      <section className="avatar-workspace">
 
-        <section className="avatar-workspace">
+        {/* ====================================================
+            3D VIEWER
+            ==================================================== */}
+
+        <div className="avatar-preview-card">
+
+          <div
+            className="avatar-preview avatar-3d-preview"
+          >
+
+            {/* =================================================
+                GLB DOWNLOAD LOADING
+                ================================================= */}
+
+            {loading && (
+
+              <ModelLoading />
+
+            )}
+
+
+            {/* =================================================
+                THREE.JS VIEWER
+                ================================================= */}
+
+            {!loading && modelUrl && (
+
+              <Canvas
+                camera={{
+                  position: [
+                    0,
+                    1.2,
+                    3,
+                  ],
+                  fov: 45,
+                }}
+              >
+
+                {/* ==========================================
+                    LIGHTING
+                    ========================================== */}
+
+                <ambientLight
+                  intensity={1.5}
+                />
+
+
+                <directionalLight
+                  position={[
+                    5,
+                    5,
+                    5,
+                  ]}
+                  intensity={2}
+                />
+
+
+                <directionalLight
+                  position={[
+                    -5,
+                    3,
+                    2,
+                  ]}
+                  intensity={1}
+                />
+
+
+                {/* ==========================================
+                    AVATAR MODEL
+                    ========================================== */}
+
+                <Suspense
+                  fallback={null}
+                >
+
+                  <AvatarModel
+                    url={modelUrl}
+                  />
+
+                </Suspense>
+
+
+                {/* ==========================================
+                    CAMERA CONTROLS
+                    ========================================== */}
+
+                <OrbitControls
+                  enablePan={false}
+                  minDistance={1.5}
+                  maxDistance={5}
+                  target={[
+                    0,
+                    1,
+                    0,
+                  ]}
+                />
+
+              </Canvas>
+
+            )}
+
+          </div>
+
 
           {/* =================================================
-              MEASUREMENT SUMMARY
+              VIEWER INSTRUCTIONS
               ================================================= */}
 
-          <div className="avatar-info-card">
+          {!loading && modelUrl && (
 
-            <p className="section-label">
-              BODY MEASUREMENTS
-            </p>
+            <div className="avatar-viewer-controls">
 
-
-            <h2>
-              Your measurements
-            </h2>
+              <span>
+                Drag to rotate
+              </span>
 
 
-            <p className="avatar-measurement-intro">
-              These measurements were extracted from your
-              uploaded body video and will be used to
-              generate your personalized digital avatar.
-            </p>
+              <span>
+                Scroll to zoom
+              </span>
 
+            </div>
+
+          )}
+
+        </div>
+
+
+        {/* ====================================================
+            AVATAR INFORMATION
+            ==================================================== */}
+
+        <div className="avatar-info-card">
+
+          <p className="section-label">
+            SMARTFIT AVATAR
+          </p>
+
+
+          <h2>
+            Your digital body profile
+          </h2>
+
+
+          <p className="avatar-measurement-intro">
+            This avatar was generated using the body
+            measurements extracted from your uploaded
+            body video.
+          </p>
+
+
+          {/* ==================================================
+              MEASUREMENTS
+              ================================================== */}
+
+          {measurements && (
 
             <div className="measurement-grid">
 
@@ -616,69 +776,20 @@ function GenerateAvatar() {
 
 
                 <strong>
-                  {formatMeasurement(
-                    measurements.height
-                  )}
+
+                  {typeof measurements.height ===
+                    "number"
+                    ? `${measurements.height.toFixed(
+                        2
+                      )} cm`
+                    : "—"}
+
                 </strong>
 
               </div>
 
 
-              {/* Chest */}
-
-              <div className="measurement-item">
-
-                <span>
-                  Chest
-                </span>
-
-
-                <strong>
-                  {formatMeasurement(
-                    measurements.chest
-                  )}
-                </strong>
-
-              </div>
-
-
-              {/* Waist */}
-
-              <div className="measurement-item">
-
-                <span>
-                  Waist
-                </span>
-
-
-                <strong>
-                  {formatMeasurement(
-                    measurements.waist
-                  )}
-                </strong>
-
-              </div>
-
-
-              {/* Hips */}
-
-              <div className="measurement-item">
-
-                <span>
-                  Hips
-                </span>
-
-
-                <strong>
-                  {formatMeasurement(
-                    measurements.hips
-                  )}
-                </strong>
-
-              </div>
-
-
-              {/* Shoulder */}
+              {/* Shoulder Width */}
 
               <div className="measurement-item">
 
@@ -688,9 +799,14 @@ function GenerateAvatar() {
 
 
                 <strong>
-                  {formatMeasurement(
-                    measurements.shoulder_width
-                  )}
+
+                  {typeof measurements.shoulder_width ===
+                    "number"
+                    ? `${measurements.shoulder_width.toFixed(
+                        2
+                      )} cm`
+                    : "—"}
+
                 </strong>
 
               </div>
@@ -706,26 +822,25 @@ function GenerateAvatar() {
 
 
                 <strong>
-                  {formatMeasurement(
-                    measurements.inseam
-                  )}
+
+                  {typeof measurements.inseam ===
+                    "number"
+                    ? `${measurements.inseam.toFixed(
+                        2
+                      )} cm`
+                    : "—"}
+
                 </strong>
 
               </div>
 
-            </div>
 
+              {/* Confidence */}
 
-            {/* =================================================
-                CONFIDENCE
-                ================================================= */}
-
-            <div className="avatar-status-list">
-
-              <div className="avatar-status-item">
+              <div className="measurement-item">
 
                 <span>
-                  Measurement confidence
+                  Confidence
                 </span>
 
 
@@ -743,97 +858,54 @@ function GenerateAvatar() {
 
               </div>
 
+            </div>
 
-              <div className="avatar-status-item">
-
-                <span>
-                  Processing version
-                </span>
+          )}
 
 
-                <strong className="status-complete">
+          {/* ==================================================
+              AVATAR STATUS
+              ================================================== */}
 
-                  {measurements.processing_version}
+          <div className="avatar-status-list">
 
-                </strong>
+            <div className="avatar-status-item">
 
-              </div>
+              <span>
+                Avatar status
+              </span>
+
+
+              <strong className="status-complete">
+                Generated
+              </strong>
+
+            </div>
+
+
+            <div className="avatar-status-item">
+
+              <span>
+                Avatar ID
+              </span>
+
+
+              <strong>
+                {avatar.avatar_id}
+              </strong>
 
             </div>
 
           </div>
 
+        </div>
 
-          {/* =================================================
-              GENERATE AVATAR
-              ================================================= */}
-
-          <div className="avatar-preview-card">
-
-            <div className="avatar-preview">
-
-              <div className="avatar-placeholder">
-
-                <div className="avatar-placeholder-icon">
-                  🧍
-                </div>
+      </section>
 
 
-                <h2>
-                  Ready to create your avatar
-                </h2>
-
-
-                <p>
-                  SmartFit will use your extracted body
-                  measurements to create your personalized
-                  digital avatar.
-                </p>
-
-
-                {generating && (
-
-                  <div className="avatar-loading">
-
-                    <div className="avatar-spinner" />
-
-
-                    <span>
-                      Creating your avatar...
-                    </span>
-
-                  </div>
-
-                )}
-
-              </div>
-
-            </div>
-
-
-            <button
-              type="button"
-              className="primary-button avatar-generate-button"
-              onClick={handleGenerateAvatar}
-              disabled={generating}
-            >
-
-              {generating
-                ? "Creating Avatar..."
-                : "Generate Avatar"}
-
-            </button>
-
-          </div>
-
-        </section>
-
-      )}
-
-
-      {/* =====================================================
-          EXPLANATION
-          ===================================================== */}
+      {/* ======================================================
+          NEXT STEP
+          ====================================================== */}
 
       <section className="avatar-explanation">
 
@@ -845,7 +917,7 @@ function GenerateAvatar() {
 
 
           <h2>
-            Your measurements power your digital avatar.
+            Your avatar is ready for virtual fitting.
           </h2>
 
         </div>
@@ -854,21 +926,14 @@ function GenerateAvatar() {
         <div className="avatar-explanation-text">
 
           <p>
-            SmartFit first extracts your body measurements
-            from the uploaded video.
+            Your SmartFit avatar represents the body
+            measurements extracted from your uploaded video.
           </p>
 
 
           <p>
-            These measurements are stored in your SmartFit
-            profile and then passed to the avatar generation
-            system.
-          </p>
-
-
-          <p>
-            Once your avatar has been generated, you can
-            continue to the virtual fitting experience.
+            The next stage of SmartFit can use this avatar
+            when evaluating how garments fit your body.
           </p>
 
         </div>
@@ -880,4 +945,4 @@ function GenerateAvatar() {
 }
 
 
-export default GenerateAvatar;
+export default Avatar;

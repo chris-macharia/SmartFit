@@ -10,8 +10,9 @@
  * - Use MainLayout for pages that share the common
  *   SmartFit navigation and footer.
  * - Protect authenticated application pages.
+ * - Provide access to retailer-specific garment
+ *   management functionality.
  */
-
 
 import {
   BrowserRouter,
@@ -27,6 +28,7 @@ import Dashboard from "./pages/Dashboard";
 import UploadVideo from "./pages/UploadVideo";
 import GenerateAvatar from "./pages/GenerateAvatar";
 import Avatar from "./pages/Avatar";
+import Garments from "./pages/Garments";
 
 
 import MainLayout from "./layouts/MainLayout";
@@ -35,7 +37,9 @@ import ProtectedRoute from "./components/ProtectedRoute";
 
 
 function App() {
+
   return (
+
     /*
      * BrowserRouter provides client-side routing for
      * the SmartFit React application.
@@ -44,13 +48,19 @@ function App() {
 
       <Routes>
 
-        {/*
-         * MainLayout wraps the pages that share the
-         * SmartFit navigation and footer.
-         */}
+        {/* =================================================
+            MAIN APPLICATION LAYOUT
+            ================================================= */}
+
         <Route element={<MainLayout />}>
 
+
+          {/* =================================================
+              PUBLIC ROUTES
+              ================================================= */}
+
           {/* SmartFit landing page. */}
+
           <Route
             path="/"
             element={<Home />}
@@ -58,6 +68,7 @@ function App() {
 
 
           {/* User login page. */}
+
           <Route
             path="/login"
             element={<Login />}
@@ -65,57 +76,84 @@ function App() {
 
 
           {/* User registration page. */}
+
           <Route
             path="/register"
             element={<Register />}
           />
 
 
+          {/* =================================================
+              PROTECTED ROUTES
+              ================================================= */}
+
           {/*
-           * Protected SmartFit application pages.
-           *
-           * ProtectedRoute checks whether the user
-           * has a valid authenticated session before
-           * rendering these routes.
+           * ProtectedRoute checks whether the user has
+           * a valid authenticated session before allowing
+           * access to the application pages.
            */}
+
           <Route element={<ProtectedRoute />}>
 
-            {/* Authenticated user dashboard. */}
+
+            {/* =================================================
+                DASHBOARD
+                ================================================= */}
+
             <Route
               path="/dashboard"
               element={<Dashboard />}
             />
 
 
-            {/* Authenticated video upload page. */}
+            {/* =================================================
+                VIDEO UPLOAD
+                ================================================= */}
+
             <Route
               path="/upload-video"
               element={<UploadVideo />}
             />
 
 
-            {/*
-             * Avatar generation page.
-             *
-             * This page retrieves the body measurements
-             * associated with the processed video and
-             * requests avatar generation.
-             */}
+            {/* =================================================
+                AVATAR GENERATION
+                ================================================= */}
+
             <Route
               path="/generate-avatar"
               element={<GenerateAvatar />}
             />
 
 
-            {/*
-             * Generated avatar viewer.
-             *
-             * This page loads the generated GLB file and
-             * displays it as an interactive 3D model.
-             */}
+            {/* =================================================
+                AVATAR VIEWER
+                ================================================= */}
+
             <Route
               path="/avatar"
               element={<Avatar />}
+            />
+
+
+            {/* =================================================
+                RETAILER GARMENTS
+                ================================================= */}
+
+            {/*
+             * The Garments page is protected by authentication
+             * at the routing level.
+             *
+             * Garments.jsx additionally checks that the
+             * authenticated user has the retailer role.
+             *
+             * The backend also independently enforces retailer
+             * authorization using require_retailer.
+             */}
+
+            <Route
+              path="/garments"
+              element={<Garments />}
             />
 
           </Route>

@@ -69,18 +69,20 @@ The project is built with a **React** frontend, **FastAPI** backend, **PostgreSQ
 * ✅ **Full E2E Avatar Workflow:** Video Upload ➔ Processing ➔ Measurements ➔ Avatar Generation ➔ GLB Retrieval ➔ Interactive 3D Avatar Display.
 </details>
 
-<details open>
-<summary><b>👗 Milestone 7 — Garment Uploading & Management (🟡 In Progress)</b></summary>
+<details>
+<summary><b>👗 Milestone 7 — Garment Uploading & Management (✅ Complete)</b></summary>
 
-* 🟡 **Retailer & Admin API:** *(Active Focus)* Endpoints and services for uploading 3D clothing assets and managing garment metadata (e.g., dimensions, categories, sizes).
-* ⬜ **Garment Storage & Retrieval:** Storage pipeline and schema integration for multi-size 3D garment models.
-* ⬜ **Garment Management UI:** Frontend interface for browsing, filtering, and uploading 3D garments.
+* ✅ **Retailer & Admin API:** Complete Garment CRUD backend operations (`POST`, `GET`, `PUT`, `DELETE` `/api/garments/`) enforcing retailer-only authorization via `require_retailer` dependency.
+* ✅ **Garment Schema & Service:** Integrated SQLAlchemy Garment model and Pydantic schemas (`GarmentCreate`, `GarmentUpdate`, `GarmentResponse`) mapping chest, waist, hip, shoulder width, and inseam measurements.
+* ✅ **Multi-Tenant Ownership:** Enforced strict garment ownership validation tied to authenticated retailer account IDs.
+* ✅ **Role-Specific Dashboard UI:** Authenticated dashboard routing displaying retailer-specific Upload Garment tiles (`/garments`) while preserving customer video and avatar workflows.
+* ✅ **Retailer Garment Upload Page:** Interactive frontend form allowing retailers to register garments with physical measurement attributes using JWT Bearer authentication.
 </details>
 
-<details>
-<summary><b>👕 Milestone 8 — Garment Matching (⬜ Planned)</b></summary>
+<details open>
+<summary><b>👕 Milestone 8 — Garment Matching (🟡 In Progress)</b></summary>
 
-* ⬜ **Fit Algorithm & Scoring:** Collision detection and dimensional matching logic comparing avatar measurements to garment parameters.
+* 🟡 **Fit Algorithm & Scoring:** *(Active Focus)* Collision detection and dimensional matching logic comparing avatar measurements to garment parameters.
 * ⬜ **Size Recommendations:** Precise sizing suggestions based on fit confidence and garment tolerance values.
 </details>
 
@@ -95,15 +97,16 @@ The project is built with a **React** frontend, **FastAPI** backend, **PostgreSQ
 
 ## 📊 Test Status
 
-**80 automated backend tests — ✅ All Passing**
+**100 automated backend tests — ✅ All Passing**
 
 The backend test suite verifies system integrity across all layers:
 * 🔌 Database connectivity & clean schema resets
 * 💾 CRUD persistence and foreign key constraints
-* 🔐 Password hashing, JWT token generation, and authorization dependencies
+* 🔐 Password hashing, JWT token generation, role-based access control, and authorization dependencies
 * 🎥 Multi-tenant video upload, status polling, and deletion
 * 📏 Pose landmarker detection and body measurement calculations
 * 🧍 Avatar entity creation and video-to-avatar data transformations
+* 👗 Garment creation, retailer ownership enforcement, metadata updates, retrieval, and deletion operations
 
 ---
 
@@ -140,7 +143,8 @@ SmartFit/
 │   │   │   ├── routes/
 │   │   │   │   ├── users.py
 │   │   │   │   ├── videos.py
-│   │   │   │   └── avatars.py
+│   │   │   │   ├── avatars.py
+│   │   │   │   └── garments.py
 │   │   │   ├── dependencies.py
 │   │   │   └── router.py
 │   │   ├── core/
@@ -150,11 +154,12 @@ SmartFit/
 │   │   ├── services/
 │   │   │   ├── pose_estimator.py
 │   │   │   ├── measurement_estimator.py
-│   │   │   └── avatar_service.py
+│   │   │   ├── avatar_service.py
+│   │   │   └── garment_service.py
 │   │   └── main.py
 │   │
 │   ├── models/            # MediaPipe model assets (.task)
-│   ├── tests/             # Pytest automated test suite
+│   ├── tests/             # Pytest automated test suite (100 tests)
 │   ├── uploads/           # Local video storage directory
 │   ├── .env.example
 │   └── requirements.txt
@@ -166,12 +171,14 @@ SmartFit/
 │   │   │   └── AuthContext.jsx
 │   │   ├── pages/
 │   │   │   ├── GenerateAvatar.jsx
-│   │   │   └── Avatar.jsx
+│   │   │   ├── Avatar.jsx
+│   │   │   └── Garments.jsx
 │   │   ├── services/
 │   │   │   ├── api.js
 │   │   │   ├── authService.js
 │   │   │   ├── videoService.js
-│   │   │   └── avatarService.js
+│   │   │   ├── avatarService.js
+│   │   │   └── garmentService.js
 │   │   ├── App.jsx
 │   │   └── main.jsx
 │   ├── .env.example
@@ -398,18 +405,23 @@ Open two terminal windows to start the services:
 
 ## 🔌 Current API Endpoints
 
-| Method | Endpoint | Auth Required | Description |
-|--------|----------|---------------|-------------|
+| Method | Endpoint | Auth Required | Role / Description |
+|--------|----------|---------------|-------------------|
 | `GET` | `/` | No | Health check endpoint |
 | `POST` | `/api/users/` | No | User registration |
 | `POST` | `/api/users/login` | No | User login & JWT issuance |
 | `GET` | `/api/users/me` | Yes | Retrieve logged-in user profile |
-| `POST` | `/api/videos/` | Yes | Upload body video with height metadata |
-| `GET` | `/api/videos/{video_id}` | Yes | Query video processing & measurement status |
-| `DELETE` | `/api/videos/{video_id}` | Yes | Delete user video |
-| `POST` | `/api/avatars/` | Yes | Generate avatar metadata from measurement UUID |
-| `GET` | `/api/avatars/me` | Yes | Retrieve user's generated avatar metadata |
-| `GET` | `/api/avatars/{avatar_id}/file` | Yes | Download authenticated avatar GLB model binary stream |
+| `POST` | `/api/videos/` | Yes | Upload body video with height metadata (Customer) |
+| `GET` | `/api/videos/{video_id}` | Yes | Query video processing & measurement status (Customer) |
+| `DELETE` | `/api/videos/{video_id}` | Yes | Delete user video (Customer) |
+| `POST` | `/api/avatars/` | Yes | Generate avatar metadata from measurement UUID (Customer) |
+| `GET` | `/api/avatars/me` | Yes | Retrieve user's generated avatar metadata (Customer) |
+| `GET` | `/api/avatars/{avatar_id}/file` | Yes | Download authenticated avatar GLB model binary stream (Customer) |
+| `POST` | `/api/garments/` | Yes | Register new garment with measurements (**Retailer**) |
+| `GET` | `/api/garments/` | Yes | List garments owned by retailer (**Retailer**) |
+| `GET` | `/api/garments/{garment_id}` | Yes | Retrieve details of specific garment (**Retailer**) |
+| `PUT` | `/api/garments/{garment_id}` | Yes | Update garment details and measurements (**Retailer**) |
+| `DELETE` | `/api/garments/{garment_id}` | Yes | Delete retailer garment (**Retailer**) |
 
 ---
 
@@ -457,6 +469,6 @@ main
 | 4 — Frontend & Backend Integration | ✅ Complete |
 | 5 — Video Processing & Body Measurement | ✅ Complete |
 | 6 — Avatar Generation | ✅ Complete |
-| 7 — Garment Uploading & Management | 🟡 In Progress |
-| 8 — Garment Matching | ⬜ Planned |
+| 7 — Garment Uploading & Management | ✅ Complete |
+| 8 — Garment Matching | 🟡 In Progress |
 | 9 — Visualization | ⬜ Planned |

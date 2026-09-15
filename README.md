@@ -79,15 +79,53 @@ The project is built with a **React** frontend, **FastAPI** backend, **PostgreSQ
 * ✅ **Retailer Garment Upload Page:** Interactive frontend form allowing retailers to register garments with physical measurement attributes using JWT Bearer authentication.
 </details>
 
-<details open>
-<summary><b>👕 Milestone 8 — Garment Matching (🟡 In Progress)</b></summary>
+<details>
+<summary><b>👕 Milestone 8 — Virtual Fitting (✅ Completed)</b></summary>
 
-* 🟡 **Fit Algorithm & Scoring:** *(Active Focus)* Collision detection and dimensional matching logic comparing avatar measurements to garment parameters.
-* ⬜ **Size Recommendations:** Precise sizing suggestions based on fit confidence and garment tolerance values.
+* ✅ **<b>Virtual Fitting Workflow:</b>** Implemented the complete customer virtual fitting workflow, allowing customers to select an available retailer garment and compare it against their generated avatar measurements.
+
+* ✅ **<b>Fit Algorithm & Matching:</b>** Implemented measurement-based fitting logic comparing available body measurements with corresponding garment measurements to classify the fit as <b>Tight</b>, <b>Good Fit</b>, or <b>Loose</b>.
+
+* ✅ **<b>Size Recommendations:</b>** Implemented initial size recommendation logic based on available chest measurements. When chest measurements are unavailable, the system safely returns <b>N/A</b> rather than failing.
+
+* ✅ **<b>Partial Measurement Handling:</b>** Updated the fitting algorithm to ignore unavailable (<code>null</code>) measurements and perform matching using only the body and garment measurements currently available in the prototype.
+
+* ✅ **<b>Virtual Fitting API:</b>** Added authenticated endpoints for creating and retrieving virtual fitting results, including validation for invalid garments, avatars, measurements, duplicate fittings, and unauthorized access.
+
+* ✅ **<b>Available Garments:</b>** Added a customer-accessible endpoint for retrieving garments uploaded by retailers for virtual fitting.
+
+* ✅ **<b>Frontend Integration:</b>** Added the Virtual Fitting interface, garment selection, fitting result display, recommended size display, and navigation from the generated avatar to the fitting workflow.
+
+* 📝 **<b>Prototype Limitation:</b>** The current fitting system uses only the body measurements successfully extracted by the existing measurement module. Further refinement of measurement extraction, sizing accuracy, and advanced fitting logic will be addressed in future development.
+
 </details>
 
 <details>
-<summary><b>🕶️ Milestone 9 — Visualization (⬜ Planned)</b></summary>
+
+<summary><b>🛡️ Milestone 9 — System Hardening (🟡 In Progress)</b></summary>
+
+* 🟡 **<b>Security Hardening:</b>** Review and strengthen authentication, authorization, input validation, JWT handling, and protected API access across the system.
+
+* 🟡 **<b>Backend Validation & Error Handling:</b>** Improve API validation, exception handling, HTTP status codes, and error responses to ensure predictable and secure backend behaviour.
+
+* 🟡 **<b>Database & Data Integrity:</b>** Review database relationships, constraints, ownership checks, and data handling to prevent invalid or unauthorized records.
+
+* 🟡 **<b>API Security Testing:</b>** Expand automated tests for authentication, authorization, invalid requests, unauthorized resource access, duplicate operations, and other security-related scenarios.
+
+* 🟡 **<b>Frontend Security & Validation:</b>** Review protected routes, authentication state, API error handling, and client-side validation to improve the security and reliability of the frontend.
+
+* 🟡 **<b>Frontend UI/UX:</b>** Improve the UI/UX of the web application.
+
+* 🟡 **<b>Configuration & Environment Security:</b>** Review environment variables, secrets, development configuration, file handling, and other deployment-related settings to reduce security risks.
+
+* 🟡 **<b>System Reliability:</b>** Identify and address edge cases, unexpected failures, and inconsistencies across the complete SmartFit workflow.
+
+* 📝 **<b>Hardening Scope:</b>** Milestone 9 focuses on strengthening the existing SmartFit prototype rather than introducing major new functionality. The goal is to improve security, reliability, validation, testing, and overall system robustness before final project evaluation.
+
+</details>
+
+<details>
+<summary><b>🕶️ Milestone 10 — Visualization (⬜ Planned)</b></summary>
 
 * ⬜ **3D Garment Overlay:** Rendering 3D garment overlays onto the user's generated digital avatar.
 * ⬜ **Interactive Virtual Fitting Room:** Real-time fitting room UI with fabric drape visualization, style toggling, and interactive fit inspection.
@@ -97,96 +135,276 @@ The project is built with a **React** frontend, **FastAPI** backend, **PostgreSQ
 
 ## 📊 Test Status
 
-**100 automated backend tests — ✅ All Passing**
+**<b>118 automated backend tests — ✅ All Passing</b>**
 
-The backend test suite verifies system integrity across all layers:
+The backend test suite verifies system integrity across all implemented layers:
+
 * 🔌 Database connectivity & clean schema resets
+
 * 💾 CRUD persistence and foreign key constraints
+
 * 🔐 Password hashing, JWT token generation, role-based access control, and authorization dependencies
-* 🎥 Multi-tenant video upload, status polling, and deletion
+
+* 🎥 Multi-tenant video upload, processing status, and deletion
+
 * 📏 Pose landmarker detection and body measurement calculations
-* 🧍 Avatar entity creation and video-to-avatar data transformations
+
+* 🧍 Avatar entity creation, persistence, service logic, and video-to-avatar data transformations
+
 * 👗 Garment creation, retailer ownership enforcement, metadata updates, retrieval, and deletion operations
+
+* 👕 Virtual fitting entity creation, persistence, validation, and API operations
+
+* 📐 Measurement-based garment matching and fit classification
+
+* 📏 Initial size recommendation logic and handling of unavailable measurements
+
+* 🔄 Virtual fitting service integration between customers, avatars, body measurements, and garments
+
+* 🔐 Virtual fitting authorization and customer ownership enforcement
 
 ---
 
 ## 🛠️ Technology Stack
+<details>
+<summary>⚙️ Backend </summary>
 
-### ⚙️ Backend
 * **Language:** Python 3.12+
-* **API Framework:** FastAPI
-* **Database & ORM:** PostgreSQL, SQLAlchemy
-* **Authentication:** Passlib (`bcrypt`), PyJWT
-* **Computer Vision & ML:** OpenCV, MediaPipe Pose Landmarker
-* **Testing:** Pytest
 
-### 💻 Frontend
+* **API Framework:** FastAPI
+
+* **Database & ORM:** PostgreSQL, SQLAlchemy
+
+* **Authentication:** Passlib (`bcrypt`), PyJWT
+
+* **Computer Vision & ML:** OpenCV, MediaPipe Pose Landmarker
+
+* **Testing:** Pytest
+</details>
+
+<details>
+<summary>💻 Frontend</summary>
+
 * **Core:** React 19, Vite 8
+
 * **Routing:** React Router 7
+
 * **3D Visualization & Engine:** Three.js, React Three Fiber (`@react-three/fiber`), Drei (`@react-three/drei`)
+
 * **Styling:** CSS3 (Modern Flex/Grid with CSS variables for dark/light themes)
-* **Networking:** Fetch API with custom HTTP client interceptors & Blob stream handling
+
+* **Networking:** Fetch API with a custom HTTP client wrapper, JWT authorization handling, and Blob stream handling
+</details>
 
 ---
 
+
+
 ## 📁 Project Structure
+
+<details>
+<summary><b>🔧 Backend</b></summary>
+
+```text
+backend/
+├── app/
+│   ├── api/
+│   │   ├── routes/
+│   │   │   ├── users.py
+│   │   │   ├── videos.py
+│   │   │   ├── avatars.py
+│   │   │   ├── garments.py
+│   │   │   └── virtual_fittings.py
+│   │   ├── dependencies.py
+│   │   └── router.py
+│   │
+│   ├── core/
+│   │   ├── config.py
+│   │   └── security.py
+│   │
+│   ├── db/
+│   │   ├── base.py
+│   │   ├── database.py
+│   │   ├── dependencies.py
+│   │   └── init_db.py
+│   │
+│   ├── models/
+│   │   ├── avatar.py
+│   │   ├── body_measurements.py
+│   │   ├── garment.py
+│   │   ├── user.py
+│   │   ├── video.py
+│   │   └── virtual_fitting.py
+│   │
+│   ├── schemas/
+│   │   ├── avatar.py
+│   │   ├── garment.py
+│   │   ├── user.py
+│   │   ├── video.py
+│   │   └── virtual_fitting.py
+│   │
+│   ├── services/
+│   │   ├── avatar_generator.py
+│   │   ├── avatar_service.py
+│   │   ├── garment_service.py
+│   │   ├── measurement_estimator.py
+│   │   ├── pose_estimator.py
+│   │   ├── video_processor.py
+│   │   ├── virtual_fitting.py
+│   │   └── virtual_fitting_service.py
+│   │
+│   ├── utils/
+│   └── main.py
+│
+├── models/
+│   └── pose_landmarker_lite.task
+│
+├── scripts/
+│   ├── generate_project_tree.ps1
+│   └── reset_databases.py
+│
+├── tests/
+│   ├── test_auth_api.py
+│   ├── test_auth_dependencies.py
+│   ├── test_avatar_api.py
+│   ├── test_avatar_crud.py
+│   ├── test_avatar_model.py
+│   ├── test_avatar_schema.py
+│   ├── test_avatar_service.py
+│   ├── test_body_measurement_crud.py
+│   ├── test_body_measurement_model.py
+│   ├── test_database_connection.py
+│   ├── test_garment_api.py
+│   ├── test_garment_crud.py
+│   ├── test_garment_model.py
+│   ├── test_garment_service.py
+│   ├── test_measurement_estimator.py
+│   ├── test_security.py
+│   ├── test_user_api.py
+│   ├── test_user_crud.py
+│   ├── test_user_model.py
+│   ├── test_user_schema.py
+│   ├── test_video_api.py
+│   ├── test_video_crud.py
+│   ├── test_video_model.py
+│   ├── test_virtual_fitting_api.py
+│   ├── test_virtual_fitting_crud.py
+│   ├── test_virtual_fitting_model.py
+│   └── test_virtual_fitting_service.py
+│
+├── .env.example
+├── pytest.ini
+├── README.md
+└── requirements.txt
+```
+</details> 
+
+<details>
+ <summary><b>💻 Frontend</b></summary>
+
+```text
+frontend/
+├── public/
+│   ├── favicon.svg
+│   └── icons.svg
+│
+├── src/
+│   ├── assets/
+│   │   ├── hero.png
+│   │   ├── react.svg
+│   │   └── vite.svg
+│   │
+│   ├── components/
+│   │   ├── Footer.jsx
+│   │   ├── MainLayout.jsx
+│   │   ├── Navbar.jsx
+│   │   └── ProtectedRoute.jsx
+│   │
+│   ├── context/
+│   │   └── AuthContext.jsx
+│   │
+│   ├── hooks/
+│   │
+│   ├── layouts/
+│   │   └── MainLayout.jsx
+│   │
+│   ├── pages/
+│   │   ├── Avatar.jsx
+│   │   ├── Dashboard.jsx
+│   │   ├── Garments.jsx
+│   │   ├── GenerateAvatar.jsx
+│   │   ├── Home.jsx
+│   │   ├── Login.jsx
+│   │   ├── Register.jsx
+│   │   ├── UploadVideo.jsx
+│   │   └── VirtualFitting.jsx
+│   │
+│   ├── services/
+│   │   ├── api.js
+│   │   ├── authService.js
+│   │   ├── avatarService.js
+│   │   ├── garmentService.js
+│   │   ├── videoService.js
+│   │   └── virtualFittingService.js
+│   │
+│   ├── App.css
+│   ├── App.jsx
+│   ├── index.css
+│   └── main.jsx
+│
+├── .env.example
+├── .gitignore
+├── .oxlintrc.json
+├── index.html
+├── package.json
+├── package-lock.json
+├── README.md
+└── vite.config.js
+```
+</details> 
+
+<details>
+<summary><b>📚 Documentation & UML</b></summary>
+
+```text
+docs/
+└── uml/
+    ├── database_design/
+    │   ├── erd.png
+    │   └── erd.puml
+    │
+    ├── logical_design/
+    │   └── system_architecture/
+    │       ├── Logical_Architecture.png
+    │       └── Logical_Architecture.puml
+    │
+    ├── sequence/
+    │   ├── Sequence_Avatar_Generation.png
+    │   ├── Sequence_Garment_Generation.png
+    │   ├── Sequence_User_Authentication.png
+    │   └── Sequence_Virtual_Fitting.png
+    │
+    └── ui/
+        ├── customer_dashboard.png
+        ├── login.png
+        ├── retailer_dashboard.png
+        ├── upload_body_video.png
+        ├── upload_garment_interface.png
+        └── virtual_fitting_interface.png
+```        
+</details>
+
+<details>
+<summary><b>📄 Root Files</b></summary>
 
 ```text
 SmartFit/
-│
-├── setup.ps1              # One-click setup script (Windows)
-├── setup.sh               # One-click setup script (macOS/Linux)
-│
-├── backend/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── routes/
-│   │   │   │   ├── users.py
-│   │   │   │   ├── videos.py
-│   │   │   │   ├── avatars.py
-│   │   │   │   └── garments.py
-│   │   │   ├── dependencies.py
-│   │   │   └── router.py
-│   │   ├── core/
-│   │   ├── db/
-│   │   ├── models/
-│   │   ├── schemas/
-│   │   ├── services/
-│   │   │   ├── pose_estimator.py
-│   │   │   ├── measurement_estimator.py
-│   │   │   ├── avatar_service.py
-│   │   │   └── garment_service.py
-│   │   └── main.py
-│   │
-│   ├── models/            # MediaPipe model assets (.task)
-│   ├── tests/             # Pytest automated test suite (100 tests)
-│   ├── uploads/           # Local video storage directory
-│   ├── .env.example
-│   └── requirements.txt
-│
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── context/
-│   │   │   └── AuthContext.jsx
-│   │   ├── pages/
-│   │   │   ├── GenerateAvatar.jsx
-│   │   │   ├── Avatar.jsx
-│   │   │   └── Garments.jsx
-│   │   ├── services/
-│   │   │   ├── api.js
-│   │   │   ├── authService.js
-│   │   │   ├── videoService.js
-│   │   │   ├── avatarService.js
-│   │   │   └── garmentService.js
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── .env.example
-│   └── package.json
-│
-├── docs/
-└── README.md
+├── .gitignore
+├── README.md
+├── setup.ps1       # Windows setup script
+└── setup.sh        # macOS/Linux setup script
 ```
+</details>
 
 ---
 
@@ -389,7 +607,9 @@ Open two terminal windows to start the services:
 * **Backend Server:**
   ```powershell
   cd backend
-  .venv\Scripts\Activate.ps1   # macOS/Linux: source .venv/bin/activate
+  .venv\Scripts\Activate.ps1   # Windows
+  .venv/bin/activate          # MacOS/Linux
+
   uvicorn app.main:app --reload
   ```
   *Interactive API Documentation:* `http://127.0.0.1:8000/docs`
@@ -406,22 +626,25 @@ Open two terminal windows to start the services:
 ## 🔌 Current API Endpoints
 
 | Method | Endpoint | Auth Required | Role / Description |
-|--------|----------|---------------|-------------------|
-| `GET` | `/` | No | Health check endpoint |
-| `POST` | `/api/users/` | No | User registration |
-| `POST` | `/api/users/login` | No | User login & JWT issuance |
-| `GET` | `/api/users/me` | Yes | Retrieve logged-in user profile |
-| `POST` | `/api/videos/` | Yes | Upload body video with height metadata (Customer) |
-| `GET` | `/api/videos/{video_id}` | Yes | Query video processing & measurement status (Customer) |
-| `DELETE` | `/api/videos/{video_id}` | Yes | Delete user video (Customer) |
-| `POST` | `/api/avatars/` | Yes | Generate avatar metadata from measurement UUID (Customer) |
-| `GET` | `/api/avatars/me` | Yes | Retrieve user's generated avatar metadata (Customer) |
-| `GET` | `/api/avatars/{avatar_id}/file` | Yes | Download authenticated avatar GLB model binary stream (Customer) |
-| `POST` | `/api/garments/` | Yes | Register new garment with measurements (**Retailer**) |
-| `GET` | `/api/garments/` | Yes | List garments owned by retailer (**Retailer**) |
-| `GET` | `/api/garments/{garment_id}` | Yes | Retrieve details of specific garment (**Retailer**) |
-| `PUT` | `/api/garments/{garment_id}` | Yes | Update garment details and measurements (**Retailer**) |
-| `DELETE` | `/api/garments/{garment_id}` | Yes | Delete retailer garment (**Retailer**) |
+|--------|----------|---------------|--------------------|
+| `GET` | `/` | No | Health check and API status endpoint |
+| `POST` | `/api/users/` | No | Register a new user |
+| `POST` | `/api/users/login` | No | Authenticate user and issue JWT |
+| `GET` | `/api/users/me` | Yes | Retrieve the logged-in user's profile |
+| `POST` | `/api/videos/` | Yes | Upload a body video with height metadata (Customer) |
+| `GET` | `/api/videos/{video_id}` | Yes | Retrieve video processing status and body measurements (Customer) |
+| `DELETE` | `/api/videos/{video_id}` | Yes | Delete a user's uploaded body video (Customer) |
+| `POST` | `/api/avatars/` | Yes | Generate a personalized avatar from body measurement data (Customer) |
+| `GET` | `/api/avatars/me` | Yes | Retrieve the logged-in user's generated avatar (Customer) |
+| `GET` | `/api/avatars/{avatar_id}/file` | Yes | Retrieve the authenticated user's avatar GLB model file (Customer) |
+| `POST` | `/api/garments/` | Yes | Register a new garment with measurements (Retailer) |
+| `GET` | `/api/garments/` | Yes | List garments owned by the authenticated retailer (Retailer) |
+| `GET` | `/api/garments/available` | Yes | Retrieve garments available for customer virtual fitting |
+| `GET` | `/api/garments/{garment_id}` | Yes | Retrieve a specific garment (Retailer) |
+| `PUT` | `/api/garments/{garment_id}` | Yes | Update garment details and measurements (Retailer) |
+| `DELETE` | `/api/garments/{garment_id}` | Yes | Delete a retailer's garment (Retailer) |
+| `POST` | `/api/virtual-fittings/` | Yes | Create a virtual fitting using a garment and generated avatar (Customer) |
+| `GET` | `/api/virtual-fittings/{fitting_id}` | Yes | Retrieve a virtual fitting result belonging to the authenticated customer |
 
 ---
 
@@ -470,5 +693,6 @@ main
 | 5 — Video Processing & Body Measurement | ✅ Complete |
 | 6 — Avatar Generation | ✅ Complete |
 | 7 — Garment Uploading & Management | ✅ Complete |
-| 8 — Garment Matching | 🟡 In Progress |
-| 9 — Visualization | ⬜ Planned |
+| 8 — Garment Matching | ✅ Complete |
+| 9 — System Hardening | 🟡 In Progress |
+| 10 — Visualization | ⬜ Planned |

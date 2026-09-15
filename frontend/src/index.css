@@ -3961,3 +3961,888 @@ button {
   }
 
 }
+
+
+/* ============================================================
+   VIRTUAL FITTING PAGE
+   ============================================================ */
+
+/*
+ * Main Virtual Fitting page container.
+ */
+.virtual-fitting-page {
+  max-width: 1200px;
+
+  margin: 0 auto;
+
+  padding: 3rem 1.5rem 5rem;
+}
+
+
+/* ============================================================
+   VIRTUAL FITTING HEADER
+   ============================================================ */
+
+.virtual-fitting-header {
+  max-width: 760px;
+
+  margin-bottom: 3rem;
+}
+
+
+.virtual-fitting-header h1 {
+  margin: 0;
+
+  font-size: clamp(2.2rem, 5vw, 3.5rem);
+
+  line-height: 1.1;
+}
+
+
+.virtual-fitting-header p:not(.section-label) {
+  max-width: 700px;
+
+  margin-top: 1rem;
+
+  color: var(--secondary-text-color);
+
+  font-size: 1.05rem;
+
+  line-height: 1.7;
+}
+
+
+/* ============================================================
+   VIRTUAL FITTING WORKSPACE
+   ============================================================ */
+
+.virtual-fitting-workspace {
+  display: grid;
+
+  grid-template-columns: 0.85fr 1.15fr;
+
+  gap: 1.5rem;
+
+  align-items: start;
+}
+
+
+/* ============================================================
+   VIRTUAL FITTING CARD
+   ============================================================ */
+
+.virtual-fitting-card {
+  padding: 1.5rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 18px;
+
+  background-color: var(--surface-color);
+
+  color: var(--text-color);
+
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+.virtual-fitting-card-header {
+  display: flex;
+
+  align-items: flex-start;
+
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  margin-bottom: 0.75rem;
+}
+
+
+.virtual-fitting-card-header .section-label {
+  margin-bottom: 0.45rem;
+}
+
+
+.virtual-fitting-card-header h2 {
+  margin: 0;
+
+  font-size: 1.35rem;
+}
+
+
+.virtual-fitting-card-description {
+  margin: 0 0 1.5rem;
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.9rem;
+
+  line-height: 1.6;
+}
+
+
+/* ============================================================
+   PROFILE PANEL
+   ============================================================ */
+
+.profile-ready-badge {
+  padding: 0.4rem 0.7rem;
+
+  border: 1px solid #16a34a;
+
+  border-radius: 999px;
+
+  color: #16a34a;
+
+  background-color: rgba(22, 163, 74, 0.08);
+
+  font-size: 0.75rem;
+
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+
+.fitting-measurement-grid {
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 0.75rem;
+}
+
+
+.fitting-measurement {
+  padding: 0.9rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 10px;
+
+  background-color: var(--background-color);
+}
+
+
+.fitting-measurement span {
+  display: block;
+
+  margin-bottom: 0.35rem;
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.78rem;
+}
+
+
+.fitting-measurement strong {
+  font-size: 0.95rem;
+}
+
+
+.profile-note {
+  margin-top: 1.25rem;
+
+  padding: 1rem;
+
+  border-left: 3px solid var(--text-color);
+
+  background-color: var(--background-color);
+}
+
+
+.profile-note strong {
+  display: block;
+
+  margin-bottom: 0.4rem;
+
+  font-size: 0.85rem;
+}
+
+
+.profile-note p {
+  margin: 0;
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.8rem;
+
+  line-height: 1.5;
+}
+
+
+/* ============================================================
+   GARMENT PANEL
+   ============================================================ */
+
+.garment-count {
+  color: var(--secondary-text-color);
+
+  font-size: 0.8rem;
+
+  white-space: nowrap;
+}
+
+
+/*
+ * Dedicated scrollable area for retailer garments.
+ *
+ * This prevents a large retailer catalogue from making
+ * the entire Virtual Fitting page excessively long.
+ */
+.garment-scroll-container {
+  max-height: 430px;
+
+  overflow-y: auto;
+
+  padding: 0.25rem 0.4rem 0.25rem 0;
+
+  scrollbar-width: thin;
+
+  scrollbar-color:
+    var(--border-color)
+    transparent;
+}
+
+
+/*
+ * WebKit scrollbar styling.
+ */
+.garment-scroll-container::-webkit-scrollbar {
+  width: 7px;
+}
+
+
+.garment-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+
+.garment-scroll-container::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+
+  background-color: var(--border-color);
+}
+
+
+/* ============================================================
+   GARMENT GRID
+   ============================================================ */
+
+.garment-selection-grid {
+  display: grid;
+
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  gap: 0.9rem;
+}
+
+
+/* ============================================================
+   GARMENT SELECTION CARD
+   ============================================================ */
+
+.garment-selection-card {
+  width: 100%;
+
+  padding: 1rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 14px;
+
+  background-color: var(--background-color);
+
+  color: var(--text-color);
+
+  font: inherit;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+
+.garment-selection-card:hover {
+  transform: translateY(-2px);
+
+  border-color: var(--text-color);
+
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+
+.garment-selection-card:focus-visible {
+  outline: 2px solid var(--text-color);
+
+  outline-offset: 2px;
+}
+
+
+/*
+ * Selected garment.
+ */
+.garment-selection-card.selected {
+  border: 2px solid var(--text-color);
+
+  padding: calc(1rem - 1px);
+
+  background-color: var(--surface-color);
+
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+
+.garment-card-header {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 0.75rem;
+
+  margin-bottom: 1rem;
+}
+
+
+.garment-number {
+  font-size: 0.75rem;
+
+  font-weight: 700;
+
+  letter-spacing: 0.1em;
+
+  color: var(--secondary-text-color);
+}
+
+
+.garment-selected-indicator {
+  font-size: 0.7rem;
+
+  font-weight: 700;
+
+  color: var(--text-color);
+}
+
+
+.garment-selection-card h3 {
+  margin: 0 0 1rem;
+
+  font-size: 1rem;
+}
+
+
+.garment-measurements {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 0.55rem;
+}
+
+
+.garment-measurements > div {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  padding-bottom: 0.55rem;
+
+  border-bottom: 1px solid var(--border-color);
+}
+
+
+.garment-measurements > div:last-child {
+  padding-bottom: 0;
+
+  border-bottom: none;
+}
+
+
+.garment-measurements span {
+  color: var(--secondary-text-color);
+
+  font-size: 0.75rem;
+}
+
+
+.garment-measurements strong {
+  font-size: 0.8rem;
+
+  white-space: nowrap;
+}
+
+
+/* ============================================================
+   LOADING / EMPTY STATES
+   ============================================================ */
+
+.fitting-loading {
+  min-height: 180px;
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 0.75rem;
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.9rem;
+}
+
+
+.fitting-spinner {
+  width: 18px;
+
+  height: 18px;
+
+  flex-shrink: 0;
+
+  border: 2px solid var(--border-color);
+
+  border-top-color: var(--text-color);
+
+  border-radius: 50%;
+
+  animation: fitting-spin 0.8s linear infinite;
+}
+
+
+@keyframes fitting-spin {
+
+  to {
+    transform: rotate(360deg);
+  }
+
+}
+
+
+.empty-garment-state {
+  padding: 2rem 1rem;
+
+  border: 1px dashed var(--border-color);
+
+  border-radius: 12px;
+
+  text-align: center;
+}
+
+
+.empty-garment-state strong {
+  display: block;
+
+  margin-bottom: 0.5rem;
+}
+
+
+.empty-garment-state p {
+  max-width: 420px;
+
+  margin: 0 auto;
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.85rem;
+
+  line-height: 1.6;
+}
+
+
+/* ============================================================
+   SELECTED GARMENT SUMMARY
+   ============================================================ */
+
+.selected-garment-summary {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 2rem;
+
+  margin-top: 1.5rem;
+
+  padding: 1.5rem;
+
+  border: 1px solid var(--text-color);
+
+  border-radius: 16px;
+
+  background-color: var(--surface-color);
+}
+
+
+.selected-garment-summary .section-label {
+  margin-bottom: 0.45rem;
+}
+
+
+.selected-garment-summary h2 {
+  margin: 0;
+
+  font-size: 1.25rem;
+}
+
+
+.selected-garment-summary p:not(.section-label) {
+  margin: 0.45rem 0 0;
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.85rem;
+
+  line-height: 1.5;
+}
+
+
+.selected-garment-action {
+  flex-shrink: 0;
+}
+
+
+.selected-garment-action .primary-button {
+  border: none;
+
+  cursor: pointer;
+
+  font: inherit;
+}
+
+
+.selected-garment-action .primary-button:disabled {
+  opacity: 0.6;
+
+  cursor: not-allowed;
+
+  transform: none;
+}
+
+
+/* ============================================================
+   ERROR
+   ============================================================ */
+
+.virtual-fitting-error {
+  margin-top: 1.5rem;
+}
+
+
+/* ============================================================
+   FITTING RESULT
+   ============================================================ */
+
+.virtual-fitting-result {
+  margin-top: 1.5rem;
+
+  padding: 2rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 18px;
+
+  background-color: var(--surface-color);
+
+  scroll-margin-top: 2rem;
+}
+
+
+.result-header {
+  max-width: 700px;
+
+  margin-bottom: 1.75rem;
+}
+
+
+.result-header .section-label {
+  margin-bottom: 0.5rem;
+}
+
+
+.result-header h2 {
+  margin: 0;
+
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+}
+
+
+.result-header p {
+  margin: 0.75rem 0 0;
+
+  color: var(--secondary-text-color);
+
+  line-height: 1.6;
+}
+
+
+.fitting-result-grid {
+  display: grid;
+
+  grid-template-columns: repeat(2, 1fr);
+
+  gap: 1rem;
+}
+
+
+.fitting-result-item {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-height: 150px;
+
+  padding: 1.5rem;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 14px;
+
+  background-color: var(--background-color);
+
+  text-align: center;
+}
+
+
+.fitting-result-item span {
+  margin-bottom: 0.75rem;
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.85rem;
+}
+
+
+.fitting-result-item strong {
+  font-size: 2rem;
+
+  line-height: 1;
+}
+
+
+.recommended-size {
+  font-size: 2.5rem !important;
+}
+
+
+.fit-result-good-fit {
+  color: #16a34a;
+}
+
+
+.fit-result-tight {
+  color: #dc2626;
+}
+
+
+.fit-result-loose {
+  color: #d97706;
+}
+
+
+.result-explanation {
+  margin-top: 1.25rem;
+
+  padding: 1rem;
+
+  border-top: 1px solid var(--border-color);
+}
+
+
+.result-explanation strong {
+  display: block;
+
+  margin-bottom: 0.4rem;
+
+  font-size: 0.85rem;
+}
+
+
+.result-explanation p {
+  margin: 0;
+
+  color: var(--secondary-text-color);
+
+  font-size: 0.85rem;
+
+  line-height: 1.6;
+}
+
+
+/* ============================================================
+   AVATAR REQUIRED
+   ============================================================ */
+
+.avatar-required-card {
+  display: flex;
+
+  align-items: flex-start;
+
+  gap: 1.25rem;
+
+  max-width: 700px;
+}
+
+
+.avatar-required-card h2 {
+  margin: 0 0 0.5rem;
+}
+
+
+.avatar-required-card p {
+  margin: 0 0 1.25rem;
+
+  color: var(--secondary-text-color);
+
+  line-height: 1.6;
+}
+
+
+.virtual-fitting-status-icon {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  width: 42px;
+
+  height: 42px;
+
+  flex-shrink: 0;
+
+  border: 1px solid var(--border-color);
+
+  border-radius: 50%;
+
+  background-color: var(--background-color);
+
+  font-weight: 700;
+}
+
+
+/* ============================================================
+   NAVIGATION
+   ============================================================ */
+
+.virtual-fitting-navigation {
+  margin-top: 2rem;
+}
+
+
+.virtual-fitting-navigation .secondary-button {
+  border: 1px solid var(--border-color);
+
+  cursor: pointer;
+
+  font: inherit;
+}
+
+
+/* ============================================================
+   VIRTUAL FITTING RESPONSIVENESS
+   ============================================================ */
+
+@media (max-width: 900px) {
+
+  .virtual-fitting-workspace {
+    grid-template-columns: 1fr;
+  }
+
+
+  .garment-scroll-container {
+    max-height: 500px;
+  }
+
+}
+
+
+@media (max-width: 700px) {
+
+  .virtual-fitting-page {
+    padding: 2.5rem 1rem 4rem;
+  }
+
+
+  .virtual-fitting-header {
+    margin-bottom: 2.5rem;
+  }
+
+
+  .garment-selection-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .selected-garment-summary {
+    align-items: stretch;
+
+    flex-direction: column;
+
+    gap: 1.25rem;
+  }
+
+
+  .selected-garment-action .primary-button {
+    width: 100%;
+  }
+
+
+  .fitting-result-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+
+@media (max-width: 500px) {
+
+  .virtual-fitting-card,
+  .virtual-fitting-result {
+    padding: 1.25rem;
+  }
+
+
+  .virtual-fitting-card-header {
+    align-items: flex-start;
+
+    flex-direction: column;
+  }
+
+
+  .fitting-measurement-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .garment-scroll-container {
+    max-height: 450px;
+  }
+
+
+  .avatar-required-card {
+    flex-direction: column;
+  }
+
+}

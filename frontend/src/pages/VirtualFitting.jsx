@@ -1,43 +1,38 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-import {
-    getAvailableGarments,
-} from "../services/garmentService";
-
-import {
-    createVirtualFitting,
-} from "../services/virtualFittingService";
+import { getAvailableGarments } from "../services/garmentService";
+import { createVirtualFitting } from "../services/virtualFittingService";
 
 
 /**
  * VirtualFitting
  *
- * Customer-facing page for SmartFit virtual fitting.
+ * Customer-facing virtual fitting page.
  *
- * Flow:
+ * Workflow:
  *
- *     Customer Avatar
+ *     SmartFit Profile
  *            ↓
  *     Select Garment
  *            ↓
- *     Perform Virtual Fitting
+ *     Perform Fitting
  *            ↓
- *     Backend Fitting Algorithm
- *            ↓
- *     Recommended Size + Fit Result
+ *     View Fitting Result
+ *
+ * The page uses the existing Milestone 8 backend
+ * virtual fitting API.
  */
 export default function VirtualFitting() {
     const location = useLocation();
     const navigate = useNavigate();
 
     /*
-     * Avatar and measurement information is passed
+     * Avatar and measurement information are passed
      * from the Avatar page through React Router state.
      */
     const avatar = location.state?.avatar || null;
-    const measurements =
-        location.state?.measurements || null;
+    const measurements = location.state?.measurements || null;
 
     const [garments, setGarments] = useState([]);
     const [selectedGarmentId, setSelectedGarmentId] =
@@ -51,7 +46,8 @@ export default function VirtualFitting() {
 
 
     /**
-     * Load garments available for virtual fitting.
+     * Load garments that retailers have made
+     * available for customer virtual fitting.
      */
     useEffect(() => {
         async function loadGarments() {
@@ -59,33 +55,26 @@ export default function VirtualFitting() {
                 setLoading(true);
                 setError("");
 
-                const response =
-                    await getAvailableGarments();
+                const response = await getAvailableGarments();
 
                 if (!response.ok) {
                     let message =
                         "Failed to load available garments.";
 
                     try {
-                        const errorData =
-                            await response.json();
+                        const errorData = await response.json();
 
-                        if (errorData.detail) {
-                            message =
-                                typeof errorData.detail ===
-                                "string"
-                                    ? errorData.detail
-                                    : message;
+                        if (typeof errorData.detail === "string") {
+                            message = errorData.detail;
                         }
                     } catch {
-                        // Keep default message.
+                        // Keep the default message.
                     }
 
                     throw new Error(message);
                 }
 
-                const data =
-                    await response.json();
+                const data = await response.json();
 
                 setGarments(data);
             } catch (err) {
@@ -103,8 +92,28 @@ export default function VirtualFitting() {
 
 
     /**
-     * Perform the virtual fitting using the
-     * selected garment and customer's avatar.
+     * Return a display-friendly measurement value.
+     */
+    function formatMeasurement(value) {
+        if (value === null || value === undefined) {
+            return "Not available";
+        }
+
+        return `${value} cm`;
+    }
+
+
+    /**
+     * Get the currently selected garment.
+     */
+    const selectedGarment = garments.find(
+        (garment) =>
+            garment.garment_id === selectedGarmentId
+    );
+
+
+    /**
+     * Perform the virtual fitting.
      */
     async function handleVirtualFitting() {
         setError("");
@@ -146,7 +155,7 @@ export default function VirtualFitting() {
 
 
     /**
-     * Return to the avatar page.
+     * Return to the generated avatar page.
      */
     function handleBackToAvatar() {
         navigate("/avatar", {
@@ -159,367 +168,512 @@ export default function VirtualFitting() {
 
 
     /*
-     * The virtual fitting requires a generated avatar.
+     * Virtual fitting requires a generated avatar.
      */
     if (!avatar?.avatar_id) {
         return (
-            <div className="page-container">
-                <div className="page-header">
+            <main className="virtual-fitting-page">
+                <div className="virtual-fitting-header">
+                    <span className="section-label">
+                        SMARTFIT
+                    </span>
+
                     <h1>Virtual Fitting</h1>
+
                     <p>
-                        Use your SmartFit avatar to find
-                        the most suitable garment size.
+                        Compare your SmartFit profile with
+                        retailer garments and receive an
+                        initial fit recommendation.
                     </p>
                 </div>
 
-                <div className="dashboard-card">
-                    <h2>Avatar Required</h2>
+                <section className="virtual-fitting-card avatar-required-card">
+                    <div className="virtual-fitting-status-icon">
+                        !
+                    </div>
 
-                    <p>
-                        You need to generate your SmartFit
-                        avatar before performing a virtual
-                        fitting.
-                    </p>
+                    <div>
+                        <h2>Avatar Required</h2>
 
-                    <button
-                        type="button"
-                        className="primary-button"
-                        onClick={() =>
-                            navigate("/avatar")
-                        }
-                    >
-                        Go to Avatar
-                    </button>
-                </div>
-            </div>
+                        <p>
+                            Generate your SmartFit avatar before
+                            starting a virtual fitting.
+                        </p>
+
+                        <button
+                            type="button"
+                            className="primary-button"
+                            onClick={() => navigate("/avatar")}
+                        >
+                            Go to Avatar
+                        </button>
+                    </div>
+                </section>
+            </main>
         );
     }
 
 
     return (
-        <div className="page-container">
+        <main className="virtual-fitting-page">
 
-            {/* Page heading */}
-            <div className="page-header">
+            {/* =====================================================
+                PAGE HEADER
+                ===================================================== */}
+
+            <header className="virtual-fitting-header">
+                <span className="section-label">
+                    SMARTFIT VIRTUAL FITTING
+                </span>
+
                 <h1>Virtual Fitting</h1>
 
                 <p>
-                    Select a garment to compare it with
-                    your SmartFit body measurements.
+                    Compare your SmartFit body measurements
+                    with available retailer garments to find
+                    the most suitable fit.
                 </p>
+            </header>
+
+
+            {/* =====================================================
+                WORKSPACE
+                ===================================================== */}
+
+            <div className="virtual-fitting-workspace">
+
+                {/* =================================================
+                    SMARTFIT PROFILE
+                    ================================================= */}
+
+                <section className="virtual-fitting-card profile-panel">
+
+                    <div className="virtual-fitting-card-header">
+                        <div>
+                            <span className="section-label">
+                                STEP 01
+                            </span>
+
+                            <h2>Your SmartFit Profile</h2>
+                        </div>
+
+                        <span className="profile-ready-badge">
+                            Ready
+                        </span>
+                    </div>
+
+                    <p className="virtual-fitting-card-description">
+                        These are the measurements currently
+                        available for your virtual fitting.
+                    </p>
+
+                    <div className="fitting-measurement-grid">
+
+                        <div className="fitting-measurement">
+                            <span>Height</span>
+                            <strong>
+                                {formatMeasurement(
+                                    measurements?.height
+                                )}
+                            </strong>
+                        </div>
+
+                        <div className="fitting-measurement">
+                            <span>Chest</span>
+                            <strong>
+                                {formatMeasurement(
+                                    measurements?.chest
+                                )}
+                            </strong>
+                        </div>
+
+                        <div className="fitting-measurement">
+                            <span>Waist</span>
+                            <strong>
+                                {formatMeasurement(
+                                    measurements?.waist
+                                )}
+                            </strong>
+                        </div>
+
+                        <div className="fitting-measurement">
+                            <span>Hips</span>
+                            <strong>
+                                {formatMeasurement(
+                                    measurements?.hips
+                                )}
+                            </strong>
+                        </div>
+
+                        <div className="fitting-measurement">
+                            <span>Shoulder Width</span>
+                            <strong>
+                                {formatMeasurement(
+                                    measurements?.shoulder_width
+                                )}
+                            </strong>
+                        </div>
+
+                        <div className="fitting-measurement">
+                            <span>Inseam</span>
+                            <strong>
+                                {formatMeasurement(
+                                    measurements?.inseam
+                                )}
+                            </strong>
+                        </div>
+
+                    </div>
+
+                    <div className="profile-note">
+                        <strong>Measurement note</strong>
+
+                        <p>
+                            The current prototype uses the
+                            measurements successfully extracted
+                            from your uploaded body video.
+                            Unavailable measurements are ignored
+                            during fitting.
+                        </p>
+                    </div>
+
+                </section>
+
+
+                {/* =================================================
+                    GARMENT SELECTION
+                    ================================================= */}
+
+                <section className="virtual-fitting-card garment-panel">
+
+                    <div className="virtual-fitting-card-header">
+                        <div>
+                            <span className="section-label">
+                                STEP 02
+                            </span>
+
+                            <h2>Select a Garment</h2>
+                        </div>
+
+                        {!loading && garments.length > 0 && (
+                            <span className="garment-count">
+                                {garments.length} available
+                            </span>
+                        )}
+                    </div>
+
+                    <p className="virtual-fitting-card-description">
+                        Select one of the garments registered
+                        by SmartFit retailers.
+                    </p>
+
+
+                    {loading && (
+                        <div className="fitting-loading">
+                            <span className="fitting-spinner" />
+
+                            <span>
+                                Loading available garments...
+                            </span>
+                        </div>
+                    )}
+
+
+                    {!loading && garments.length === 0 && (
+                        <div className="empty-garment-state">
+                            <strong>
+                                No garments available
+                            </strong>
+
+                            <p>
+                                Retailer garments will appear
+                                here when they are available
+                                for virtual fitting.
+                            </p>
+                        </div>
+                    )}
+
+
+                    {!loading && garments.length > 0 && (
+                        <div className="garment-scroll-container">
+
+                            <div className="garment-selection-grid">
+
+                                {garments.map((garment, index) => {
+                                    const isSelected =
+                                        selectedGarmentId ===
+                                        garment.garment_id;
+
+                                    return (
+                                        <button
+                                            key={
+                                                garment.garment_id
+                                            }
+                                            type="button"
+                                            className={
+                                                isSelected
+                                                    ? "garment-selection-card selected"
+                                                    : "garment-selection-card"
+                                            }
+                                            onClick={() =>
+                                                setSelectedGarmentId(
+                                                    garment.garment_id
+                                                )
+                                            }
+                                            aria-pressed={isSelected}
+                                        >
+
+                                            <div className="garment-card-header">
+                                                <span className="garment-number">
+                                                    {String(index + 1).padStart(
+                                                        2,
+                                                        "0"
+                                                    )}
+                                                </span>
+
+                                                {isSelected && (
+                                                    <span className="garment-selected-indicator">
+                                                        ✓ Selected
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            <h3>
+                                                Retailer Garment
+                                            </h3>
+
+                                            <div className="garment-measurements">
+
+                                                <div>
+                                                    <span>
+                                                        Chest Width
+                                                    </span>
+
+                                                    <strong>
+                                                        {formatMeasurement(
+                                                            garment.chest_width
+                                                        )}
+                                                    </strong>
+                                                </div>
+
+                                                <div>
+                                                    <span>
+                                                        Waist Width
+                                                    </span>
+
+                                                    <strong>
+                                                        {formatMeasurement(
+                                                            garment.waist_width
+                                                        )}
+                                                    </strong>
+                                                </div>
+
+                                                <div>
+                                                    <span>
+                                                        Hip Width
+                                                    </span>
+
+                                                    <strong>
+                                                        {formatMeasurement(
+                                                            garment.hip_width
+                                                        )}
+                                                    </strong>
+                                                </div>
+
+                                                <div>
+                                                    <span>
+                                                        Shoulder Width
+                                                    </span>
+
+                                                    <strong>
+                                                        {formatMeasurement(
+                                                            garment.shoulder_width
+                                                        )}
+                                                    </strong>
+                                                </div>
+
+                                                <div>
+                                                    <span>
+                                                        Inseam
+                                                    </span>
+
+                                                    <strong>
+                                                        {formatMeasurement(
+                                                            garment.inseam
+                                                        )}
+                                                    </strong>
+                                                </div>
+
+                                            </div>
+
+                                        </button>
+                                    );
+                                })}
+
+                            </div>
+
+                        </div>
+                    )}
+
+                </section>
+
             </div>
 
 
-            {/* Customer measurement summary */}
-            {measurements && (
-                <section className="dashboard-card">
-                    <h2>Your Measurements</h2>
+            {/* =====================================================
+                SELECTED GARMENT SUMMARY
+                ===================================================== */}
 
-                    <div className="measurement-grid">
+            {selectedGarment && (
+                <section className="selected-garment-summary">
 
-                        {measurements.height !== null &&
-                            measurements.height !==
-                                undefined && (
-                                <div>
-                                    <strong>
-                                        Height
-                                    </strong>
+                    <div>
+                        <span className="section-label">
+                            SELECTED GARMENT
+                        </span>
 
-                                    <span>
-                                        {measurements.height}
-                                        {" "}cm
-                                    </span>
-                                </div>
-                            )}
+                        <h2>Garment {String(
+                            garments.findIndex(
+                                (garment) =>
+                                    garment.garment_id ===
+                                    selectedGarmentId
+                            ) + 1
+                        ).padStart(2, "0")}</h2>
 
-                        {measurements.chest !== null &&
-                            measurements.chest !==
-                                undefined && (
-                                <div>
-                                    <strong>
-                                        Chest
-                                    </strong>
-
-                                    <span>
-                                        {measurements.chest}
-                                        {" "}cm
-                                    </span>
-                                </div>
-                            )}
-
-                        {measurements.waist !== null &&
-                            measurements.waist !==
-                                undefined && (
-                                <div>
-                                    <strong>
-                                        Waist
-                                    </strong>
-
-                                    <span>
-                                        {measurements.waist}
-                                        {" "}cm
-                                    </span>
-                                </div>
-                            )}
-
-                        {measurements.hips !== null &&
-                            measurements.hips !==
-                                undefined && (
-                                <div>
-                                    <strong>
-                                        Hips
-                                    </strong>
-
-                                    <span>
-                                        {measurements.hips}
-                                        {" "}cm
-                                    </span>
-                                </div>
-                            )}
-
-                        {measurements.shoulder_width !==
-                            null &&
-                            measurements.shoulder_width !==
-                                undefined && (
-                                <div>
-                                    <strong>
-                                        Shoulder Width
-                                    </strong>
-
-                                    <span>
-                                        {
-                                            measurements.shoulder_width
-                                        }
-                                        {" "}cm
-                                    </span>
-                                </div>
-                            )}
-
-                        {measurements.inseam !== null &&
-                            measurements.inseam !==
-                                undefined && (
-                                <div>
-                                    <strong>
-                                        Inseam
-                                    </strong>
-
-                                    <span>
-                                        {measurements.inseam}
-                                        {" "}cm
-                                    </span>
-                                </div>
-                            )}
-
+                        <p>
+                            This garment will be compared
+                            against your available body
+                            measurements.
+                        </p>
                     </div>
+
+                    <div className="selected-garment-action">
+                        <button
+                            type="button"
+                            className="primary-button"
+                            onClick={handleVirtualFitting}
+                            disabled={fitting}
+                        >
+                            {fitting
+                                ? "Performing Fitting..."
+                                : "Perform Virtual Fitting"}
+                        </button>
+                    </div>
+
                 </section>
             )}
 
 
-            {/* Garment selection */}
-            <section className="dashboard-card">
-                <h2>Select a Garment</h2>
+            {/* =====================================================
+                ERROR
+                ===================================================== */}
 
-                <p>
-                    Choose a garment registered by a
-                    retailer.
-                </p>
-
-                {loading && (
-                    <p>
-                        Loading available garments...
-                    </p>
-                )}
-
-                {!loading &&
-                    garments.length === 0 && (
-                        <p>
-                            No garments are currently
-                            available for virtual fitting.
-                        </p>
-                    )}
-
-                {!loading &&
-                    garments.length > 0 && (
-                        <div className="garment-selection-grid">
-
-                            {garments.map((garment) => (
-                                <button
-                                    key={
-                                        garment.garment_id
-                                    }
-                                    type="button"
-                                    className={
-                                        selectedGarmentId ===
-                                        garment.garment_id
-                                            ? "garment-selection-card selected"
-                                            : "garment-selection-card"
-                                    }
-                                    onClick={() =>
-                                        setSelectedGarmentId(
-                                            garment.garment_id
-                                        )
-                                    }
-                                >
-                                    <h3>
-                                        Garment
-                                    </h3>
-
-                                    <div>
-                                        <span>
-                                            Chest Width
-                                        </span>
-                                        <strong>
-                                            {
-                                                garment.chest_width
-                                            }
-                                            {" "}cm
-                                        </strong>
-                                    </div>
-
-                                    <div>
-                                        <span>
-                                            Waist Width
-                                        </span>
-                                        <strong>
-                                            {
-                                                garment.waist_width
-                                            }
-                                            {" "}cm
-                                        </strong>
-                                    </div>
-
-                                    <div>
-                                        <span>
-                                            Hip Width
-                                        </span>
-                                        <strong>
-                                            {
-                                                garment.hip_width
-                                            }
-                                            {" "}cm
-                                        </strong>
-                                    </div>
-
-                                    <div>
-                                        <span>
-                                            Shoulder Width
-                                        </span>
-                                        <strong>
-                                            {
-                                                garment.shoulder_width
-                                            }
-                                            {" "}cm
-                                        </strong>
-                                    </div>
-
-                                    <div>
-                                        <span>
-                                            Inseam
-                                        </span>
-                                        <strong>
-                                            {
-                                                garment.inseam
-                                            }
-                                            {" "}cm
-                                        </strong>
-                                    </div>
-
-                                </button>
-                            ))}
-
-                        </div>
-                    )}
-            </section>
-
-
-            {/* Error message */}
             {error && (
-                <div className="error-message">
+                <div
+                    className="error-message virtual-fitting-error"
+                    role="alert"
+                >
                     {error}
                 </div>
             )}
 
 
-            {/* Perform fitting */}
-            <section className="dashboard-card">
-                <h2>Perform Fitting</h2>
+            {/* =====================================================
+                FITTING RESULT
+                ===================================================== */}
 
-                <p>
-                    Your avatar and selected garment will
-                    be evaluated by the SmartFit virtual
-                    fitting algorithm.
-                </p>
+            {result && (
+                <section className="virtual-fitting-result">
 
-                <button
-                    type="button"
-                    className="primary-button"
-                    onClick={handleVirtualFitting}
-                    disabled={
-                        fitting ||
-                        !selectedGarmentId ||
-                        loading ||
-                        garments.length === 0
-                    }
-                >
-                    {fitting
-                        ? "Performing Fitting..."
-                        : "Perform Virtual Fitting"}
-                </button>
+                    <div className="result-header">
+                        <span className="section-label">
+                            STEP 03
+                        </span>
+
+                        <h2>Virtual Fitting Result</h2>
+
+                        <p>
+                            Your garment has been evaluated
+                            against the body measurements
+                            currently available in your
+                            SmartFit profile.
+                        </p>
+                    </div>
+
+
+                    <div className="fitting-result-grid">
+
+                        <div className="fitting-result-item">
+
+                            <span>
+                                Recommended Size
+                            </span>
+
+                            <strong className="recommended-size">
+                                {result.recommended_size}
+                            </strong>
+
+                        </div>
+
+
+                        <div className="fitting-result-item">
+
+                            <span>
+                                Fit Result
+                            </span>
+
+                            <strong
+                                className={
+                                    `fit-result fit-result-${String(
+                                        result.fit_result || ""
+                                    ).toLowerCase().replace(
+                                        /\s+/g,
+                                        "-"
+                                    )}`
+                                }
+                            >
+                                {result.fit_result}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div className="result-explanation">
+                        <strong>
+                            How this result is determined
+                        </strong>
+
+                        <p>
+                            SmartFit compares the available
+                            body and garment measurements.
+                            Measurements that are not currently
+                            available are excluded from the
+                            comparison.
+                        </p>
+                    </div>
+
+                </section>
+            )}
+
+
+            {/* =====================================================
+                NAVIGATION
+                ===================================================== */}
+
+            <div className="virtual-fitting-navigation">
 
                 <button
                     type="button"
                     className="secondary-button"
                     onClick={handleBackToAvatar}
                 >
-                    Back to Avatar
+                    ← Back to Avatar
                 </button>
-            </section>
 
+            </div>
 
-            {/* Fitting result */}
-            {result && (
-                <section className="dashboard-card virtual-fitting-result">
-
-                    <h2>
-                        Virtual Fitting Result
-                    </h2>
-
-                    <div className="fitting-result-grid">
-
-                        <div>
-                            <span>
-                                Recommended Size
-                            </span>
-
-                            <strong>
-                                {
-                                    result.recommended_size
-                                }
-                            </strong>
-                        </div>
-
-                        <div>
-                            <span>
-                                Fit Result
-                            </span>
-
-                            <strong>
-                                {result.fit_result}
-                            </strong>
-                        </div>
-
-                    </div>
-
-                    <p>
-                        This recommendation is based on
-                        the body measurements extracted for
-                        your SmartFit avatar and the selected
-                        garment measurements.
-                    </p>
-
-                </section>
-            )}
-
-        </div>
+        </main>
     );
 }

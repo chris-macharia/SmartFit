@@ -15,7 +15,15 @@ function Footer() {
       <div className="footer-content">
 
         <div>
-          <h3>👕 SmartFit</h3>
+          <div className="footer-brand">
+            <img
+              src="/smartfit-logo.svg"
+              alt=""
+              className="footer-logo"
+            />
+
+            <h3>SmartFit</h3>
+          </div>
 
           <p>
             Virtual fitting technology for smarter online

@@ -322,55 +322,6 @@ button {
    FOOTER
    ============================================================ */
 
-.footer {
-  /*
-   * Separate the footer visually from the main content.
-   */
-  margin-top: auto;
-
-  padding: 2rem;
-
-  background-color: var(--surface-color);
-  color: var(--text-color);
-
-  border-top: 1px solid var(--border-color);
-
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.footer-content {
-  /*
-   * Keep the footer content aligned and readable.
-   */
-  max-width: 1200px;
-
-  margin: 0 auto;
-
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  gap: 2rem;
-}
-
-.footer h3 {
-  margin-top: 0;
-  margin-bottom: 0.5rem;
-}
-
-.footer p {
-  margin: 0.25rem 0;
-
-  color: var(--secondary-text-color);
-}
-
-.footer-info {
-  text-align: right;
-}
-
 /* ============================================================
    HOME PAGE
    ============================================================ */
@@ -780,16 +731,6 @@ button {
 
   .hero-section h1 {
     font-size: 2.7rem;
-  }
-
-  .footer-content {
-    flex-direction: column;
-
-    align-items: flex-start;
-  }
-
-  .footer-info {
-    text-align: left;
   }
 
 }
@@ -4305,9 +4246,6 @@ button {
     border-color 0.2s ease;
 }
 
-
-
-
 .navbar-brand {
   display: inline-flex;
   align-items: center;
@@ -4341,9 +4279,6 @@ button {
 .navbar-brand-text {
   display: inline-block;
 }
-
-
-
 
 .navbar-links {
   display: flex;
@@ -4386,9 +4321,6 @@ button {
   outline-offset: 2px;
 }
 
-
-
-
 .navbar-user {
   display: flex;
   align-items: center;
@@ -4408,9 +4340,6 @@ button {
   font-weight: 600;
   white-space: nowrap;
 }
-
-
-
 
 .navbar-logout {
   display: inline-flex;
@@ -4446,17 +4375,11 @@ button {
   outline-offset: 2px;
 }
 
-
-
-
 .theme-control {
   display: flex;
   align-items: center;
   flex-shrink: 0;
 }
-
-
-
 
 .theme-switch {
   position: relative;
@@ -4528,9 +4451,6 @@ button {
   color: var(--text-color);
 }
 
-
-
-
 @media (max-width: 900px) {
   .navbar {
     flex-wrap: wrap;
@@ -4546,9 +4466,6 @@ button {
     padding-top: 0.25rem;
   }
 }
-
-
-
 
 @media (max-width: 600px) {
   .navbar {
@@ -4593,6 +4510,79 @@ button {
 
   .theme-switch.active .theme-switch-handle {
     transform: translateX(16px);
+  }
+}
+
+/* =========================================================
+   SMARTFIT FOOTER STYLES
+   Managed by replace-css.ps1
+   ========================================================= */
+
+.footer {
+  margin-top: auto;
+  padding: 2rem;
+  background-color: var(--surface-color);
+  color: var(--text-color);
+  border-top: 1px solid var(--border-color);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+
+
+.footer-content {
+  max-width: 1200px;
+  margin: 0 auto;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  gap: 2rem;
+}
+
+
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.footer-logo {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.footer-brand h3 {
+  margin: 0;
+}
+
+
+
+.footer p {
+  margin: 0.25rem 0;
+  color: var(--secondary-text-color);
+}
+
+.footer-info {
+  text-align: right;
+}
+
+
+
+@media (max-width: 768px) {
+  .footer-content {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .footer-info {
+    text-align: left;
   }
 }
 

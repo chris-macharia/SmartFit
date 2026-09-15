@@ -7,6 +7,9 @@ the garment API.
 Garments are uploaded and managed by authenticated retailer
 accounts. The service receives the authenticated user's UUID
 from the API layer and uses it to establish garment ownership.
+
+Authenticated customers can also retrieve available garments
+uploaded by retailers for use in virtual fitting.
 """
 
 import uuid
@@ -165,6 +168,39 @@ def get_garments_by_user(
         .filter(
             Garment.user_id == user_id,
         )
+        .order_by(
+            Garment.created_at.desc(),
+        )
+        .all()
+    )
+
+
+# ============================================================
+# Retrieve Available Garments
+# ============================================================
+
+def get_available_garments(
+    db: Session,
+) -> list[Garment]:
+    """
+    Retrieve all garments available for virtual fitting.
+
+    This function intentionally does not filter by user_id.
+
+    Customers need to browse garments uploaded by retailers
+    before selecting one for virtual fitting.
+
+    Args:
+        db:
+            Active SQLAlchemy database session.
+
+    Returns:
+        list[Garment]:
+            All available garments ordered from newest to oldest.
+    """
+
+    return (
+        db.query(Garment)
         .order_by(
             Garment.created_at.desc(),
         )

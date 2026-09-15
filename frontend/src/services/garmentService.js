@@ -1,143 +1,112 @@
 /**
  * SmartFit Garment API Service
  *
- * This module contains all frontend functions that communicate
+ * This module contains frontend functions for communicating
  * with the SmartFit garment-related backend endpoints.
  *
- * Garments are currently managed by authenticated retailer
- * accounts.
+ * Retailer operations:
+ * - Create a garment
+ * - Retrieve own garments
+ * - Retrieve a specific garment
+ * - Update a garment
+ * - Delete a garment
  *
- * The service communicates with:
- *
- *     /api/garments/
- *
- * Authentication is handled automatically by apiRequest().
+ * Customer operation:
+ * - Retrieve garments available for virtual fitting
  */
 
 import { apiRequest } from "./api";
 
 
-// ============================================================
-// CREATE GARMENT
-// ============================================================
-
 /**
- * Register a new garment for the authenticated retailer.
+ * Create a new garment.
  *
- * Backend:
- * POST /api/garments/
+ * This operation is restricted to retailer accounts
+ * by the backend.
  *
- * The backend obtains the retailer's user_id from the
- * authenticated JWT, so user_id must NOT be sent from
- * the frontend.
- *
- * @param {object} garmentData - Garment measurements.
- * @returns {Promise<Response>} Backend HTTP response.
+ * @param {Object} garmentData - Garment measurement data.
+ * @returns {Promise<Object>} Created garment.
  */
 export async function createGarment(garmentData) {
-
     return apiRequest("/api/garments/", {
         method: "POST",
-
-        /*
-         * Convert the JavaScript object into JSON because
-         * FastAPI expects a JSON request body.
-         */
         body: JSON.stringify(garmentData),
     });
 }
 
 
-// ============================================================
-// GET MY GARMENTS
-// ============================================================
-
 /**
- * Retrieve all garments belonging to the authenticated retailer.
+ * Retrieve garments belonging to the authenticated retailer.
  *
- * Backend:
- * GET /api/garments/
- *
- * @returns {Promise<Response>} Backend HTTP response.
+ * @returns {Promise<Response>} API response.
  */
 export async function getMyGarments() {
-
     return apiRequest("/api/garments/", {
         method: "GET",
     });
 }
 
 
-// ============================================================
-// GET ONE GARMENT
-// ============================================================
-
 /**
- * Retrieve a specific garment belonging to the authenticated
- * retailer.
+ * Retrieve all garments available for customer virtual fitting.
  *
- * Backend:
- * GET /api/garments/{garment_id}
+ * Unlike getMyGarments(), this endpoint returns garments
+ * registered by retailers and is intended for customers
+ * selecting a garment for virtual fitting.
  *
- * @param {string} garmentId - Garment UUID.
- * @returns {Promise<Response>} Backend HTTP response.
+ * @returns {Promise<Response>} API response.
  */
-export async function getGarment(garmentId) {
-
-    return apiRequest(
-        `/api/garments/${garmentId}`,
-        {
-            method: "GET",
-        }
-    );
+export async function getAvailableGarments() {
+    return apiRequest("/api/garments/available", {
+        method: "GET",
+    });
 }
 
 
-// ============================================================
-// UPDATE GARMENT
-// ============================================================
+/**
+ * Retrieve a specific garment by ID.
+ *
+ * @param {string} garmentId - Garment UUID.
+ * @returns {Promise<Response>} API response.
+ */
+export async function getGarment(garmentId) {
+    return apiRequest(`/api/garments/${garmentId}`, {
+        method: "GET",
+    });
+}
+
 
 /**
  * Update an existing garment.
  *
- * Backend:
- * PUT /api/garments/{garment_id}
+ * This operation is restricted to the retailer
+ * who owns the garment.
  *
  * @param {string} garmentId - Garment UUID.
- * @param {object} garmentData - Updated measurements.
- * @returns {Promise<Response>} Backend HTTP response.
+ * @param {Object} garmentData - Updated garment measurements.
+ * @returns {Promise<Response>} API response.
  */
 export async function updateGarment(
     garmentId,
     garmentData
 ) {
-
-    return apiRequest(
-        `/api/garments/${garmentId}`,
-        {
-            method: "PUT",
-
-            body: JSON.stringify(garmentData),
-        }
-    );
+    return apiRequest(`/api/garments/${garmentId}`, {
+        method: "PUT",
+        body: JSON.stringify(garmentData),
+    });
 }
 
-
-// ============================================================
-// DELETE GARMENT
-// ============================================================
 
 /**
  * Delete an existing garment.
  *
- * Backend:
- * DELETE /api/garments/{garment_id}
+ * This operation is restricted to the retailer
+ * who owns the garment.
  *
  * @param {string} garmentId - Garment UUID.
- * @returns {Promise<Response>} Backend HTTP response.
+ * @returns {Promise<Response>} API response.
  */
 export async function deleteGarment(garmentId) {
-
     return apiRequest(
         `/api/garments/${garmentId}`,
         {

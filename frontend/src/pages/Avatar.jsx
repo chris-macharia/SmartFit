@@ -23,6 +23,8 @@
  *       React Three Fiber
  *            ↓
  *       Interactive Avatar
+ *            ↓
+ *       Virtual Fitting
  */
 
 import {
@@ -126,7 +128,8 @@ function Avatar() {
 
   /*
    * Body measurements are also passed through so they can
-   * be displayed alongside the avatar.
+   * be displayed alongside the avatar and forwarded to
+   * the virtual fitting page.
    */
   const measurements =
     location.state?.measurements || null;
@@ -364,6 +367,32 @@ function Avatar() {
   }, [
     avatar?.avatar_id,
   ]);
+
+
+  // ============================================================
+  // START VIRTUAL FITTING
+  // ============================================================
+
+  /**
+   * Navigate to the virtual fitting page.
+   *
+   * The generated avatar and its measurements are passed
+   * through React Router state so the virtual fitting page
+   * can use the same avatar generated in the previous step.
+   */
+  function handleStartVirtualFitting() {
+
+    navigate(
+      "/virtual-fitting",
+      {
+        state: {
+          avatar,
+          measurements,
+          videoId,
+        },
+      }
+    );
+  }
 
 
   // ============================================================
@@ -932,9 +961,22 @@ function Avatar() {
 
 
           <p>
-            The next stage of SmartFit can use this avatar
-            when evaluating how garments fit your body.
+            Select a retailer garment and let SmartFit
+            evaluate how well it matches your measurements.
           </p>
+
+
+          {/* ==================================================
+              START VIRTUAL FITTING
+              ================================================== */}
+
+          <button
+            type="button"
+            className="primary-button"
+            onClick={handleStartVirtualFitting}
+          >
+            Start Virtual Fitting
+          </button>
 
         </div>
 

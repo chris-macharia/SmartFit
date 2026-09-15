@@ -199,128 +199,61 @@ def _determine_fit_result(
     garment: Garment,
 ) -> str:
     """
-    Determine the overall fit between a customer's body and
-    a garment.
+    Determine the overall fit using only available measurements.
 
-    The current algorithm compares:
+    The prototype deliberately ignores body or garment measurements
+    that are unavailable (``None``). This allows the virtual fitting
+    workflow to operate with the measurements currently produced by
+    the computer-vision pipeline.
 
-        chest
-        waist
-        hips
-        shoulder width
-        inseam
-
-    A measurement difference is calculated as:
-
-        (garment - body) / body
-
-    Therefore:
-
-        Negative value
-            Garment is smaller than the body.
-
-        Positive value
-            Garment is larger than the body.
-
-    The fitting rules are:
-
-        Tight
-            At least one measurement is 10% or more smaller.
-
-        Loose
-            No tight measurement exists and at least two
-            measurements are 15% or more larger.
-
-        Good Fit
-            Everything else.
-
-    Args:
-        body_measurements:
-            Customer's body measurements.
-
-        garment:
-            Selected garment.
-
-    Returns:
-        str:
-            One of:
-
-                "Good Fit"
-                "Tight"
-                "Loose"
+    At least one valid body/garment measurement pair is required.
+    Missing measurements can be handled by the refined fitting
+    algorithm in a later milestone.
     """
-
-    comparisons = {
-        "chest": _calculate_difference(
-            float(body_measurements.chest),
-            float(garment.chest_width),
+    measurement_pairs = {
+        "chest": (body_measurements.chest, garment.chest_width),
+        "waist": (body_measurements.waist, garment.waist_width),
+        "hips": (body_measurements.hips, garment.hip_width),
+        "shoulder_width": (
+            body_measurements.shoulder_width,
+            garment.shoulder_width,
         ),
-        "waist": _calculate_difference(
-            float(body_measurements.waist),
-            float(garment.waist_width),
-        ),
-        "hips": _calculate_difference(
-            float(body_measurements.hips),
-            float(garment.hip_width),
-        ),
-        "shoulder_width": _calculate_difference(
-            float(body_measurements.shoulder_width),
-            float(garment.shoulder_width),
-        ),
-        "inseam": _calculate_difference(
-            float(body_measurements.inseam),
-            float(garment.inseam),
-        ),
+        "inseam": (body_measurements.inseam, garment.inseam),
     }
 
-    # --------------------------------------------------------
-    # Check for missing body measurements.
-    # --------------------------------------------------------
+    comparisons = {}
 
-    # Chest, waist and hips may currently be nullable in the
-    # database because the computer-vision pipeline may not
-    # always estimate them.
-    #
-    # The initial fitting algorithm requires all five values.
-    if (
-        body_measurements.chest is None
-        or body_measurements.waist is None
-        or body_measurements.hips is None
-    ):
+    for name, (body_value, garment_value) in measurement_pairs.items():
+        if body_value is None or garment_value is None:
+            continue
+
+        comparisons[name] = _calculate_difference(
+            float(body_value),
+            float(garment_value),
+        )
+
+    if not comparisons:
         raise ValueError(
-            "Complete body measurements are required "
+            "No body and garment measurements are available "
             "for virtual fitting."
         )
 
-    # --------------------------------------------------------
-    # Check for Tight Fit.
-    # --------------------------------------------------------
-
-    # A significant shortage in any measurement means the
-    # garment is too small in that area.
+    # A significant shortage in any available measurement means
+    # the garment is too small in that area.
     for difference in comparisons.values():
-
         if difference <= TIGHT_THRESHOLD:
             return "Tight"
 
-    # --------------------------------------------------------
-    # Check for Loose Fit.
-    # --------------------------------------------------------
-
-    # Count substantially oversized measurements.
+    # Count substantially oversized available measurements.
     loose_measurements = sum(
         difference >= LOOSE_THRESHOLD
         for difference in comparisons.values()
     )
 
-    # Require at least two measurements to be substantially
+    # Require at least two available measurements to be substantially
     # larger before classifying the entire garment as loose.
     if loose_measurements >= 2:
         return "Loose"
-
-    # --------------------------------------------------------
-    # Otherwise the garment is considered a good fit.
-    # --------------------------------------------------------
 
     return "Good Fit"
 
@@ -482,14 +415,15 @@ def create_virtual_fitting(
     # --------------------------------------------------------
 
     if measurement.chest is None:
-        raise ValueError(
-            "Complete body measurements are required "
-            "for virtual fitting."
+        # Chest is not currently produced by the CV prototype.
+        # Keep the fitting result usable and report that a size
+        # recommendation is unavailable until chest measurement
+        # extraction is refined.
+        recommended_size = "N/A"
+    else:
+        recommended_size = _determine_recommended_size(
+            chest=float(measurement.chest),
         )
-
-    recommended_size = _determine_recommended_size(
-        chest=float(measurement.chest),
-    )
 
     # --------------------------------------------------------
     # Create VirtualFitting Record.

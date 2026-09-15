@@ -1,11 +1,19 @@
 """
 Garment API routes for SmartFit.
 
-This module provides endpoints for retailers to register,
-retrieve, update, and delete garment measurements.
+This module provides endpoints for:
 
-Garment operations are restricted to authenticated users
-whose account role is "retailer".
+1. Retailers to register, retrieve, update, and delete
+   their garment measurements.
+2. Authenticated customers to retrieve garments available
+   for virtual fitting.
+
+Retailer management operations are restricted to authenticated
+users whose account role is "retailer".
+
+The available-garments endpoint is accessible to authenticated
+users because customers need to select retailer garments for
+virtual fitting.
 """
 
 import uuid
@@ -18,7 +26,10 @@ from fastapi import (
 )
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import require_retailer
+from app.api.dependencies import (
+    get_current_user,
+    require_retailer,
+)
 from app.db.database import get_db
 from app.models.user import User
 from app.schemas.garment import (
@@ -29,6 +40,7 @@ from app.schemas.garment import (
 from app.services.garment_service import (
     create_garment,
     delete_garment,
+    get_available_garments,
     get_garment_by_id,
     get_garments_by_user,
     update_garment,
@@ -97,6 +109,35 @@ def get_my_garments(
     return get_garments_by_user(
         db=db,
         user_id=current_user.user_id,
+    )
+
+
+# ============================================================
+# READ - Retrieve Available Garments
+# ============================================================
+
+@router.get(
+    "/available",
+    response_model=list[GarmentResponse],
+    status_code=status.HTTP_200_OK,
+)
+def get_available_garments_endpoint(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """
+    Retrieve garments available for customer virtual fitting.
+
+    Unlike the retailer garment-management endpoint, this
+    endpoint is available to any authenticated user.
+
+    The authenticated user does not need to be a retailer
+    because customers need to browse retailer garments
+    before performing a virtual fitting.
+    """
+
+    return get_available_garments(
+        db=db,
     )
 
 

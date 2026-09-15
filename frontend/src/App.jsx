@@ -1,18 +1,19 @@
-/**
- * SmartFit React Application
- *
- * This is the root component of the SmartFit frontend.
- *
- * Responsibilities:
- *
- * - Configure React Router.
- * - Define the application's routes.
- * - Use MainLayout for pages that share the common
- *   SmartFit navigation and footer.
- * - Protect authenticated application pages.
- * - Provide access to retailer-specific garment
- *   management functionality.
- */
+ /**
+  * SmartFit React Application
+  *
+  * This is the root component of the SmartFit frontend.
+  *
+  * Responsibilities:
+  *
+  * - Configure React Router.
+  * - Define the application's routes.
+  * - Use MainLayout for pages that share the common
+  *   SmartFit navigation and footer.
+  * - Protect authenticated application pages.
+  * - Provide access to retailer-specific garment
+  *   management functionality.
+  * - Provide access to customer virtual fitting.
+  */
 
 import {
   BrowserRouter,
@@ -29,6 +30,7 @@ import UploadVideo from "./pages/UploadVideo";
 import GenerateAvatar from "./pages/GenerateAvatar";
 import Avatar from "./pages/Avatar";
 import Garments from "./pages/Garments";
+import VirtualFitting from "./pages/VirtualFitting";
 
 
 import MainLayout from "./layouts/MainLayout";
@@ -87,7 +89,7 @@ function App() {
               PROTECTED ROUTES
               ================================================= */}
 
-          {/*
+          {/* 
            * ProtectedRoute checks whether the user has
            * a valid authenticated session before allowing
            * access to the application pages.
@@ -133,6 +135,24 @@ function App() {
             <Route
               path="/avatar"
               element={<Avatar />}
+            />
+
+
+            {/* =================================================
+                VIRTUAL FITTING
+                ================================================= */}
+
+            {/*
+             * Customer virtual fitting page.
+             *
+             * The page receives the customer's generated
+             * avatar through React Router state and retrieves
+             * available retailer garments from the backend.
+             */}
+
+            <Route
+              path="/virtual-fitting"
+              element={<VirtualFitting />}
             />
 
 

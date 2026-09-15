@@ -284,8 +284,19 @@ function Dashboard() {
                 VIRTUAL FITTING
                 --------------------------------------------- */}
 
-            <div
-              className="dashboard-card dashboard-card-disabled"
+            {/*
+             * The virtual fitting workflow starts from the
+             * generated avatar because Avatar.jsx passes
+             * the avatar and measurement data through
+             * React Router state.
+             *
+             * The customer therefore opens the avatar first,
+             * then selects "Start Virtual Fitting".
+             */}
+
+            <Link
+              to="/avatar"
+              className="dashboard-card"
             >
 
 
@@ -303,8 +314,8 @@ function Dashboard() {
 
 
                 <p>
-                  Try garments virtually using your
-                  personalized avatar.
+                  Select a retailer garment and evaluate
+                  its fit using your personalized avatar.
                 </p>
 
 
@@ -312,11 +323,11 @@ function Dashboard() {
 
 
               <span className="dashboard-card-action">
-                Coming Soon
+                Start Fitting →
               </span>
 
 
-            </div>
+            </Link>
 
 
             {/* ---------------------------------------------
@@ -351,7 +362,7 @@ function Dashboard() {
 
 
               <span className="dashboard-card-action">
-                Coming Soon
+                Available Through Fitting
               </span>
 
 

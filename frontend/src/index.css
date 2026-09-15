@@ -1,10 +1,9 @@
-/**
+﻿/**
  * SmartFit Global Styles
  *
  * Contains the global styling and theme variables
  * used throughout the SmartFit frontend.
  */
-
 
 /* ============================================================
    GLOBAL THEME VARIABLES
@@ -21,7 +20,6 @@
   --border-color: #dddddd;
 }
 
-
 /*
  * Dark mode.
  *
@@ -36,7 +34,6 @@ body.dark-mode {
   --border-color: #333333;
 }
 
-
 /* ============================================================
    GLOBAL RESET
    ============================================================ */
@@ -44,7 +41,6 @@ body.dark-mode {
 * {
   box-sizing: border-box;
 }
-
 
 html,
 body,
@@ -55,7 +51,6 @@ body,
    */
   min-height: 100%;
 }
-
 
 body {
   /*
@@ -81,7 +76,6 @@ body {
     background-color 0.2s ease,
     color 0.2s ease;
 }
-
 
 /* ============================================================
    APPLICATION LAYOUT
@@ -118,7 +112,6 @@ body {
     color 0.2s ease;
 }
 
-
 /* ============================================================
    NAVBAR
    ============================================================ */
@@ -136,37 +129,8 @@ body {
  *
  * Everything is kept on one horizontal line.
  */
-.navbar {
-  display: flex;
-  align-items: center;
-
-  gap: 2rem;
-
-  padding: 1rem 2rem;
-
-  background-color: var(--surface-color);
-
-  border-bottom: 1px solid var(--border-color);
-
-  color: var(--text-color);
-
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease;
-}
-
 
 /* SmartFit logo/brand. */
-.navbar-brand {
-  font-size: 1.25rem;
-  font-weight: bold;
-
-  color: var(--text-color);
-
-  white-space: nowrap;
-}
-
 
 /*
  * Navigation links container.
@@ -174,32 +138,10 @@ body {
  * We allow this section to occupy the available space
  * between the SmartFit brand and the authenticated user.
  */
-.navbar-links {
-  display: flex;
-
-  align-items: center;
-
-  gap: 1.25rem;
-
-  margin-left: auto;
-}
-
 
 /* Individual navigation links. */
-.navbar-links a {
-  color: var(--text-color);
-
-  white-space: nowrap;
-
-  transition: color 0.2s ease;
-}
-
 
 /* Navigation link hover state. */
-.navbar-links a:hover {
-  text-decoration: underline;
-}
-
 
 /* ============================================================
    AUTHENTICATED USER AREA
@@ -208,40 +150,14 @@ body {
 /*
  * Keeps the user's name and logout button next to each other.
  */
-.navbar-user {
-  display: flex;
-
-  align-items: center;
-
-  gap: 0.75rem;
-
-  white-space: nowrap;
-}
-
 
 /*
  * Container for the authenticated user's name.
  */
-.navbar-user-info {
-  display: flex;
-
-  align-items: center;
-}
-
 
 /*
  * Authenticated user's name.
  */
-.navbar-user-name {
-  color: var(--text-color);
-
-  font-size: 0.95rem;
-
-  font-weight: 600;
-
-  white-space: nowrap;
-}
-
 
 /*
  * Logout button.
@@ -249,60 +165,14 @@ body {
  * This is deliberately styled independently from the
  * application's other buttons.
  */
-.navbar-logout {
-  display: inline-flex;
-
-  align-items: center;
-  justify-content: center;
-
-  padding: 0.5rem 0.9rem;
-
-  border: 1px solid var(--border-color);
-
-  border-radius: 6px;
-
-  background-color: transparent;
-
-  color: var(--text-color);
-
-  font-size: 0.9rem;
-
-  font-weight: 600;
-
-  line-height: 1;
-
-  cursor: pointer;
-
-  white-space: nowrap;
-
-  transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease;
-}
-
 
 /*
  * Logout button hover state.
  */
-.navbar-logout:hover {
-  background-color: var(--accent-bg);
-
-  border-color: var(--accent-border);
-
-  color: var(--accent);
-}
-
 
 /*
  * Keyboard accessibility.
  */
-.navbar-logout:focus-visible {
-  outline: 2px solid var(--accent);
-
-  outline-offset: 2px;
-}
-
 
 /* ============================================================
    THEME CONTROL
@@ -321,14 +191,12 @@ body {
   white-space: nowrap;
 }
 
-
 /*
  * Prevent the theme label from wrapping.
  */
 .theme-label {
   white-space: nowrap;
 }
-
 
 /* ============================================================
    DARK MODE BUTTON
@@ -349,7 +217,6 @@ body {
   gap: 0.6rem;
 }
 
-
 .theme-label {
   font-size: 0.9rem;
 
@@ -357,7 +224,6 @@ body {
 
   white-space: nowrap;
 }
-
 
 /*
  * Toggle switch background.
@@ -383,14 +249,12 @@ body {
     border-color 0.2s ease;
 }
 
-
 /*
  * Toggle switch when dark mode is active.
  */
 .theme-switch.active {
   background-color: #333333;
 }
-
 
 /*
  * The circular handle that moves
@@ -419,7 +283,6 @@ body {
     transform 0.2s ease;
 }
 
-
 /*
  * Move the handle to the right when
  * dark mode is enabled.
@@ -427,7 +290,6 @@ body {
 .theme-switch.active .theme-switch-handle {
   transform: translateX(24px);
 }
-
 
 /*
  * Remove the browser's default button outline
@@ -439,7 +301,6 @@ body {
   outline-offset: 3px;
 }
 
-
 /* ============================================================
    LINKS
    ============================================================ */
@@ -449,7 +310,6 @@ a {
   text-decoration: none;
 }
 
-
 /* ============================================================
    BUTTONS
    ============================================================ */
@@ -457,8 +317,6 @@ a {
 button {
   font-family: inherit;
 }
-
-
 
 /* ============================================================
    FOOTER
@@ -483,7 +341,6 @@ button {
     border-color 0.2s ease;
 }
 
-
 .footer-content {
   /*
    * Keep the footer content aligned and readable.
@@ -499,12 +356,10 @@ button {
   gap: 2rem;
 }
 
-
 .footer h3 {
   margin-top: 0;
   margin-bottom: 0.5rem;
 }
-
 
 .footer p {
   margin: 0.25rem 0;
@@ -512,12 +367,9 @@ button {
   color: var(--secondary-text-color);
 }
 
-
 .footer-info {
   text-align: right;
 }
-
-
 
 /* ============================================================
    HOME PAGE
@@ -526,7 +378,6 @@ button {
 .home-page {
   width: 100%;
 }
-
 
 /* ============================================================
    HERO SECTION
@@ -548,11 +399,9 @@ button {
   align-items: center;
 }
 
-
 .hero-content {
   max-width: 650px;
 }
-
 
 .hero-label,
 .section-label {
@@ -567,7 +416,6 @@ button {
   color: var(--secondary-text-color);
 }
 
-
 .hero-section h1 {
   margin: 0;
 
@@ -577,7 +425,6 @@ button {
 
   letter-spacing: -0.04em;
 }
-
 
 .hero-description {
   max-width: 600px;
@@ -590,7 +437,6 @@ button {
 
   color: var(--secondary-text-color);
 }
-
 
 /* ============================================================
    HERO BUTTONS
@@ -605,7 +451,6 @@ button {
 
   flex-wrap: wrap;
 }
-
 
 .primary-button,
 .secondary-button {
@@ -623,19 +468,16 @@ button {
     color 0.2s ease;
 }
 
-
 .primary-button {
   background-color: var(--text-color);
 
   color: var(--background-color);
 }
 
-
 .primary-button:hover,
 .secondary-button:hover {
   transform: translateY(-2px);
 }
-
 
 .secondary-button {
   border: 1px solid var(--border-color);
@@ -644,7 +486,6 @@ button {
 
   color: var(--text-color);
 }
-
 
 /* ============================================================
    HERO VISUAL
@@ -657,7 +498,6 @@ button {
 
   align-items: center;
 }
-
 
 .avatar-placeholder {
   width: 320px;
@@ -685,11 +525,9 @@ button {
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
 }
 
-
 .avatar-icon {
   font-size: 8rem;
 }
-
 
 /* ============================================================
    GENERAL SECTIONS
@@ -703,13 +541,11 @@ button {
   padding: 5rem 2rem;
 }
 
-
 .section-heading {
   max-width: 650px;
 
   margin-bottom: 3rem;
 }
-
 
 .section-heading h2,
 .cta-section h2 {
@@ -720,7 +556,6 @@ button {
   line-height: 1.1;
 }
 
-
 .section-heading p:not(.section-label),
 .cta-section p {
   margin-top: 1rem;
@@ -729,7 +564,6 @@ button {
 
   color: var(--secondary-text-color);
 }
-
 
 /* ============================================================
    HOW IT WORKS CARDS
@@ -742,7 +576,6 @@ button {
 
   gap: 1.5rem;
 }
-
 
 .step-card {
   position: relative;
@@ -760,11 +593,9 @@ button {
     background-color 0.2s ease;
 }
 
-
 .step-card:hover {
   transform: translateY(-4px);
 }
-
 
 .step-number {
   position: absolute;
@@ -780,18 +611,15 @@ button {
   color: var(--secondary-text-color);
 }
 
-
 .step-icon {
   font-size: 2.5rem;
 
   margin-bottom: 1.5rem;
 }
 
-
 .step-card h3 {
   margin-bottom: 0.75rem;
 }
-
 
 .step-card p {
   margin: 0;
@@ -800,7 +628,6 @@ button {
 
   color: var(--secondary-text-color);
 }
-
 
 /* ============================================================
    BENEFITS
@@ -812,7 +639,6 @@ button {
   transition:
     background-color 0.2s ease;
 }
-
 
 .benefits-content {
   max-width: 1200px;
@@ -830,7 +656,6 @@ button {
   align-items: center;
 }
 
-
 .benefits-list {
   display: flex;
 
@@ -839,7 +664,6 @@ button {
   gap: 1.5rem;
 }
 
-
 .benefit-item {
   display: flex;
 
@@ -847,7 +671,6 @@ button {
 
   align-items: flex-start;
 }
-
 
 .benefit-item > span {
   display: flex;
@@ -871,11 +694,9 @@ button {
   font-weight: bold;
 }
 
-
 .benefit-item h3 {
   margin: 0 0 0.5rem;
 }
-
 
 .benefit-item p {
   margin: 0;
@@ -884,7 +705,6 @@ button {
 
   color: var(--secondary-text-color);
 }
-
 
 /* ============================================================
    FINAL CALL TO ACTION
@@ -900,18 +720,15 @@ button {
   text-align: center;
 }
 
-
 .cta-section .section-label {
   margin-bottom: 1rem;
 }
-
 
 .cta-section p {
   max-width: 600px;
 
   margin: 1rem auto 2rem;
 }
-
 
 /* ============================================================
    RESPONSIVE DESIGN
@@ -925,11 +742,9 @@ button {
     padding-top: 3rem;
   }
 
-
   .hero-visual {
     order: -1;
   }
-
 
   .avatar-placeholder {
     width: 260px;
@@ -937,16 +752,13 @@ button {
     height: 320px;
   }
 
-
   .avatar-icon {
     font-size: 6rem;
   }
 
-
   .steps-grid {
     grid-template-columns: 1fr;
   }
-
 
   .benefits-content {
     grid-template-columns: 1fr;
@@ -955,7 +767,6 @@ button {
   }
 
 }
-
 
 @media (max-width: 600px) {
 
@@ -967,29 +778,9 @@ button {
     padding-right: 1.25rem;
   }
 
-
   .hero-section h1 {
     font-size: 2.7rem;
   }
-
-
-  .navbar {
-    flex-wrap: wrap;
-
-    padding: 1rem;
-  }
-
-
-  .navbar-links {
-    order: 3;
-
-    width: 100%;
-
-    justify-content: center;
-
-    margin-left: 0;
-  }
-
 
   .footer-content {
     flex-direction: column;
@@ -997,14 +788,11 @@ button {
     align-items: flex-start;
   }
 
-
   .footer-info {
     text-align: left;
   }
 
 }
-
-
 
 /* ============================================================
    AUTHENTICATION PAGES
@@ -1022,7 +810,6 @@ button {
   padding: 4rem 1.5rem;
 }
 
-
 .auth-card {
   width: 100%;
 
@@ -1039,13 +826,11 @@ button {
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
 }
 
-
 .auth-heading {
   margin-bottom: 2rem;
 
   text-align: center;
 }
-
 
 .auth-heading h1 {
   margin: 0;
@@ -1055,7 +840,6 @@ button {
   line-height: 1.15;
 }
 
-
 .auth-heading p:not(.section-label) {
   margin-top: 0.75rem;
 
@@ -1063,7 +847,6 @@ button {
 
   line-height: 1.6;
 }
-
 
 /* ============================================================
    FORM
@@ -1077,7 +860,6 @@ button {
   gap: 1.25rem;
 }
 
-
 .form-group {
   display: flex;
 
@@ -1086,13 +868,11 @@ button {
   gap: 0.5rem;
 }
 
-
 .form-group label {
   font-size: 0.9rem;
 
   font-weight: 600;
 }
-
 
 .form-group input,
 .form-group select {
@@ -1119,7 +899,6 @@ button {
     box-shadow 0.2s ease;
 }
 
-
 .form-group input:focus,
 .form-group select:focus {
   border-color: var(--text-color);
@@ -1127,11 +906,9 @@ button {
   box-shadow: 0 0 0 2px var(--border-color);
 }
 
-
 .form-group input::placeholder {
   color: var(--secondary-text-color);
 }
-
 
 /* ============================================================
    FORM MESSAGES
@@ -1147,7 +924,6 @@ button {
   line-height: 1.5;
 }
 
-
 .error-message {
   border: 1px solid #dc2626;
 
@@ -1156,7 +932,6 @@ button {
   background-color: rgba(220, 38, 38, 0.08);
 }
 
-
 .success-message {
   border: 1px solid #16a34a;
 
@@ -1164,7 +939,6 @@ button {
 
   background-color: rgba(22, 163, 74, 0.08);
 }
-
 
 /* ============================================================
    AUTH BUTTON
@@ -1180,7 +954,6 @@ button {
   font: inherit;
 }
 
-
 .auth-submit:disabled {
   opacity: 0.6;
 
@@ -1188,7 +961,6 @@ button {
 
   transform: none;
 }
-
 
 /* ============================================================
    AUTH FOOTER
@@ -1202,7 +974,6 @@ button {
   color: var(--secondary-text-color);
 }
 
-
 .auth-footer a {
   color: var(--text-color);
 
@@ -1210,7 +981,6 @@ button {
 
   text-decoration: underline;
 }
-
 
 /* ============================================================
    AUTH RESPONSIVENESS
@@ -1222,18 +992,15 @@ button {
     padding: 2rem 1rem;
   }
 
-
   .auth-card {
     padding: 1.5rem;
   }
-
 
   .auth-heading h1 {
     font-size: 1.8rem;
   }
 
 }
-
 
 /* ============================================================
    FORM HELPER TEXT
@@ -1247,8 +1014,6 @@ button {
   line-height: 1.4;
 }
 
-
-
 /* ============================================================
    DASHBOARD
    ============================================================ */
@@ -1261,11 +1026,9 @@ button {
   padding: 4rem 1.5rem 5rem;
 }
 
-
 .dashboard-header {
   margin-bottom: 4rem;
 }
-
 
 .dashboard-header h1 {
   margin: 0;
@@ -1274,7 +1037,6 @@ button {
 
   line-height: 1.1;
 }
-
 
 .dashboard-intro {
   max-width: 700px;
@@ -1288,7 +1050,6 @@ button {
   line-height: 1.7;
 }
 
-
 /* ============================================================
    DASHBOARD SECTIONS
    ============================================================ */
@@ -1297,18 +1058,15 @@ button {
   margin-top: 4rem;
 }
 
-
 .dashboard-section-heading {
   margin-bottom: 1.5rem;
 }
-
 
 .dashboard-section-heading h2 {
   margin: 0;
 
   font-size: clamp(1.6rem, 3vw, 2.2rem);
 }
-
 
 /* ============================================================
    DASHBOARD FEATURE CARDS
@@ -1324,7 +1082,6 @@ button {
 
   gap: 1rem;
 }
-
 
 .dashboard-card {
   display: flex;
@@ -1351,7 +1108,6 @@ button {
     box-shadow 0.2s ease;
 }
 
-
 .dashboard-card:hover {
   transform: translateY(-4px);
 
@@ -1360,11 +1116,9 @@ button {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.08);
 }
 
-
 .dashboard-card-featured {
   border-color: var(--text-color);
 }
-
 
 .dashboard-card-icon {
   margin-bottom: 1rem;
@@ -1372,13 +1126,11 @@ button {
   font-size: 2rem;
 }
 
-
 .dashboard-card h3 {
   margin: 0 0 0.6rem;
 
   font-size: 1.2rem;
 }
-
 
 .dashboard-card p {
   margin: 0;
@@ -1387,7 +1139,6 @@ button {
 
   line-height: 1.6;
 }
-
 
 /* Push the action label to the bottom so every tile has a consistent
    visual rhythm even when descriptions wrap across different lines. */
@@ -1403,7 +1154,6 @@ button {
   font-weight: 600;
 }
 
-
 /* Coming-soon cards deliberately look inactive and do not use the hover
    elevation reserved for navigable dashboard actions. */
 .dashboard-card-disabled {
@@ -1412,7 +1162,6 @@ button {
   opacity: 0.65;
 }
 
-
 .dashboard-card-disabled:hover {
   transform: none;
 
@@ -1420,7 +1169,6 @@ button {
 
   box-shadow: none;
 }
-
 
 /* ============================================================
    PROFILE STATUS
@@ -1442,20 +1190,17 @@ button {
   background-color: var(--surface-color);
 }
 
-
 .dashboard-status-content h2 {
   margin: 0 0 0.75rem;
 
   font-size: 1.7rem;
 }
 
-
 .dashboard-status-content p:not(.section-label) {
   color: var(--secondary-text-color);
 
   line-height: 1.7;
 }
-
 
 /* ============================================================
    PROGRESS BAR
@@ -1469,7 +1214,6 @@ button {
   justify-content: center;
 }
 
-
 .dashboard-progress-header {
   display: flex;
 
@@ -1479,7 +1223,6 @@ button {
 
   font-size: 0.9rem;
 }
-
 
 .progress-track {
   width: 100%;
@@ -1493,7 +1236,6 @@ button {
   background-color: var(--border-color);
 }
 
-
 .progress-bar {
   height: 100%;
 
@@ -1504,7 +1246,6 @@ button {
   transition: width 0.3s ease;
 }
 
-
 .dashboard-progress p {
   margin-top: 0.75rem;
 
@@ -1512,7 +1253,6 @@ button {
 
   font-size: 0.85rem;
 }
-
 
 /* ============================================================
    SMARTFIT JOURNEY
@@ -1526,13 +1266,11 @@ button {
   gap: 1.5rem;
 }
 
-
 .journey-step {
   padding: 1.5rem;
 
   border-top: 2px solid var(--text-color);
 }
-
 
 .journey-number {
   display: block;
@@ -1548,11 +1286,9 @@ button {
   color: var(--secondary-text-color);
 }
 
-
 .journey-step h3 {
   margin: 0 0 0.5rem;
 }
-
 
 .journey-step p {
   margin: 0;
@@ -1561,7 +1297,6 @@ button {
 
   line-height: 1.6;
 }
-
 
 /* ============================================================
    DASHBOARD RESPONSIVENESS
@@ -1574,13 +1309,11 @@ button {
     grid-template-columns: 1fr;
   }
 
-
   .dashboard-status-card {
     grid-template-columns: 1fr;
 
     gap: 2rem;
   }
-
 
   .dashboard-journey {
     grid-template-columns: 1fr;
@@ -1588,36 +1321,29 @@ button {
 
 }
 
-
 @media (max-width: 600px) {
 
   .dashboard-page {
     padding: 2.5rem 1rem 4rem;
   }
 
-
   .dashboard-header {
     margin-bottom: 2.5rem;
   }
-
 
   .dashboard-section {
     margin-top: 3rem;
   }
 
-
   .dashboard-card {
     padding: 1.4rem;
   }
-
 
   .dashboard-status-card {
     padding: 1.5rem;
   }
 
 }
-
-
 
 /* ============================================================
    UPLOAD VIDEO PAGE
@@ -1631,7 +1357,6 @@ button {
   padding: 3rem 1.5rem 5rem;
 }
 
-
 /* ============================================================
    UPLOAD HEADER
    ============================================================ */
@@ -1641,7 +1366,6 @@ button {
 
   margin-bottom: 3rem;
 }
-
 
 .back-link {
   display: inline-block;
@@ -1657,11 +1381,9 @@ button {
   transition: color 0.2s ease;
 }
 
-
 .back-link:hover {
   color: var(--text-color);
 }
-
 
 .upload-header h1 {
   margin: 0;
@@ -1670,7 +1392,6 @@ button {
 
   line-height: 1.1;
 }
-
 
 .upload-header p:not(.section-label) {
   margin-top: 1rem;
@@ -1682,7 +1403,6 @@ button {
   font-size: 1.05rem;
 }
 
-
 /* ============================================================
    UPLOAD CONTENT
    ============================================================ */
@@ -1691,7 +1411,6 @@ button {
   width: 100%;
 }
 
-
 /* Keep the height calibration control readable without introducing a
    separate visual language from SmartFit's existing form fields. */
 .upload-height-field {
@@ -1699,7 +1418,6 @@ button {
 
   margin: 0 auto 1.5rem;
 }
-
 
 /* ============================================================
    DROPZONE
@@ -1731,11 +1449,9 @@ button {
     background-color 0.2s ease;
 }
 
-
 .upload-dropzone:hover {
   border-color: var(--text-color);
 }
-
 
 .upload-icon {
   margin-bottom: 1rem;
@@ -1743,13 +1459,11 @@ button {
   font-size: 3rem;
 }
 
-
 .upload-dropzone h2 {
   margin: 0 0 0.5rem;
 
   font-size: 1.6rem;
 }
-
 
 .upload-dropzone p:not(.upload-hint) {
   max-width: 500px;
@@ -1761,7 +1475,6 @@ button {
   line-height: 1.6;
 }
 
-
 .upload-hint {
   margin-top: 1rem;
 
@@ -1769,7 +1482,6 @@ button {
 
   font-size: 0.8rem;
 }
-
 
 /* ============================================================
    VIDEO PREVIEW CARD
@@ -1785,7 +1497,6 @@ button {
   background-color: var(--surface-color);
 }
 
-
 .video-preview {
   width: 100%;
 
@@ -1796,7 +1507,6 @@ button {
   background-color: #000;
 }
 
-
 .video-preview video {
   display: block;
 
@@ -1806,7 +1516,6 @@ button {
 
   object-fit: contain;
 }
-
 
 /* ============================================================
    VIDEO INFORMATION
@@ -1824,7 +1533,6 @@ button {
   padding: 1.5rem 0;
 }
 
-
 .video-information h2 {
   margin: 0.25rem 0;
 
@@ -1832,7 +1540,6 @@ button {
 
   word-break: break-word;
 }
-
 
 .video-information p:not(.section-label) {
   margin: 0;
@@ -1842,7 +1549,6 @@ button {
   font-size: 0.9rem;
 }
 
-
 /* ============================================================
    UPLOAD PROGRESS
    ============================================================ */
@@ -1850,7 +1556,6 @@ button {
 .upload-progress {
   margin-bottom: 1.5rem;
 }
-
 
 .upload-progress-header {
   display: flex;
@@ -1862,16 +1567,13 @@ button {
   font-size: 0.9rem;
 }
 
-
 .upload-submit {
   width: 100%;
 }
 
-
 .upload-error {
   margin-top: 1rem;
 }
-
 
 /* ============================================================
    VIDEO GUIDELINES
@@ -1881,20 +1583,17 @@ button {
   margin-top: 5rem;
 }
 
-
 .upload-guidelines-header {
   max-width: 700px;
 
   margin-bottom: 2rem;
 }
 
-
 .upload-guidelines-header h2 {
   margin: 0;
 
   font-size: clamp(1.7rem, 3vw, 2.3rem);
 }
-
 
 .upload-guidelines-header p:not(.section-label) {
   margin-top: 0.75rem;
@@ -1904,7 +1603,6 @@ button {
   line-height: 1.7;
 }
 
-
 .guidelines-grid {
   display: grid;
 
@@ -1912,7 +1610,6 @@ button {
 
   gap: 1rem;
 }
-
 
 .guideline-card {
   padding: 1.5rem;
@@ -1923,7 +1620,6 @@ button {
 
   background-color: var(--surface-color);
 }
-
 
 .guideline-number {
   display: block;
@@ -1939,11 +1635,9 @@ button {
   letter-spacing: 0.1em;
 }
 
-
 .guideline-card h3 {
   margin: 0 0 0.5rem;
 }
-
 
 .guideline-card p {
   margin: 0;
@@ -1952,7 +1646,6 @@ button {
 
   line-height: 1.6;
 }
-
 
 /* ============================================================
    RESPONSIVE DESIGN
@@ -1964,13 +1657,11 @@ button {
     padding: 2.5rem 1rem 4rem;
   }
 
-
   .upload-dropzone {
     min-height: 300px;
 
     padding: 2rem 1rem;
   }
-
 
   .video-information {
     align-items: flex-start;
@@ -1978,19 +1669,15 @@ button {
     flex-direction: column;
   }
 
-
   .video-information .secondary-button {
     width: 100%;
   }
-
 
   .guidelines-grid {
     grid-template-columns: 1fr;
   }
 
 }
-
-
 
 /* ============================================================
    DIGITAL AVATAR PAGE
@@ -2004,7 +1691,6 @@ button {
   padding: 3rem 1.5rem 5rem;
 }
 
-
 /* ============================================================
    AVATAR HEADER
    ============================================================ */
@@ -2015,7 +1701,6 @@ button {
   margin-bottom: 3rem;
 }
 
-
 .avatar-header h1 {
   margin: 0;
 
@@ -2023,7 +1708,6 @@ button {
 
   line-height: 1.1;
 }
-
 
 .avatar-header p:not(.section-label) {
   margin-top: 1rem;
@@ -2034,7 +1718,6 @@ button {
 
   font-size: 1.05rem;
 }
-
 
 /* ============================================================
    AVATAR WORKSPACE
@@ -2050,7 +1733,6 @@ button {
   align-items: start;
 }
 
-
 /* ============================================================
    AVATAR PREVIEW
    ============================================================ */
@@ -2064,7 +1746,6 @@ button {
 
   background-color: var(--surface-color);
 }
-
 
 .avatar-preview {
   display: flex;
@@ -2087,7 +1768,6 @@ button {
     );
 }
 
-
 .avatar-placeholder,
 .avatar-generated {
   display: flex;
@@ -2102,7 +1782,6 @@ button {
 
   text-align: center;
 }
-
 
 .avatar-placeholder-icon,
 .avatar-generated-icon {
@@ -2127,12 +1806,10 @@ button {
   font-size: 6rem;
 }
 
-
 .avatar-placeholder h2,
 .avatar-generated h2 {
   margin: 0 0 0.5rem;
 }
-
 
 .avatar-placeholder p,
 .avatar-generated p {
@@ -2144,7 +1821,6 @@ button {
 
   line-height: 1.6;
 }
-
 
 /* ============================================================
    AVATAR LOADING STATE
@@ -2164,7 +1840,6 @@ button {
   font-size: 0.9rem;
 }
 
-
 .avatar-spinner {
   width: 18px;
 
@@ -2179,7 +1854,6 @@ button {
   animation: avatar-spin 0.8s linear infinite;
 }
 
-
 @keyframes avatar-spin {
 
   to {
@@ -2187,7 +1861,6 @@ button {
   }
 
 }
-
 
 /* ============================================================
    AVATAR READY STATE
@@ -2209,11 +1882,9 @@ button {
   font-weight: 600;
 }
 
-
 .avatar-generated-icon {
   font-size: 6rem;
 }
-
 
 .avatar-generate-button {
   width: 100%;
@@ -2224,7 +1895,6 @@ button {
 
   text-decoration: none;
 }
-
 
 /* ============================================================
    AVATAR INFORMATION
@@ -2238,7 +1908,6 @@ button {
   gap: 1.5rem;
 }
 
-
 .avatar-info-card {
   padding: 1.5rem;
 
@@ -2249,13 +1918,11 @@ button {
   background-color: var(--surface-color);
 }
 
-
 .avatar-info-card h2 {
   margin: 0 0 1.25rem;
 
   font-size: 1.4rem;
 }
-
 
 /* ============================================================
    PROFILE STATUS
@@ -2268,7 +1935,6 @@ button {
 
   gap: 1rem;
 }
-
 
 .avatar-status-item {
   display: flex;
@@ -2286,25 +1952,21 @@ button {
   font-size: 0.9rem;
 }
 
-
 .avatar-status-item:last-child {
   padding-bottom: 0;
 
   border-bottom: none;
 }
 
-
 .status-complete {
   font-weight: 600;
 }
-
 
 .status-pending {
   color: var(--secondary-text-color);
 
   font-weight: 600;
 }
-
 
 /* ============================================================
    MEASUREMENTS
@@ -2322,7 +1984,6 @@ button {
   line-height: 1.6;
 }
 
-
 .measurement-grid {
   display: grid;
 
@@ -2331,7 +1992,6 @@ button {
   gap: 0.75rem;
 }
 
-
 .measurement-item {
   padding: 1rem;
 
@@ -2339,7 +1999,6 @@ button {
 
   border-radius: 10px;
 }
-
 
 .measurement-item span {
   display: block;
@@ -2351,11 +2010,9 @@ button {
   font-size: 0.8rem;
 }
 
-
 .measurement-item strong {
   font-size: 1rem;
 }
-
 
 /* ============================================================
    AVATAR EXPLANATION
@@ -2375,7 +2032,6 @@ button {
   border-top: 1px solid var(--border-color);
 }
 
-
 .avatar-explanation h2 {
   margin: 0;
 
@@ -2384,23 +2040,19 @@ button {
   line-height: 1.2;
 }
 
-
 .avatar-explanation-text {
   color: var(--secondary-text-color);
 
   line-height: 1.7;
 }
 
-
 .avatar-explanation-text p {
   margin-top: 0;
 }
 
-
 .avatar-explanation-text p + p {
   margin-top: 1rem;
 }
-
 
 /* ============================================================
    RESPONSIVE DESIGN
@@ -2412,11 +2064,9 @@ button {
     grid-template-columns: 1fr;
   }
 
-
   .avatar-preview {
     min-height: 500px;
   }
-
 
   .avatar-explanation {
     grid-template-columns: 1fr;
@@ -2426,18 +2076,15 @@ button {
 
 }
 
-
 @media (max-width: 600px) {
 
   .avatar-page {
     padding: 2.5rem 1rem 4rem;
   }
 
-
   .avatar-preview {
     min-height: 400px;
   }
-
 
   .avatar-placeholder-icon,
   .avatar-generated-icon {
@@ -2448,11 +2095,9 @@ button {
     font-size: 4.5rem;
   }
 
-
   .measurement-grid {
     grid-template-columns: 1fr;
   }
-
 
   .avatar-status-item {
     align-items: flex-start;
@@ -2463,7 +2108,6 @@ button {
   }
 
 }
-
 
 /* ============================================================
    VIDEO PROCESSING STATUS
@@ -2481,7 +2125,6 @@ button {
   background-color: var(--surface-color);
 }
 
-
 .video-status-header {
   display: flex;
 
@@ -2494,13 +2137,11 @@ button {
   margin-bottom: 1.5rem;
 }
 
-
 .video-status-header h2 {
   margin: 0;
 
   font-size: 1.4rem;
 }
-
 
 /* ============================================================
    STATUS BADGES
@@ -2522,11 +2163,9 @@ button {
   white-space: nowrap;
 }
 
-
 .status-badge-processing {
   color: var(--secondary-text-color);
 }
-
 
 .status-badge-complete {
   border-color: #16a34a;
@@ -2536,7 +2175,6 @@ button {
   background-color: rgba(22, 163, 74, 0.08);
 }
 
-
 .status-badge-failed {
   border-color: #dc2626;
 
@@ -2544,7 +2182,6 @@ button {
 
   background-color: rgba(220, 38, 38, 0.08);
 }
-
 
 /* ============================================================
    PROCESSING STATE
@@ -2568,13 +2205,11 @@ button {
   background-color: var(--background-color);
 }
 
-
 .processing-state strong {
   display: block;
 
   margin-bottom: 0.35rem;
 }
-
 
 .processing-state p {
   margin: 0;
@@ -2585,7 +2220,6 @@ button {
 
   line-height: 1.5;
 }
-
 
 /* ============================================================
    PROCESSING SPINNER
@@ -2607,7 +2241,6 @@ button {
   animation: video-processing-spin 0.8s linear infinite;
 }
 
-
 @keyframes video-processing-spin {
 
   to {
@@ -2615,7 +2248,6 @@ button {
   }
 
 }
-
 
 /* ============================================================
    VIDEO RESULT INFORMATION
@@ -2639,7 +2271,6 @@ button {
   background-color: var(--background-color);
 }
 
-
 .video-result-row {
   display: flex;
 
@@ -2656,18 +2287,15 @@ button {
   font-size: 0.9rem;
 }
 
-
 .video-result-row:last-child {
   padding-bottom: 0;
 
   border-bottom: none;
 }
 
-
 .video-result-row span {
   color: var(--secondary-text-color);
 }
-
 
 .video-id {
   max-width: 60%;
@@ -2676,7 +2304,6 @@ button {
 
   text-align: right;
 }
-
 
 /* ============================================================
    PROCESSING ERROR
@@ -2687,7 +2314,6 @@ button {
 
   line-height: 1.5;
 }
-
 
 /* ============================================================
    DELETE VIDEO
@@ -2701,7 +2327,6 @@ button {
   cursor: pointer;
 }
 
-
 .delete-video-button:disabled {
   opacity: 0.6;
 
@@ -2709,7 +2334,6 @@ button {
 
   transform: none;
 }
-
 
 /* ============================================================
    UPLOAD BUTTON STATES
@@ -2723,7 +2347,6 @@ button {
   transform: none;
 }
 
-
 /* ============================================================
    VIDEO PROCESSING RESPONSIVENESS
    ============================================================ */
@@ -2734,11 +2357,9 @@ button {
     flex-direction: column;
   }
 
-
   .status-badge {
     align-self: flex-start;
   }
-
 
   .video-result-row {
     align-items: flex-start;
@@ -2748,13 +2369,11 @@ button {
     gap: 0.3rem;
   }
 
-
   .video-id {
     max-width: 100%;
 
     text-align: left;
   }
-
 
   .processing-state {
     align-items: flex-start;
@@ -2768,7 +2387,6 @@ button {
     flex-direction: column;
   }
 
-
   .result-row {
     align-items: flex-start;
 
@@ -2777,17 +2395,14 @@ button {
     gap: 0.35rem;
   }
 
-
   .result-row strong {
     text-align: left;
   }
-
 
   .processing-state,
   .processing-complete {
     align-items: flex-start;
   }
-
 
 /* ============================================================
    VIDEO PROCESSING CARD
@@ -2807,7 +2422,6 @@ button {
     border-color 0.2s ease;
 }
 
-
 /* ============================================================
    VIDEO STATUS HEADER
    ============================================================ */
@@ -2824,13 +2438,11 @@ button {
   margin-bottom: 1.5rem;
 }
 
-
 .video-status-header h2 {
   margin: 0;
 
   font-size: 1.4rem;
 }
-
 
 /* ============================================================
    STATUS BADGE
@@ -2852,7 +2464,6 @@ button {
   white-space: nowrap;
 }
 
-
 /* ============================================================
    PROCESSING STATE
    ============================================================ */
@@ -2873,13 +2484,11 @@ button {
   background-color: var(--background-color);
 }
 
-
 .processing-state strong {
   display: block;
 
   margin-bottom: 0.35rem;
 }
-
 
 .processing-state p {
   margin: 0;
@@ -2890,7 +2499,6 @@ button {
 
   line-height: 1.5;
 }
-
 
 /* ============================================================
    PROCESSING SPINNER
@@ -2913,7 +2521,6 @@ button {
     video-processing-spin 0.8s linear infinite;
 }
 
-
 @keyframes video-processing-spin {
 
   to {
@@ -2921,7 +2528,6 @@ button {
   }
 
 }
-
 
 /* ============================================================
    PROCESSING COMPLETED
@@ -2945,13 +2551,11 @@ button {
   color: #16a34a;
 }
 
-
 .processing-complete strong {
   display: block;
 
   margin-bottom: 0.35rem;
 }
-
 
 .processing-complete p {
   margin: 0;
@@ -2960,7 +2564,6 @@ button {
 
   line-height: 1.5;
 }
-
 
 .status-icon {
   display: flex;
@@ -2984,7 +2587,6 @@ button {
   font-weight: bold;
 }
 
-
 /* ============================================================
    PROCESSING FAILED
    ============================================================ */
@@ -3001,13 +2603,11 @@ button {
   color: #dc2626;
 }
 
-
 .processing-failed strong {
   display: block;
 
   margin-bottom: 0.5rem;
 }
-
 
 .processing-failed p {
   margin: 0;
@@ -3016,7 +2616,6 @@ button {
 
   line-height: 1.5;
 }
-
 
 /* ============================================================
    VIDEO UPLOAD RESULT
@@ -3034,7 +2633,6 @@ button {
   border-top: 1px solid var(--border-color);
 }
 
-
 .result-row {
   display: flex;
 
@@ -3051,18 +2649,15 @@ button {
   font-size: 0.9rem;
 }
 
-
 .result-row span {
   color: var(--secondary-text-color);
 }
-
 
 .result-row strong {
   text-align: right;
 
   word-break: break-word;
 }
-
 
 /* ============================================================
    DELETE VIDEO BUTTON
@@ -3076,7 +2671,6 @@ button {
   cursor: pointer;
 }
 
-
 .delete-video-button:disabled {
   opacity: 0.6;
 
@@ -3084,7 +2678,6 @@ button {
 
   transform: none;
 }
-
 
 /* ============================================================
    UPLOAD FEEDBACK
@@ -3094,7 +2687,6 @@ button {
   margin-top: 1rem;
 }
 
-
 /* ============================================================
    VIDEO PROCESSING STATUS
    ============================================================ */
@@ -3102,7 +2694,6 @@ button {
 .upload-success {
   margin-top: 1.5rem;
 }
-
 
 .processing-status-card {
   margin-top: 2rem;
@@ -3115,7 +2706,6 @@ button {
 
   background-color: var(--surface-color);
 }
-
 
 /* ============================================================
    PROCESSING HEADER
@@ -3135,13 +2725,11 @@ button {
   border-bottom: 1px solid var(--border-color);
 }
 
-
 .processing-status-header h2 {
   margin: 0;
 
   font-size: 1.5rem;
 }
-
 
 .processing-status-badge {
   display: inline-flex;
@@ -3163,11 +2751,9 @@ button {
   white-space: nowrap;
 }
 
-
 .status-processing {
   color: var(--secondary-text-color);
 }
-
 
 .status-completed {
   color: #16a34a;
@@ -3177,7 +2763,6 @@ button {
   background-color: rgba(22, 163, 74, 0.08);
 }
 
-
 .status-failed {
   color: #dc2626;
 
@@ -3185,7 +2770,6 @@ button {
 
   background-color: rgba(220, 38, 38, 0.08);
 }
-
 
 /* ============================================================
    PROCESSING TIMELINE
@@ -3201,7 +2785,6 @@ button {
   margin-top: 1.5rem;
 }
 
-
 .processing-step {
   display: flex;
 
@@ -3209,7 +2792,6 @@ button {
 
   gap: 1rem;
 }
-
 
 .processing-step-marker {
   display: flex;
@@ -3237,7 +2819,6 @@ button {
   font-weight: 700;
 }
 
-
 .processing-step-active
 .processing-step-marker {
   border-color: var(--text-color);
@@ -3247,13 +2828,11 @@ button {
   color: var(--background-color);
 }
 
-
 .processing-step strong {
   display: block;
 
   margin-top: 0.25rem;
 }
-
 
 .processing-step p {
   margin: 0.4rem 0 0;
@@ -3264,7 +2843,6 @@ button {
 
   line-height: 1.5;
 }
-
 
 /* ============================================================
    PROCESSING PROGRESS
@@ -3282,7 +2860,6 @@ button {
   background-color: var(--background-color);
 }
 
-
 .processing-step-progress-label {
   display: flex;
 
@@ -3294,7 +2871,6 @@ button {
 
   font-size: 0.85rem;
 }
-
 
 /* ============================================================
    INDETERMINATE PROCESSING PROGRESS
@@ -3314,7 +2890,6 @@ button {
   background-color: var(--border-color);
 }
 
-
 .processing-progress-bar {
   position: absolute;
 
@@ -3332,7 +2907,6 @@ button {
   animation: processing-slide 1.4s ease-in-out infinite;
 }
 
-
 @keyframes processing-slide {
 
   0% {
@@ -3349,7 +2923,6 @@ button {
 
 }
 
-
 /* ============================================================
    PROCESSING MEASUREMENTS
    ============================================================ */
@@ -3362,11 +2935,9 @@ button {
   border-top: 1px solid var(--border-color);
 }
 
-
 .processing-measurements .section-label {
   margin-bottom: 1rem;
 }
-
 
 /* ============================================================
    DELETE VIDEO
@@ -3380,7 +2951,6 @@ button {
   cursor: pointer;
 }
 
-
 .delete-video-button:disabled {
   opacity: 0.6;
 
@@ -3388,7 +2958,6 @@ button {
 
   transform: none;
 }
-
 
 /* ============================================================
    PROCESSING RESPONSIVENESS
@@ -3400,13 +2969,11 @@ button {
     flex-direction: column;
   }
 
-
   .processing-step-progress {
     margin-left: 0;
   }
 
 }
-
 
 /* ============================================================
    VIDEO PROCESSING STATUS
@@ -3433,7 +3000,6 @@ button {
   scroll-margin-top: 2rem;
 }
 
-
 /* ============================================================
    PROCESSING HEADER
    ============================================================ */
@@ -3444,7 +3010,6 @@ button {
   margin-bottom: 2rem;
 }
 
-
 .processing-status-header h2 {
   margin: 0;
 
@@ -3453,7 +3018,6 @@ button {
   line-height: 1.2;
 }
 
-
 .processing-status-header p:not(.section-label) {
   margin-top: 0.75rem;
 
@@ -3461,7 +3025,6 @@ button {
 
   line-height: 1.6;
 }
-
 
 /* ============================================================
    PROCESSING TIMELINE
@@ -3474,7 +3037,6 @@ button {
 
   margin: 0 auto;
 }
-
 
 /*
  * Individual processing step.
@@ -3491,7 +3053,6 @@ button {
 
   min-height: 58px;
 }
-
 
 /*
  * Circular status marker.
@@ -3522,7 +3083,6 @@ button {
   font-weight: 700;
 }
 
-
 /*
  * Completed step.
  */
@@ -3534,7 +3094,6 @@ button {
 
   color: var(--background-color);
 }
-
 
 /*
  * Active processing step.
@@ -3548,7 +3107,6 @@ button {
   animation: processing-pulse 1.5s ease-in-out infinite;
 }
 
-
 /*
  * Failed processing step.
  */
@@ -3560,7 +3118,6 @@ button {
 
   background-color: rgba(220, 38, 38, 0.08);
 }
-
 
 /* ============================================================
    PROCESSING STEP CONTENT
@@ -3574,11 +3131,9 @@ button {
   gap: 0.25rem;
 }
 
-
 .processing-step-content strong {
   font-size: 0.95rem;
 }
-
 
 .processing-step-content span {
   color: var(--secondary-text-color);
@@ -3587,7 +3142,6 @@ button {
 
   line-height: 1.4;
 }
-
 
 /* ============================================================
    PROCESSING TIMELINE CONNECTOR
@@ -3607,7 +3161,6 @@ button {
   background-color: var(--border-color);
 }
 
-
 /*
  * Animated connector between Uploaded and Processing.
  *
@@ -3624,7 +3177,6 @@ button {
   animation: processing-line-progress 1.8s ease-in-out infinite;
 }
 
-
 /*
  * Completed connector.
  */
@@ -3633,7 +3185,6 @@ button {
 
   animation: none;
 }
-
 
 /* ============================================================
    PROCESSING ANIMATION
@@ -3646,7 +3197,6 @@ button {
 
   max-width: 600px;
 }
-
 
 /*
  * Processing progress track.
@@ -3664,7 +3214,6 @@ button {
 
   background-color: var(--border-color);
 }
-
 
 /*
  * Moving processing indicator.
@@ -3687,7 +3236,6 @@ button {
   animation: processing-slide 1.8s ease-in-out infinite;
 }
 
-
 .processing-animation span {
   display: block;
 
@@ -3697,7 +3245,6 @@ button {
 
   font-size: 0.8rem;
 }
-
 
 /* ============================================================
    CURRENT STATUS
@@ -3721,16 +3268,13 @@ button {
   font-size: 0.9rem;
 }
 
-
 .processing-current-status span {
   color: var(--secondary-text-color);
 }
 
-
 .processing-current-status strong {
   font-weight: 600;
 }
-
 
 /* ============================================================
    MEASUREMENTS RESULT
@@ -3748,23 +3292,19 @@ button {
   background-color: var(--background-color);
 }
 
-
 .measurements-header {
   margin-bottom: 1.25rem;
 }
 
-
 .measurements-header .section-label {
   margin-bottom: 0.5rem;
 }
-
 
 .measurements-header h3 {
   margin: 0;
 
   font-size: 1.3rem;
 }
-
 
 /*
  * Measurement grid.
@@ -3780,7 +3320,6 @@ button {
   gap: 0.75rem;
 }
 
-
 .measurements-result .measurement-item {
   padding: 1rem;
 
@@ -3790,7 +3329,6 @@ button {
 
   background-color: var(--surface-color);
 }
-
 
 .measurements-result .measurement-item span {
   display: block;
@@ -3802,11 +3340,9 @@ button {
   font-size: 0.8rem;
 }
 
-
 .measurements-result .measurement-item strong {
   font-size: 1rem;
 }
-
 
 /* ============================================================
    PROCESSING ERROR
@@ -3815,7 +3351,6 @@ button {
 .processing-error {
   margin-top: 1.5rem;
 }
-
 
 /* ============================================================
    DELETE VIDEO
@@ -3831,7 +3366,6 @@ button {
   text-align: center;
 }
 
-
 .delete-video-button:disabled {
   opacity: 0.6;
 
@@ -3839,7 +3373,6 @@ button {
 
   transform: none;
 }
-
 
 /* ============================================================
    PROCESSING ANIMATIONS
@@ -3865,7 +3398,6 @@ button {
 
 }
 
-
 /*
  * Move the indicator through the timeline connector.
  */
@@ -3880,7 +3412,6 @@ button {
   }
 
 }
-
 
 /*
  * Move the processing indicator from left to right.
@@ -3904,7 +3435,6 @@ button {
 
 }
 
-
 /* ============================================================
    PROCESSING RESPONSIVENESS
    ============================================================ */
@@ -3915,16 +3445,13 @@ button {
     padding: 1.5rem;
   }
 
-
   .processing-status-header {
     margin-bottom: 1.5rem;
   }
 
-
   .processing-step {
     align-items: flex-start;
   }
-
 
   .processing-step-marker {
     width: 32px;
@@ -3934,18 +3461,15 @@ button {
     font-size: 0.8rem;
   }
 
-
   .processing-step-line {
     margin-left: 15px;
 
     height: 40px;
   }
 
-
   .processing-animation {
     margin-left: 48px;
   }
-
 
   .processing-current-status {
     align-items: flex-start;
@@ -3955,13 +3479,11 @@ button {
     gap: 0.35rem;
   }
 
-
   .measurements-result .measurement-grid {
     grid-template-columns: 1fr;
   }
 
 }
-
 
 /* ============================================================
    VIRTUAL FITTING PAGE
@@ -3978,7 +3500,6 @@ button {
   padding: 3rem 1.5rem 5rem;
 }
 
-
 /* ============================================================
    VIRTUAL FITTING HEADER
    ============================================================ */
@@ -3989,7 +3510,6 @@ button {
   margin-bottom: 3rem;
 }
 
-
 .virtual-fitting-header h1 {
   margin: 0;
 
@@ -3997,7 +3517,6 @@ button {
 
   line-height: 1.1;
 }
-
 
 .virtual-fitting-header p:not(.section-label) {
   max-width: 700px;
@@ -4010,7 +3529,6 @@ button {
 
   line-height: 1.7;
 }
-
 
 /* ============================================================
    VIRTUAL FITTING WORKSPACE
@@ -4025,7 +3543,6 @@ button {
 
   align-items: start;
 }
-
 
 /* ============================================================
    VIRTUAL FITTING CARD
@@ -4048,7 +3565,6 @@ button {
     box-shadow 0.2s ease;
 }
 
-
 .virtual-fitting-card-header {
   display: flex;
 
@@ -4061,18 +3577,15 @@ button {
   margin-bottom: 0.75rem;
 }
 
-
 .virtual-fitting-card-header .section-label {
   margin-bottom: 0.45rem;
 }
-
 
 .virtual-fitting-card-header h2 {
   margin: 0;
 
   font-size: 1.35rem;
 }
-
 
 .virtual-fitting-card-description {
   margin: 0 0 1.5rem;
@@ -4083,7 +3596,6 @@ button {
 
   line-height: 1.6;
 }
-
 
 /* ============================================================
    PROFILE PANEL
@@ -4107,7 +3619,6 @@ button {
   white-space: nowrap;
 }
 
-
 .fitting-measurement-grid {
   display: grid;
 
@@ -4115,7 +3626,6 @@ button {
 
   gap: 0.75rem;
 }
-
 
 .fitting-measurement {
   padding: 0.9rem;
@@ -4127,7 +3637,6 @@ button {
   background-color: var(--background-color);
 }
 
-
 .fitting-measurement span {
   display: block;
 
@@ -4138,11 +3647,9 @@ button {
   font-size: 0.78rem;
 }
 
-
 .fitting-measurement strong {
   font-size: 0.95rem;
 }
-
 
 .profile-note {
   margin-top: 1.25rem;
@@ -4154,7 +3661,6 @@ button {
   background-color: var(--background-color);
 }
 
-
 .profile-note strong {
   display: block;
 
@@ -4162,7 +3668,6 @@ button {
 
   font-size: 0.85rem;
 }
-
 
 .profile-note p {
   margin: 0;
@@ -4173,7 +3678,6 @@ button {
 
   line-height: 1.5;
 }
-
 
 /* ============================================================
    GARMENT PANEL
@@ -4186,7 +3690,6 @@ button {
 
   white-space: nowrap;
 }
-
 
 /*
  * Dedicated scrollable area for retailer garments.
@@ -4208,7 +3711,6 @@ button {
     transparent;
 }
 
-
 /*
  * WebKit scrollbar styling.
  */
@@ -4216,18 +3718,15 @@ button {
   width: 7px;
 }
 
-
 .garment-scroll-container::-webkit-scrollbar-track {
   background: transparent;
 }
-
 
 .garment-scroll-container::-webkit-scrollbar-thumb {
   border-radius: 999px;
 
   background-color: var(--border-color);
 }
-
 
 /* ============================================================
    GARMENT GRID
@@ -4240,7 +3739,6 @@ button {
 
   gap: 0.9rem;
 }
-
 
 /* ============================================================
    GARMENT SELECTION CARD
@@ -4272,7 +3770,6 @@ button {
     box-shadow 0.2s ease;
 }
 
-
 .garment-selection-card:hover {
   transform: translateY(-2px);
 
@@ -4281,13 +3778,11 @@ button {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
 }
 
-
 .garment-selection-card:focus-visible {
   outline: 2px solid var(--text-color);
 
   outline-offset: 2px;
 }
-
 
 /*
  * Selected garment.
@@ -4302,7 +3797,6 @@ button {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
-
 .garment-card-header {
   display: flex;
 
@@ -4315,7 +3809,6 @@ button {
   margin-bottom: 1rem;
 }
 
-
 .garment-number {
   font-size: 0.75rem;
 
@@ -4326,7 +3819,6 @@ button {
   color: var(--secondary-text-color);
 }
 
-
 .garment-selected-indicator {
   font-size: 0.7rem;
 
@@ -4335,13 +3827,11 @@ button {
   color: var(--text-color);
 }
 
-
 .garment-selection-card h3 {
   margin: 0 0 1rem;
 
   font-size: 1rem;
 }
-
 
 .garment-measurements {
   display: flex;
@@ -4350,7 +3840,6 @@ button {
 
   gap: 0.55rem;
 }
-
 
 .garment-measurements > div {
   display: flex;
@@ -4366,13 +3855,11 @@ button {
   border-bottom: 1px solid var(--border-color);
 }
 
-
 .garment-measurements > div:last-child {
   padding-bottom: 0;
 
   border-bottom: none;
 }
-
 
 .garment-measurements span {
   color: var(--secondary-text-color);
@@ -4380,13 +3867,11 @@ button {
   font-size: 0.75rem;
 }
 
-
 .garment-measurements strong {
   font-size: 0.8rem;
 
   white-space: nowrap;
 }
-
 
 /* ============================================================
    LOADING / EMPTY STATES
@@ -4408,7 +3893,6 @@ button {
   font-size: 0.9rem;
 }
 
-
 .fitting-spinner {
   width: 18px;
 
@@ -4425,7 +3909,6 @@ button {
   animation: fitting-spin 0.8s linear infinite;
 }
 
-
 @keyframes fitting-spin {
 
   to {
@@ -4433,7 +3916,6 @@ button {
   }
 
 }
-
 
 .empty-garment-state {
   padding: 2rem 1rem;
@@ -4445,13 +3927,11 @@ button {
   text-align: center;
 }
 
-
 .empty-garment-state strong {
   display: block;
 
   margin-bottom: 0.5rem;
 }
-
 
 .empty-garment-state p {
   max-width: 420px;
@@ -4464,7 +3944,6 @@ button {
 
   line-height: 1.6;
 }
-
 
 /* ============================================================
    SELECTED GARMENT SUMMARY
@@ -4490,18 +3969,15 @@ button {
   background-color: var(--surface-color);
 }
 
-
 .selected-garment-summary .section-label {
   margin-bottom: 0.45rem;
 }
-
 
 .selected-garment-summary h2 {
   margin: 0;
 
   font-size: 1.25rem;
 }
-
 
 .selected-garment-summary p:not(.section-label) {
   margin: 0.45rem 0 0;
@@ -4513,11 +3989,9 @@ button {
   line-height: 1.5;
 }
 
-
 .selected-garment-action {
   flex-shrink: 0;
 }
-
 
 .selected-garment-action .primary-button {
   border: none;
@@ -4527,7 +4001,6 @@ button {
   font: inherit;
 }
 
-
 .selected-garment-action .primary-button:disabled {
   opacity: 0.6;
 
@@ -4536,7 +4009,6 @@ button {
   transform: none;
 }
 
-
 /* ============================================================
    ERROR
    ============================================================ */
@@ -4544,7 +4016,6 @@ button {
 .virtual-fitting-error {
   margin-top: 1.5rem;
 }
-
 
 /* ============================================================
    FITTING RESULT
@@ -4564,25 +4035,21 @@ button {
   scroll-margin-top: 2rem;
 }
 
-
 .result-header {
   max-width: 700px;
 
   margin-bottom: 1.75rem;
 }
 
-
 .result-header .section-label {
   margin-bottom: 0.5rem;
 }
-
 
 .result-header h2 {
   margin: 0;
 
   font-size: clamp(1.6rem, 3vw, 2.2rem);
 }
-
 
 .result-header p {
   margin: 0.75rem 0 0;
@@ -4592,7 +4059,6 @@ button {
   line-height: 1.6;
 }
 
-
 .fitting-result-grid {
   display: grid;
 
@@ -4600,7 +4066,6 @@ button {
 
   gap: 1rem;
 }
-
 
 .fitting-result-item {
   display: flex;
@@ -4624,7 +4089,6 @@ button {
   text-align: center;
 }
 
-
 .fitting-result-item span {
   margin-bottom: 0.75rem;
 
@@ -4633,33 +4097,27 @@ button {
   font-size: 0.85rem;
 }
 
-
 .fitting-result-item strong {
   font-size: 2rem;
 
   line-height: 1;
 }
 
-
 .recommended-size {
   font-size: 2.5rem !important;
 }
-
 
 .fit-result-good-fit {
   color: #16a34a;
 }
 
-
 .fit-result-tight {
   color: #dc2626;
 }
 
-
 .fit-result-loose {
   color: #d97706;
 }
-
 
 .result-explanation {
   margin-top: 1.25rem;
@@ -4669,7 +4127,6 @@ button {
   border-top: 1px solid var(--border-color);
 }
 
-
 .result-explanation strong {
   display: block;
 
@@ -4677,7 +4134,6 @@ button {
 
   font-size: 0.85rem;
 }
-
 
 .result-explanation p {
   margin: 0;
@@ -4688,7 +4144,6 @@ button {
 
   line-height: 1.6;
 }
-
 
 /* ============================================================
    AVATAR REQUIRED
@@ -4704,11 +4159,9 @@ button {
   max-width: 700px;
 }
 
-
 .avatar-required-card h2 {
   margin: 0 0 0.5rem;
 }
-
 
 .avatar-required-card p {
   margin: 0 0 1.25rem;
@@ -4717,7 +4170,6 @@ button {
 
   line-height: 1.6;
 }
-
 
 .virtual-fitting-status-icon {
   display: flex;
@@ -4741,7 +4193,6 @@ button {
   font-weight: 700;
 }
 
-
 /* ============================================================
    NAVIGATION
    ============================================================ */
@@ -4750,7 +4201,6 @@ button {
   margin-top: 2rem;
 }
 
-
 .virtual-fitting-navigation .secondary-button {
   border: 1px solid var(--border-color);
 
@@ -4758,7 +4208,6 @@ button {
 
   font: inherit;
 }
-
 
 /* ============================================================
    VIRTUAL FITTING RESPONSIVENESS
@@ -4770,13 +4219,11 @@ button {
     grid-template-columns: 1fr;
   }
 
-
   .garment-scroll-container {
     max-height: 500px;
   }
 
 }
-
 
 @media (max-width: 700px) {
 
@@ -4784,16 +4231,13 @@ button {
     padding: 2.5rem 1rem 4rem;
   }
 
-
   .virtual-fitting-header {
     margin-bottom: 2.5rem;
   }
 
-
   .garment-selection-grid {
     grid-template-columns: 1fr;
   }
-
 
   .selected-garment-summary {
     align-items: stretch;
@@ -4803,18 +4247,15 @@ button {
     gap: 1.25rem;
   }
 
-
   .selected-garment-action .primary-button {
     width: 100%;
   }
-
 
   .fitting-result-grid {
     grid-template-columns: 1fr;
   }
 
 }
-
 
 @media (max-width: 500px) {
 
@@ -4823,26 +4264,335 @@ button {
     padding: 1.25rem;
   }
 
-
   .virtual-fitting-card-header {
     align-items: flex-start;
 
     flex-direction: column;
   }
 
-
   .fitting-measurement-grid {
     grid-template-columns: 1fr;
   }
 
-
   .garment-scroll-container {
     max-height: 450px;
   }
-
 
   .avatar-required-card {
     flex-direction: column;
   }
 
 }
+
+/* =========================================================
+   SMARTFIT NAVBAR STYLES
+   Managed by replace-css.ps1
+   ========================================================= */
+
+.navbar {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  min-height: 72px;
+  padding: 0.75rem 2rem;
+  background-color: var(--surface-color);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-color);
+  box-sizing: border-box;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+
+
+
+.navbar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-shrink: 0;
+  color: var(--text-color);
+  font-size: 1.6rem;
+  font-weight: 800;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.navbar-brand:hover {
+  color: var(--accent);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.navbar-logo {
+  display: block;
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.navbar-brand-text {
+  display: inline-block;
+}
+
+
+
+
+.navbar-links {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-left: auto;
+}
+
+.navbar-links a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: var(--text-color);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.navbar-links a:hover {
+  background-color: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
+  text-decoration: none;
+  transform: translateY(-1px);
+}
+
+.navbar-links a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+
+
+
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.navbar-user-info {
+  display: flex;
+  align-items: center;
+}
+
+.navbar-user-name {
+  color: var(--text-color);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+
+
+
+.navbar-logout {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  background-color: transparent;
+  color: var(--text-color);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.navbar-logout:hover {
+  background-color: var(--accent-bg);
+  border-color: var(--accent-border);
+  color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.navbar-logout:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+
+
+
+.theme-control {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+
+
+
+.theme-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 48px;
+  height: 28px;
+  padding: 3px;
+  border: 1px solid var(--border-color);
+  border-radius: 999px;
+  background-color: var(--accent-bg);
+  color: var(--text-color);
+  cursor: pointer;
+  box-sizing: border-box;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.theme-switch:hover {
+  border-color: var(--accent-border);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.theme-switch.active {
+  background-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.theme-switch:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.theme-switch-handle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--surface-color);
+  font-size: 0.8rem;
+  line-height: 1;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.12);
+  transition:
+    transform 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.theme-switch.active .theme-switch-handle {
+  transform: translateX(18px);
+}
+
+.navbar-user-info {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.navbar-user-icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--text-color);
+}
+
+
+
+
+@media (max-width: 900px) {
+  .navbar {
+    flex-wrap: wrap;
+    padding: 0.75rem 1.25rem;
+    gap: 0.75rem;
+  }
+
+  .navbar-links {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+    margin-left: 0;
+    padding-top: 0.25rem;
+  }
+}
+
+
+
+
+@media (max-width: 600px) {
+  .navbar {
+    padding: 0.7rem 1rem;
+  }
+
+  .navbar-brand {
+    font-size: 1.35rem;
+  }
+
+  .navbar-logo {
+    width: 32px;
+    height: 32px;
+  }
+
+  .navbar-user-name {
+    display: none;
+  }
+
+  .navbar-links {
+    gap: 0.25rem;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding-bottom: 0.15rem;
+  }
+
+  .navbar-links a {
+    min-height: 38px;
+    padding: 0.5rem 0.7rem;
+    font-size: 0.9rem;
+  }
+
+  .navbar-logout {
+    min-height: 38px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  .theme-switch {
+    width: 44px;
+    height: 26px;
+  }
+
+  .theme-switch.active .theme-switch-handle {
+    transform: translateX(16px);
+  }
+}
+

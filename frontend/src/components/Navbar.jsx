@@ -22,95 +22,43 @@ import { useAuth } from "../context/AuthContext";
 
 
 function Navbar() {
-  /*
-   * ---------------------------------------------------------
-   * AUTHENTICATION
-   * ---------------------------------------------------------
-   *
-   * Get the current authenticated user and logout function
-   * from the centralized authentication context.
-   *
-   * "user" contains information returned by:
-   *
-   * GET /api/users/me
-   *
-   * For example:
-   *
-   * {
-   *   full_name: "John Doe",
-   *   email: "john@example.com",
-   *   role: "customer"
-   * }
-   */
   const {
     user,
     isAuthenticated,
     logout,
   } = useAuth();
 
-
-  /*
-   * React Router navigation function.
-   *
-   * Used to redirect the user to the login page after
-   * logging out.
-   */
   const navigate = useNavigate();
 
-
-  /*
-   * ---------------------------------------------------------
-   * DARK MODE
-   * ---------------------------------------------------------
-   *
-   * Store whether dark mode is currently enabled.
-   *
-   * false = light mode
-   * true  = dark mode
-   */
   const [darkMode, setDarkMode] = useState(false);
 
 
-  /*
-   * ---------------------------------------------------------
-   * TOGGLE DARK MODE
-   * ---------------------------------------------------------
+  /**
+   * Toggle between light and dark mode.
    *
-   * Apply or remove the dark-mode class from the document
-   * body.
+   * The existing theme behaviour is preserved.
    */
   const toggleDarkMode = () => {
     setDarkMode((currentMode) => {
       const newMode = !currentMode;
 
-
-      /*
-       * Add or remove the dark-mode class from <body>.
-       */
       document.body.classList.toggle(
         "dark-mode",
         newMode
       );
-
 
       return newMode;
     });
   };
 
 
-  /*
-   * ---------------------------------------------------------
-   * LOGOUT
-   * ---------------------------------------------------------
+  /**
+   * Log the user out and return them to the login page.
    *
-   * AuthContext is responsible for removing the JWT and
-   * clearing the authenticated user.
-   *
-   * After logout is complete, redirect the user to login.
+   * The existing authentication flow is preserved.
    */
   function handleLogout() {
     logout();
-
     navigate("/login");
   }
 
@@ -118,32 +66,38 @@ function Navbar() {
   return (
     <nav className="navbar">
 
-
-      {/* =================================================
-          SMARTFIT BRANDING
-          ================================================= */}
+      {/* ---------------------------------------------------
+          SmartFit branding
+          --------------------------------------------------- */}
 
       <Link
         to="/"
         className="navbar-brand"
+        aria-label="SmartFit home"
       >
-        👕 SmartFit
+        <img
+          src="/smartfit-logo.svg"
+          alt=""
+          className="navbar-logo"
+        />
+
+        <span className="navbar-brand-text">
+          SmartFit
+        </span>
       </Link>
 
 
-      {/* =================================================
-          MAIN NAVIGATION
-          ================================================= */}
+      {/* ---------------------------------------------------
+          Main navigation links
+          --------------------------------------------------- */}
 
       <div className="navbar-links">
-
 
         <Link to="/">
           Home
         </Link>
 
 
-        {/* Dashboard is only useful to authenticated users. */}
         {isAuthenticated && (
           <Link to="/dashboard">
             Dashboard
@@ -151,7 +105,6 @@ function Navbar() {
         )}
 
 
-        {/* Upload Video is also an authenticated feature. */}
         {isAuthenticated && (
           <Link to="/upload-video">
             Upload Video
@@ -159,13 +112,11 @@ function Navbar() {
         )}
 
 
-        {/* Show Login/Register when the user is logged out. */}
         {!isAuthenticated && (
           <>
             <Link to="/login">
               Login
             </Link>
-
 
             <Link to="/register">
               Register
@@ -176,26 +127,43 @@ function Navbar() {
       </div>
 
 
-      {/* =================================================
-          AUTHENTICATED USER INFORMATION
-          ================================================= */}
+      {/* ---------------------------------------------------
+          Authenticated user controls
+          --------------------------------------------------- */}
 
       {isAuthenticated && user && (
         <div className="navbar-user">
 
+        <div className="navbar-user-info">
+          <svg
+            className="navbar-user-icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle
+              cx="12"
+              cy="8"
+              r="4"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+            />
 
-          {/* Display the user's name. */}
-          <div className="navbar-user-info">
+            <path
+              d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+            />
+          </svg>
+
+          <span className="navbar-user-name">
+            {user.full_name}
+          </span>
+        </div>
 
 
-            <span className="navbar-user-name">
-              {user.full_name}
-            </span>
-
-          </div>
-
-
-          {/* Logout button. */}
           <button
             type="button"
             className="navbar-logout"
@@ -204,22 +172,15 @@ function Navbar() {
             Logout
           </button>
 
-
         </div>
       )}
 
 
-      {/* =================================================
-          LIGHT / DARK MODE
-          ================================================= */}
+      {/* ---------------------------------------------------
+          Theme toggle
+          --------------------------------------------------- */}
 
       <div className="theme-control">
-
-
-        <span className="theme-label">
-          {darkMode ? "Dark Mode" : "Light Mode"}
-        </span>
-
 
         <button
           type="button"
@@ -235,17 +196,13 @@ function Navbar() {
           aria-pressed={darkMode}
         >
 
-
           <span className="theme-switch-handle">
-            {darkMode ? "🌙" : "☀️"}
+            {darkMode ? "☀️" : "🌙"}
           </span>
-
 
         </button>
 
-
       </div>
-
 
     </nav>
   );

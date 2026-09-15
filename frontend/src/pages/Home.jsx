@@ -16,8 +16,15 @@
 
 import { Link } from "react-router-dom";
 
+import { useAuth } from "../context/AuthContext";
+
 
 function Home() {
+  const {
+    isAuthenticated,
+  } = useAuth();
+
+
   return (
     <div className="home-page">
 
@@ -30,8 +37,8 @@ function Home() {
         <div className="hero-content">
 
           {/* Main SmartFit introduction. */}
-          <p className="hero-label">
-            👕 VIRTUAL FITTING SYSTEM
+          <p className="hero-label"> <img src="/smartfit-logo.svg" alt="" className="hero-label-logo" /> 
+            <span> VIRTUAL FITTING SYSTEM </span> 
           </p>
 
           <h1>
@@ -50,12 +57,14 @@ function Home() {
           {/* Primary actions. */}
           <div className="hero-actions">
 
-            <Link
-              to="/register"
-              className="primary-button"
-            >
-              Get Started
-            </Link>
+            {!isAuthenticated && (
+              <Link
+                to="/register"
+                className="primary-button"
+              >
+                Get Started
+              </Link>
+            )}
 
             <a
               href="#how-it-works"
@@ -293,29 +302,31 @@ function Home() {
           FINAL CALL TO ACTION
           ===================================================== */}
 
-      <section className="cta-section">
+      {!isAuthenticated && (
+        <section className="cta-section">
 
-        <p className="section-label">
-          GET STARTED
-        </p>
+          <p className="section-label">
+            GET STARTED
+          </p>
 
-        <h2>
-          Ready to find your fit?
-        </h2>
+          <h2>
+            Ready to find your fit?
+          </h2>
 
-        <p>
-          Create your SmartFit account and begin your
-          personalized virtual fitting experience.
-        </p>
+          <p>
+            Create your SmartFit account and begin your
+            personalized virtual fitting experience.
+          </p>
 
-        <Link
-          to="/register"
-          className="primary-button"
-        >
-          Create Account
-        </Link>
+          <Link
+            to="/register"
+            className="primary-button"
+          >
+            Create Account
+          </Link>
 
-      </section>
+        </section>
+      )}
 
     </div>
   );

@@ -1,0 +1,88 @@
+@startuml System_Control_Logic
+
+title Figure 3.X: System Control Logic
+
+top to bottom direction
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam defaultTextAlignment center
+skinparam ArrowThickness 1.2
+
+skinparam packageBorderColor Black
+skinparam packageBackgroundColor White
+skinparam nodesep 25
+skinparam ranksep 35
+
+skinparam component {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+    FontSize 10
+}
+
+skinparam database {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+    FontSize 10
+}
+
+package "Presentation Layer" {
+
+    component "React Web Application\n(User Interface)" as React
+
+}
+
+package "Application Layer" {
+
+    component "FastAPI Backend\n(Business Logic & API Services)" as Backend
+
+}
+
+package "Processing Layer" {
+
+    component "Computer Vision\n(OpenCV + MediaPipe)" as CV
+    component "Avatar Generation" as Avatar
+    component "Recommendation" as Recommend
+    component "Visualization\n(Three.js)" as Visualize
+    component "Garment Processing" as Garment
+
+}
+
+package "Data Layer" {
+
+    database "PostgreSQL Database" as DB
+
+}
+
+React --> Backend : Requests
+
+Backend --> CV : Process video
+
+CV --> Avatar : Measurements
+
+Avatar --> Recommend : Avatar data
+
+Recommend --> Backend : Recommended size
+
+Backend --> Visualize : Render fitting
+
+Visualize --> React : Display results
+
+Backend -[#000000,dashed]-> Garment : Validate garment
+Garment -[#000000,dashed]-> Backend : Valid garment
+
+Backend --> DB : Store / retrieve data
+
+note right of Backend
+Central control:
+Authentication
+Request validation
+Business logic
+Module coordination
+Database access
+end note
+
+@enduml

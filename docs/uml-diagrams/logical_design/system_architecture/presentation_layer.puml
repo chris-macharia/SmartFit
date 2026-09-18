@@ -1,0 +1,49 @@
+@startuml Presentation_Layer
+
+title Figure 3.X: Presentation Layer of the Proposed Virtual Fitting System
+
+top to bottom direction
+
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam defaultTextAlignment center
+skinparam ArrowThickness 1.5
+
+skinparam packageBorderColor Black
+skinparam packageBackgroundColor White
+
+skinparam nodesep 60
+skinparam ranksep 80
+
+actor Customer
+actor Retailer
+
+package "Presentation Layer" {
+
+    component "React Web Application\n(User Interface)" as React
+
+}
+
+package "Application Layer" {
+
+    component "FastAPI Backend\n(Business Logic & API Services)" as Backend
+
+}
+
+'======================
+' User Interaction
+'======================
+
+Customer --> React : Perform virtual fitting
+
+Retailer --> React : Upload garments
+
+'======================
+' Application Communication
+'======================
+
+React --> Backend : REST API Requests
+
+@enduml

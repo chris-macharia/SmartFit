@@ -1,0 +1,99 @@
+@startuml Performance_Maintainability_Scalability
+
+title Figure 3.X: Performance, Maintainability and Scalability Design
+
+top to bottom direction
+
+skinparam componentStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam defaultTextAlignment center
+skinparam ArrowThickness 1.2
+
+skinparam packageBorderColor Black
+skinparam packageBackgroundColor White
+skinparam nodesep 25
+skinparam ranksep 35
+
+skinparam component {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+    FontSize 10
+}
+
+skinparam database {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+    FontSize 10
+}
+
+package "Presentation Layer" {
+
+    component "React Web Application" as React
+
+}
+
+package "Application Layer" {
+
+    component "FastAPI Backend" as Backend
+
+}
+
+package "Processing Layer" {
+
+    component "Computer Vision\n(OpenCV + MediaPipe)" as CV
+    component "Avatar Generation" as Avatar
+    component "Recommendation" as Recommend
+    component "Visualization\n(Three.js)" as Visualize
+    component "Garment Processing" as Garment
+
+}
+
+package "Data Layer" {
+
+    database "PostgreSQL Database" as DB
+
+}
+
+React --> Backend
+
+Backend --> CV
+CV --> Avatar
+Avatar --> Recommend
+Recommend --> Backend
+
+Backend --> Visualize
+Visualize --> React
+
+Backend --> Garment
+Garment --> Backend
+
+Backend --> DB
+
+note right of React
+Maintainability:
+Modular interface
+Responsive design
+end note
+
+note right of Backend
+Performance:
+Efficient API handling
+Centralized business logic
+end note
+
+note right of CV
+Performance:
+Process required
+video frames
+end note
+
+note right of DB
+Performance:
+Indexed queries
+Efficient data retrieval
+end note
+
+@enduml

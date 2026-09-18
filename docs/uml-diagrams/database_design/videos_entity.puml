@@ -1,0 +1,39 @@
+@startuml Videos_Entity
+
+title Figure 3.X: Videos Entity
+
+hide circle
+
+skinparam linetype ortho
+skinparam shadowing false
+skinparam defaultFontName Arial
+
+skinparam entity {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+    FontSize 10
+}
+
+entity "Videos" as Videos {
+    * video_id : UUID <<PK>>
+    --
+    user_id : UUID <<FK>>
+    video_path : TEXT
+    processing_status : VARCHAR(30)
+    uploaded_at : TIMESTAMP
+}
+
+entity "Users" as Users {
+    * user_id : UUID <<PK>>
+}
+
+Users ||--o{ Videos : uploads
+
+note right of Videos
+Stores customer body videos
+used for body measurement
+estimation and processing.
+end note
+
+@enduml

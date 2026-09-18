@@ -1,0 +1,38 @@
+@startuml Avatars_Entity
+
+title Figure 3.X: Avatars Entity
+
+hide circle
+
+skinparam linetype ortho
+skinparam shadowing false
+skinparam defaultFontName Arial
+
+skinparam entity {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+    FontSize 10
+}
+
+entity "Avatars" as Avatars {
+    * avatar_id : UUID <<PK>>
+    --
+    measurement_id : UUID <<FK>>
+    avatar_path : TEXT
+    created_at : TIMESTAMP
+}
+
+entity "BodyMeasurements" as Measurements {
+    * measurement_id : UUID <<PK>>
+}
+
+Measurements ||--|| Avatars : generates
+
+note right of Avatars
+Stores metadata for digital
+avatars generated from
+body measurements.
+end note
+
+@enduml

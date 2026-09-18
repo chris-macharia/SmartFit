@@ -1,0 +1,55 @@
+@startuml Security_Design
+
+title Figure 3.X: Security Design
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam defaultTextAlignment center
+skinparam ArrowThickness 1.2
+
+skinparam activity {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+    FontSize 10
+}
+
+(*) --> "User submits login credentials"
+--> "React Web Application sends credentials"
+--> "FastAPI Backend validates login request"
+--> "PostgreSQL retrieves user account"
+--> "bcrypt verifies submitted password"
+
+if "Credentials valid?" then
+    -->[Yes] "FastAPI issues JWT"
+    --> "JWT returned to React Web Application"
+    --> "React includes JWT in protected requests"
+    --> "FastAPI validates JWT"
+
+    if "Authorized request?" then
+        -->[Yes] "FastAPI checks user role"
+
+        if "Customer or Retailer?" then
+            -->[Customer] "Customer accesses fitting functions"
+            --> "Body video upload and recommendations"
+            --> (*)
+
+        else
+            -->[Retailer] "Retailer accesses garment functions"
+            --> "Garment upload and management"
+            --> (*)
+        endif
+
+    else
+        -->[No] "FastAPI rejects unauthorized request"
+        --> "Return HTTP authorization error"
+        --> (*)
+    endif
+
+else
+    -->[No] "FastAPI rejects invalid credentials"
+    --> "Return authentication error"
+    --> (*)
+endif
+
+@enduml

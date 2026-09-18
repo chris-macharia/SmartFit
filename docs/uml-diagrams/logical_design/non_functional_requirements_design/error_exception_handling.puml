@@ -1,0 +1,68 @@
+@startuml Error_Exception_Handling
+
+title Figure 3.X: Error and Exception Handling
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam defaultTextAlignment center
+skinparam ArrowThickness 1.2
+
+skinparam activity {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+    FontSize 10
+}
+
+(*) --> "User submits request"
+--> "React performs client-side validation"
+
+if "Frontend data valid?" then
+    -->[Yes] "Request sent to FastAPI"
+    --> "Pydantic validates request data"
+
+    if "Backend data valid?" then
+        -->[Yes] "Identify request type"
+
+        if "Video processing?" then
+            -->[Yes] "Validate video format and readability"
+
+            if "Video valid?" then
+                -->[Yes] "OpenCV and MediaPipe process video"
+                --> "Continue normal processing"
+                --> (*)
+
+            else
+                -->[No] "Return video validation error"
+                --> "React displays descriptive error"
+                --> (*)
+            endif
+
+        else
+            -->[No] "Validate garment information"
+            --> "Validate dimensions, sizes and image"
+
+            if "Garment data valid?" then
+                -->[Yes] "Continue garment processing"
+                --> (*)
+
+            else
+                -->[No] "Return garment validation error"
+                --> "React displays descriptive error"
+                --> (*)
+            endif
+        endif
+
+    else
+        -->[No] "FastAPI returns HTTP validation error"
+        --> "React displays validation message"
+        --> (*)
+    endif
+
+else
+    -->[No] "React displays input validation message"
+    --> "User corrects submitted data"
+    --> (*)
+endif
+
+@enduml

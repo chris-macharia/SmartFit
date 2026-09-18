@@ -1,0 +1,53 @@
+@startuml VirtualFittings_Entity
+
+title Figure 3.X: VirtualFittings Entity
+
+hide circle
+
+skinparam linetype ortho
+skinparam shadowing false
+skinparam defaultFontName Arial
+
+skinparam entity {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+    FontSize 10
+}
+
+entity "VirtualFittings" as Fittings {
+    * fitting_id : UUID <<PK>>
+    --
+    user_id : UUID <<FK>>
+    garment_id : UUID <<FK>>
+    avatar_id : UUID <<FK>>
+    recommended_size : VARCHAR(20)
+    fit_result : VARCHAR(50)
+    created_at : TIMESTAMP
+}
+
+entity "Users" as Users {
+    * user_id : UUID <<PK>>
+}
+
+entity "Garments" as Garments {
+    * garment_id : UUID <<PK>>
+}
+
+entity "Avatars" as Avatars {
+    * avatar_id : UUID <<PK>>
+}
+
+Users ||--o{ Fittings : performs
+
+Garments ||--o{ Fittings : selected
+
+Avatars ||--o{ Fittings : used
+
+note right of Fittings
+Records virtual fitting
+sessions, recommendations,
+and fitting results.
+end note
+
+@enduml

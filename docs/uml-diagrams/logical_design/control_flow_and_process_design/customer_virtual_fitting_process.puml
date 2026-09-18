@@ -1,0 +1,44 @@
+@startuml Customer_Virtual_Fitting_Process
+
+title Figure 3.X: Customer Virtual Fitting Process
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam defaultTextAlignment center
+skinparam ArrowThickness 1.2
+
+skinparam activity {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+    FontSize 10
+}
+
+(*) --> "Customer logs in"
+--> "React Web Application sends login request"
+--> "FastAPI Backend authenticates customer"
+
+if "Authentication successful?" then
+    -->[Yes] "Customer uploads rotational body video"
+    --> "React Web Application sends video to backend"
+    --> "FastAPI Backend validates video request"
+    --> "FastAPI Backend forwards video for processing"
+    --> "Computer Vision Module processes video frames"
+    --> "Computer Vision Module detects body landmarks"
+    --> "Computer Vision Module estimates body measurements"
+    --> "Avatar Generation Module generates scaled digital avatar"
+    --> "Customer selects garment"
+    --> "FastAPI Backend retrieves garment measurements"
+    --> "Recommendation Module compares body measurements with garment dimensions"
+    --> "Recommendation Module determines recommended clothing size"
+    --> "FastAPI Backend forwards fitting information"
+    --> "Visualization Module renders garment on avatar using Three.js"
+    --> "React Web Application displays fitting result and recommended size"
+    --> "Customer views virtual fitting result"
+    --> (*)
+else
+    -->[No] "React Web Application displays authentication error"
+    --> (*)
+endif
+
+@enduml

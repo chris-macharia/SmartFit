@@ -1,0 +1,47 @@
+@startuml Garments_Entity
+
+title Figure 3.X: Garments Entity
+
+hide circle
+
+skinparam linetype ortho
+skinparam shadowing false
+skinparam defaultFontName Arial
+
+skinparam entity {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+    FontSize 10
+}
+
+entity "Garments" as Garments {
+    * garment_id : UUID <<PK>>
+    --
+    retailer_id : UUID <<FK>>
+    name : VARCHAR(100)
+    category : VARCHAR(50)
+    brand : VARCHAR(50)
+    size : VARCHAR(20)
+    chest : DECIMAL
+    waist : DECIMAL
+    hips : DECIMAL
+    length : DECIMAL
+    image_path : TEXT
+    created_at : TIMESTAMP
+}
+
+entity "Users" as Users {
+    * user_id : UUID <<PK>>
+    role : VARCHAR(20)
+}
+
+Users ||--o{ Garments : uploads
+
+note right of Garments
+Stores clothing information
+uploaded and managed by
+retailers.
+end note
+
+@enduml

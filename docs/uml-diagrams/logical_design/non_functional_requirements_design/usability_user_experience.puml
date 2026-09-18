@@ -1,0 +1,46 @@
+@startuml Usability_User_Experience
+
+title Figure 3.X: Usability and User Experience Design
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam defaultTextAlignment center
+skinparam ArrowThickness 1.2
+
+skinparam activity {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+    FontSize 10
+}
+
+(*) --> "User accesses React Web Application"
+--> "Authentication"
+
+if "User role?" then
+
+    -->[Customer] "Customer workflow"
+    --> "Upload rotational body video"
+    --> "Generate digital avatar"
+    --> "Select garment"
+    --> "Perform virtual fitting"
+    --> "Receive size recommendation"
+    --> "View 3D fitting result using Three.js"
+    --> "Clear feedback and navigation"
+    --> (*)
+
+else
+
+    -->[Retailer] "Retailer workflow"
+    --> "Access garment management"
+    --> "Enter garment information"
+    --> "Upload garment image"
+    --> "Submit garment details"
+    --> "Receive validation feedback"
+    --> "Update garment information"
+    --> "Manage garment catalogue"
+    --> (*)
+
+endif
+
+@enduml

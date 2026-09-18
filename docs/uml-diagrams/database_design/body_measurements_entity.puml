@@ -1,0 +1,42 @@
+@startuml BodyMeasurements_Entity
+
+title Figure 3.X: BodyMeasurements Entity
+
+hide circle
+
+skinparam linetype ortho
+skinparam shadowing false
+skinparam defaultFontName Arial
+
+skinparam entity {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+    FontSize 10
+}
+
+entity "BodyMeasurements" as Measurements {
+    * measurement_id : UUID <<PK>>
+    --
+    video_id : UUID <<FK>>
+    height : DECIMAL
+    chest : DECIMAL
+    waist : DECIMAL
+    hips : DECIMAL
+    shoulder_width : DECIMAL
+    inseam : DECIMAL
+}
+
+entity "Videos" as Videos {
+    * video_id : UUID <<PK>>
+}
+
+Videos ||--|| Measurements : produces
+
+note right of Measurements
+Stores body measurements
+estimated from uploaded
+customer videos.
+end note
+
+@enduml

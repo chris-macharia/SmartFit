@@ -1,0 +1,35 @@
+@startuml Users_Entity
+
+title Figure 3.X: Users Entity
+
+hide circle
+
+skinparam linetype ortho
+skinparam shadowing false
+skinparam defaultFontName Arial
+
+skinparam entity {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+    FontSize 10
+}
+
+entity "Users" as Users {
+    * user_id : UUID <<PK>>
+    --
+    full_name : VARCHAR(100)
+    email : VARCHAR(100)
+    password_hash : VARCHAR(255)
+    role : VARCHAR(20)
+    created_at : TIMESTAMP
+}
+
+note right of Users
+Stores account information
+for customers and retailers.
+The role determines the
+authorized system functions.
+end note
+
+@enduml

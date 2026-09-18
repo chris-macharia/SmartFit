@@ -1,0 +1,72 @@
+@startuml Functional_Requirements_Use_Case
+
+title SmartFit Functional Requirements - Use Case Diagram
+
+' A4-friendly layout
+top to bottom direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam packageStyle rectangle
+skinparam actorStyle awesome
+
+skinparam usecase {
+    BackgroundColor white
+    BorderColor black
+    ArrowColor black
+}
+
+skinparam rectangle {
+    BorderColor black
+}
+
+actor Customer
+actor Retailer
+
+rectangle "SmartFit System" {
+
+    usecase "Register /\nAuthenticate" as Auth
+
+    usecase "Upload Body\nVideo" as Upload
+
+    usecase "Estimate Body\nMeasurements" as Measure
+
+    usecase "Generate Digital\nAvatar" as Avatar
+
+    usecase "Browse /\nSelect Garment" as Browse
+
+    usecase "Manage\nGarments" as Manage
+
+    usecase "Perform\nVirtual Fitting" as Fitting
+
+    usecase "View Size /\nFit Recommendation" as Recommend
+
+    usecase "Store and Manage\nSystem Data" as Data
+}
+
+' Customer interactions
+Customer --> Auth
+Customer --> Upload
+Customer --> Avatar
+Customer --> Browse
+Customer --> Fitting
+Customer --> Recommend
+
+' Retailer interactions
+Retailer --> Auth
+Retailer --> Manage
+
+' Main functional relationships
+Upload --> Measure : <<include>>
+Measure --> Avatar : <<include>>
+
+Fitting --> Recommend : <<include>>
+Fitting --> Browse : <<include>>
+
+' Data management
+Measure --> Data : <<include>>
+Avatar --> Data : <<include>>
+Manage --> Data : <<include>>
+Fitting --> Data : <<include>>
+
+@enduml

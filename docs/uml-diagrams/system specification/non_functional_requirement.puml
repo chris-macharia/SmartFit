@@ -1,0 +1,68 @@
+@startuml Non_Functional_Requirements_Component
+
+title SmartFit System Architecture - Non-Functional Requirements
+
+left to right direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+skinparam component {
+    BackgroundColor white
+    BorderColor black
+    ArrowColor black
+}
+
+actor "Customer /\nRetailer" as User
+
+component "Web Frontend\n(React)" as Frontend
+
+component "Backend API\n(FastAPI)" as Backend
+
+component "Authentication\n& Authorization" as Auth
+
+component "Computer Vision\nProcessing" as CV
+
+component "Avatar /\nVisualization" as Visual
+
+database "PostgreSQL\nDatabase" as DB
+
+User --> Frontend
+
+Frontend --> Backend
+Backend --> Auth
+Backend --> CV
+Backend --> Visual
+Backend --> DB
+
+CV --> DB
+Visual --> DB
+
+note bottom of Frontend
+Responsive and user-friendly
+web interface
+end note
+
+note bottom of Auth
+Controlled access and
+data protection
+end note
+
+note bottom of CV
+Reliable processing and
+acceptable response time
+end note
+
+note bottom of Backend
+Modular and scalable
+system services
+end note
+
+note bottom of DB
+Secure and consistent
+data storage
+end note
+
+@enduml

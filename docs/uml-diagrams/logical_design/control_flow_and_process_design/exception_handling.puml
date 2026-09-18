@@ -1,0 +1,71 @@
+@startuml Exception_Handling
+
+title Figure 3.X: Exception Handling and Validation Flow
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam defaultTextAlignment center
+skinparam ArrowThickness 1.2
+
+skinparam activity {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+    FontSize 10
+}
+
+(*) --> "User submits request"
+--> "React Web Application sends request"
+--> "FastAPI Backend authenticates user"
+
+if "Authentication valid?" then
+    -->[Yes] "FastAPI Backend validates request data"
+
+    if "Input valid?" then
+        -->[Yes] "Identify request type"
+
+        if "Video upload?" then
+            -->[Yes] "FastAPI Backend validates video file"
+
+            if "Video valid?" then
+                -->[Yes] "Computer Vision Module processes video"
+
+                if "Processing successful?" then
+                    -->[Yes] "Continue normal processing"
+                    --> (*)
+                else
+                    -->[No] "FastAPI Backend handles processing error"
+                    --> "React Web Application displays processing error"
+                    --> (*)
+                endif
+
+            else
+                -->[No] "React Web Application displays video validation error"
+                --> (*)
+            endif
+
+        else
+            -->[No] "Garment Processing Module validates garment information"
+            --> "Garment Processing Module validates measurements and image"
+
+            if "Garment valid?" then
+                -->[Yes] "FastAPI Backend continues garment processing"
+                --> (*)
+            else
+                -->[No] "React Web Application displays garment validation errors"
+                --> "Retailer corrects and resubmits garment information"
+                --> (*)
+            endif
+        endif
+
+    else
+        -->[No] "React Web Application displays invalid input error"
+        --> (*)
+    endif
+
+else
+    -->[No] "React Web Application displays authentication error"
+    --> (*)
+endif
+
+@enduml

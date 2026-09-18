@@ -1,0 +1,52 @@
+@startuml Retailer_Garment_Management_Process
+
+title Figure 3.X: Retailer Garment Management Process
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam defaultTextAlignment center
+skinparam ArrowThickness 1.2
+
+skinparam activity {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+    FontSize 10
+}
+
+(*) --> "Retailer logs in"
+--> "React Web Application sends login request"
+--> "FastAPI Backend authenticates retailer"
+
+if "Authentication successful?" then
+    -->[Yes] "Retailer enters garment information"
+    --> "Retailer uploads garment image"
+    --> "Retailer enters dimensions and sizes"
+    --> "React Web Application submits garment data"
+    --> "FastAPI Backend validates request"
+    --> "FastAPI Backend forwards garment data"
+    --> "Garment Processing Module validates mandatory information"
+    --> "Garment Processing Module validates measurements"
+    --> "Garment Processing Module validates uploaded image"
+
+    if "Garment data valid?" then
+        -->[Yes] "Garment Processing Module returns valid garment data"
+        --> "FastAPI Backend stores garment information"
+        --> "PostgreSQL Database saves garment record"
+        --> "React Web Application displays successful update"
+        --> (*)
+    else
+        -->[No] "Garment Processing Module returns validation errors"
+        --> "FastAPI Backend forwards validation errors"
+        --> "React Web Application displays validation errors"
+        --> "Retailer corrects garment information"
+        --> "Retailer resubmits garment data"
+        --> (*)
+    endif
+
+else
+    -->[No] "React Web Application displays authentication error"
+    --> (*)
+endif
+
+@enduml

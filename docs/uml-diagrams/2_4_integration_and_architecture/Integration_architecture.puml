@@ -1,4 +1,4 @@
-@startuml integration_architecture
+@startuml system_architecture_overview
 
 title Integration Architecture of the Proposed Virtual Fitting System
 
@@ -6,67 +6,105 @@ top to bottom direction
 
 skinparam backgroundColor white
 skinparam shadowing false
-skinparam linetype ortho
 skinparam defaultFontName Arial
+skinparam defaultFontSize 11
 skinparam componentStyle rectangle
 skinparam packageStyle rectangle
 skinparam ArrowThickness 1.5
+skinparam linetype ortho
 
-actor Customer
-actor Retailer
+skinparam package {
+    BorderColor black
+    FontColor black
+    FontStyle bold
+}
+
+skinparam component {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+}
+
+skinparam database {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+}
+
+'====================================================
+' FRONTEND
+'====================================================
 
 package "Frontend Application" as Frontend {
-    component "Customer Interface" as CustomerUI
-    component "Retailer Interface" as RetailerUI
-    component "Virtual Fitting\nVisualization" as Visualization
+
+    component "Customer Interface" as Customer
+
+    component "Retailer Interface" as Retailer
+
+    component "React Web Application" as React
 }
+
+'====================================================
+' BACKEND
+'====================================================
 
 package "Backend Server" as Backend {
-    component "REST API" as API
-    component "Authentication &\nAuthorization" as Auth
-    component "Virtual Fitting\nServices" as Fitting
-    component "Garment Management" as Garment
-    component "Avatar Management" as Avatar
+
+    component "FastAPI REST API" as API
+
+    component "Business Logic" as Logic
 }
 
-package "Computer Vision\nProcessing Module" as CV {
-    component "Video Processing" as Video
-    component "Pose / Landmark\nDetection" as Pose
-    component "Body Measurement\nEstimation" as Measurement
-    component "Avatar Generation" as AvatarGen
+'====================================================
+' COMPUTER VISION
+'====================================================
+
+package "Computer Vision Processing" as CV {
+
+    component "Video Processing" as VideoProcessing
+
+    component "OpenCV" as OpenCV
+    
+    component "MediaPipe Pose\nEstimation" as MediaPipe
+
+    component "Body Measurement\nEstimation" as Measurements
 }
 
-database "PostgreSQL\nDatabase" as DB
+'====================================================
+' DATABASE
+'====================================================
 
-Customer --> CustomerUI : Uses
-Retailer --> RetailerUI : Uses
+database "PostgreSQL\nDatabase" as Database
 
-CustomerUI --> API : HTTP / REST
-RetailerUI --> API : HTTP / REST
 
-API --> Auth : Authenticate
-API --> Fitting : Virtual fitting requests
-API --> Garment : Garment operations
-API --> Avatar : Avatar operations
+'====================================================
+' MAIN ARCHITECTURAL FLOW
+'====================================================
 
-Fitting --> CV : Process video /\nestimate measurements
-Avatar --> CV : Generate avatar
+Customer --> React
+Retailer --> React
 
-API --> DB : Read / Write data
-Auth --> DB : User data
-Garment --> DB : Garment data
-Avatar --> DB : Avatar data
-Fitting --> DB : Fitting data
+React --> API : HTTP / REST
 
-CV --> DB : Store measurements
-CV --> DB : Store processing results
+API --> Logic
 
-API --> Visualization : Fitting results /\navatar data
+Logic --> VideoProcessing 
+VideoProcessing --> OpenCV
+OpenCV --> MediaPipe
+MediaPipe --> Measurements
 
-Video --> Pose
-Pose --> Measurement
-Measurement --> AvatarGen
+Measurements --> Logic : Measurements
 
-AvatarGen --> API : Generated avatar
+Logic --> Database : Read / Write
+
+
+'====================================================
+' ALIGNMENT
+'====================================================
+
+Customer -[hidden]right- Retailer
+
+OpenCV -[hidden]right- MediaPipe
+MediaPipe -[hidden]right- Measurements
 
 @enduml

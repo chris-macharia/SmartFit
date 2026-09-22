@@ -1,0 +1,75 @@
+@startuml database_layer
+
+title Database Layer of the Proposed Virtual Fitting System
+
+top to bottom direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowThickness 1.5
+skinparam linetype ortho
+
+skinparam package {
+    BorderColor black
+    FontColor black
+    FontStyle bold
+}
+
+skinparam component {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+}
+
+skinparam database {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+}
+
+' Application components
+component "React Frontend" as Frontend
+component "FastAPI Backend" as Backend
+component "Processing Modules" as Processing
+
+' Database
+database "PostgreSQL Database" as Database
+
+' Stored data
+package "Stored System Data" as Data {
+
+    component "User Information" as Users
+
+    component "Garment Details /\nDimensions" as Garments
+
+    component "Body Measurement\nData" as Measurements
+
+    component "Avatar Metadata" as Avatars
+
+    component "System Activity\nRecords" as Activity
+}
+
+' System communication
+Frontend --> Backend : API requests
+Backend --> Database : Read / Write
+Processing --> Database : Read / Write
+
+' Database contents
+Database --> Users
+Database --> Garments
+Database --> Measurements
+Database --> Avatars
+Database --> Activity
+
+
+' Maintain vertical arrangement of data
+Users -[hidden]down- Garments
+Garments -[hidden]down- Measurements
+Measurements -[hidden]down- Avatars
+Avatars -[hidden]down- Activity
+
+@enduml

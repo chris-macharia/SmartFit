@@ -1,0 +1,125 @@
+@startuml system_design_approach
+
+title Modular System Design Approach
+
+top to bottom direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowThickness 1.5
+skinparam linetype ortho
+
+skinparam package {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+    FontStyle bold
+}
+
+skinparam component {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+}
+
+' =========================
+' FRONTEND
+' =========================
+
+package "Frontend Application" as Frontend {
+
+    component "Customer Interface" as Customer
+    component "Retailer Interface" as Retailer
+
+    component "Video Upload" as Upload
+    component "Garment Management" as Garments
+    component "Avatar and Fitting\nVisualization" as Visualization
+
+    Customer -[hidden]right- Retailer
+    Upload -[hidden]right- Garments
+    Garments -[hidden]right- Visualization
+
+    Customer --> Upload
+    Retailer --> Garments
+    Upload --> Visualization
+    Garments --> Visualization
+}
+
+' =========================
+' BACKEND
+' =========================
+
+package "Backend Services" as Backend {
+
+    component "Authentication /\nAuthorization" as Auth
+    component "Video Processing\nService" as VideoService
+    component "Garment Management\nService" as GarmentService
+    component "Avatar Generation\nService" as AvatarService
+    component "Virtual Fitting /\nRecommendation Service" as FittingService
+
+    Auth -[hidden]right- VideoService
+    VideoService -[hidden]right- GarmentService
+    GarmentService -[hidden]right- AvatarService
+    AvatarService -[hidden]right- FittingService
+
+    Auth --> VideoService
+    VideoService --> AvatarService
+    GarmentService --> FittingService
+    AvatarService --> FittingService
+}
+
+' =========================
+' COMPUTER VISION
+' =========================
+
+package "Computer Vision Module" as CV {
+
+    component "OpenCV\nVideo Processing" as OpenCV
+    component "MediaPipe Pose\nEstimation" as MediaPipe
+    component "Body Landmark\nDetection" as Landmarks
+    component "Body Measurement\nEstimation" as Measurements
+
+    OpenCV -[hidden]right- MediaPipe
+    MediaPipe -[hidden]right- Landmarks
+    Landmarks -[hidden]right- Measurements
+
+    OpenCV --> MediaPipe
+    MediaPipe --> Landmarks
+    Landmarks --> Measurements
+}
+
+' =========================
+' DATABASE
+' =========================
+
+package "Database Management System" as Database {
+
+    component "User Data" as Users
+    component "Body Measurement\nData" as BodyData
+    component "Garment Data" as GarmentData
+    component "Avatar Data" as AvatarData
+    component "Virtual Fitting\nRecords" as FittingData
+
+    Users -[hidden]right- BodyData
+    BodyData -[hidden]right- GarmentData
+    GarmentData -[hidden]right- AvatarData
+    AvatarData -[hidden]right- FittingData
+
+}
+
+' =========================
+' MAIN ARCHITECTURAL FLOW
+' =========================
+
+Frontend --> Backend
+Backend --> CV
+CV --> Database
+Database --> CV
+CV--> Backend
+Backend --> Frontend
+
+@enduml

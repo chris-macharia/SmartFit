@@ -1,0 +1,72 @@
+@startuml integration_architecture
+
+title Integration Architecture of the Proposed Virtual Fitting System
+
+top to bottom direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam linetype ortho
+skinparam defaultFontName Arial
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowThickness 1.5
+
+actor Customer
+actor Retailer
+
+package "Frontend Application" as Frontend {
+    component "Customer Interface" as CustomerUI
+    component "Retailer Interface" as RetailerUI
+    component "Virtual Fitting\nVisualization" as Visualization
+}
+
+package "Backend Server" as Backend {
+    component "REST API" as API
+    component "Authentication &\nAuthorization" as Auth
+    component "Virtual Fitting\nServices" as Fitting
+    component "Garment Management" as Garment
+    component "Avatar Management" as Avatar
+}
+
+package "Computer Vision\nProcessing Module" as CV {
+    component "Video Processing" as Video
+    component "Pose / Landmark\nDetection" as Pose
+    component "Body Measurement\nEstimation" as Measurement
+    component "Avatar Generation" as AvatarGen
+}
+
+database "PostgreSQL\nDatabase" as DB
+
+Customer --> CustomerUI : Uses
+Retailer --> RetailerUI : Uses
+
+CustomerUI --> API : HTTP / REST
+RetailerUI --> API : HTTP / REST
+
+API --> Auth : Authenticate
+API --> Fitting : Virtual fitting requests
+API --> Garment : Garment operations
+API --> Avatar : Avatar operations
+
+Fitting --> CV : Process video /\nestimate measurements
+Avatar --> CV : Generate avatar
+
+API --> DB : Read / Write data
+Auth --> DB : User data
+Garment --> DB : Garment data
+Avatar --> DB : Avatar data
+Fitting --> DB : Fitting data
+
+CV --> DB : Store measurements
+CV --> DB : Store processing results
+
+API --> Visualization : Fitting results /\navatar data
+
+Video --> Pose
+Pose --> Measurement
+Measurement --> AvatarGen
+
+AvatarGen --> API : Generated avatar
+
+@enduml

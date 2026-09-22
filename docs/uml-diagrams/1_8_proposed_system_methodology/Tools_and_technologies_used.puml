@@ -1,0 +1,62 @@
+@startuml tools_and_technologies
+
+title Tools and Technologies Used in the Proposed System
+
+top to bottom direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowThickness 1.5
+skinparam linetype ortho
+
+skinparam package {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+    FontStyle bold
+}
+
+skinparam component {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+}
+
+package "Web Application" as Web {
+
+    component "React" as React
+}
+
+package "Backend Services" as Backend {
+
+    component "FastAPI" as FastAPI
+}
+
+package "Computer Vision and\nMeasurement Processing" as CV {
+
+    component "OpenCV" as OpenCV
+    component "MediaPipe" as MediaPipe
+}
+
+package "3D Visualization" as Visualization {
+
+    component "Three.js" as ThreeJS
+}
+
+package "Database Management" as Database {
+
+    component "PostgreSQL" as PostgreSQL
+}
+
+Web --> Backend
+Backend --> CV
+CV --> Visualization
+Visualization --> Database
+
+OpenCV --> MediaPipe
+
+@enduml

@@ -1,0 +1,75 @@
+@startuml computer_vision_module
+
+title Computer Vision Processing Module of the Proposed Virtual Fitting System
+
+top to bottom direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowThickness 1.5
+skinparam linetype ortho
+
+skinparam package {
+    BorderColor black
+    FontColor black
+    FontStyle bold
+}
+
+skinparam component {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+}
+
+' Input
+component "Uploaded Rotational\nBody Video" as Video
+
+' Computer vision processing module
+package "Computer Vision Processing Module" as CVModule {
+
+    component "OpenCV\nVideo Processing" as OpenCV
+
+    component "Video Frame\nExtraction" as Frames
+
+    component "MediaPipe\nPose Processing" as MediaPipe
+
+    component "Body Landmark\nDetection" as Landmarks
+
+    component "Pose\nEstimation" as Pose
+
+    component "Measurement\nApproximation" as Measurement
+
+    component "Body Proportion\nAnalysis" as Proportion
+}
+
+' Output components
+component "Avatar Generation\nComponent" as Avatar
+component "Fitting Analysis\nComponent" as Fitting
+
+' Main processing pipeline
+Video --> OpenCV
+OpenCV --> Frames
+Frames --> MediaPipe
+MediaPipe --> Landmarks
+Landmarks --> Pose
+Pose --> Measurement
+Measurement --> Proportion
+
+' Forward processed measurements
+Proportion --> Avatar : Body measurements
+Proportion --> Fitting : Body measurements
+
+
+' Maintain vertical alignment
+OpenCV -[hidden]down- Frames
+Frames -[hidden]down- MediaPipe
+MediaPipe -[hidden]down- Landmarks
+Landmarks -[hidden]down- Pose
+Pose -[hidden]down- Measurement
+Measurement -[hidden]down- Proportion
+
+@enduml

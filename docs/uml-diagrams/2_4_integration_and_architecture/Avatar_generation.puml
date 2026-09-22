@@ -1,0 +1,72 @@
+@startuml avatar_visualization_module
+
+title Avatar Generation and Visualization Module of the Proposed Virtual Fitting System
+
+top to bottom direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowThickness 1.5
+skinparam linetype ortho
+
+skinparam package {
+    BorderColor black
+    FontColor black
+    FontStyle bold
+}
+
+skinparam component {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+}
+
+' Input from computer vision processing
+component "Estimated Body\nMeasurements" as Measurements
+
+' Avatar generation
+package "Avatar Generation Module" as AvatarModule {
+
+    component "Body Measurement\nProcessing" as Processing
+
+    component "Avatar Scaling" as Scaling
+
+    component "Digital Avatar\nGeneration" as Avatar
+}
+
+' Visualization
+package "Visualization Component" as Visualization {
+
+    component "Three.js 3D\nRendering" as ThreeJS
+
+    component "Avatar and Garment\nVisualization" as Fitting
+
+    component "Approximate Virtual\nFitting Representation" as Representation
+}
+
+' Garment input
+component "Garment Data" as Garment
+
+' Main avatar generation flow
+Measurements --> Processing
+Processing --> Scaling
+Scaling --> Avatar
+
+' Visualization flow
+Avatar --> ThreeJS
+Garment --> ThreeJS
+ThreeJS --> Fitting
+Fitting --> Representation
+
+
+' Maintain vertical alignment
+Processing -[hidden]down- Scaling
+Scaling -[hidden]down- Avatar
+ThreeJS -[hidden]down- Fitting
+Fitting -[hidden]down- Representation
+
+@enduml

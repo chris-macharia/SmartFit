@@ -1,0 +1,59 @@
+@startuml testing_and_evaluation
+
+title Testing and Evaluation Approach
+
+top to bottom direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowThickness 1.5
+skinparam linetype ortho
+
+skinparam package {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+    FontStyle bold
+}
+
+skinparam component {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+}
+
+package "System Testing and Evaluation" as Testing {
+
+    package "Functional Testing" as Functional {
+
+        component "Video Processing" as Video
+        component "Measurement\nEstimation" as Measurements
+        component "Garment Matching" as Matching
+        component "Avatar and Fitting\nVisualization" as Visualization
+
+        Video --> Measurements
+        Measurements --> Matching
+        Matching --> Visualization
+    }
+
+    package "Usability Testing" as Usability {
+
+        component "User Experience" as Experience
+        component "Ease of Interaction" as Interaction
+        component "Perceived Accuracy" as Accuracy
+
+        Experience --> Interaction
+        Interaction --> Accuracy
+    }
+}
+
+component "Evaluation Results" as Results
+
+Functional --> Results
+Usability --> Results
+
+@enduml

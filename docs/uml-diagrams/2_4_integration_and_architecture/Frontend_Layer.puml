@@ -1,0 +1,92 @@
+@startuml frontend_layer
+
+title Frontend Layer of the Proposed Virtual Fitting System
+
+top to bottom direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowThickness 1.5
+skinparam linetype ortho
+
+skinparam package {
+    BorderColor black
+    FontColor black
+    FontStyle bold
+}
+
+skinparam component {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+}
+
+' Users
+actor "Customer" as Customer
+actor "Retailer" as Retailer
+
+' Main frontend application
+package "React Frontend Application" as Frontend {
+
+    package "Customer Interface" as CustomerUI {
+        component "Registration /\nLogin" as CAuth
+        component "Video Upload" as Video
+        component "Avatar Viewing" as Avatar
+        component "Garment Selection" as Select
+        component "Size Recommendation /\nFitting Visualization" as Fit
+    }
+
+    package "Retailer Interface" as RetailerUI {
+        component "Registration /\nLogin" as RAuth
+        component "Garment Registration" as Register
+        component "Garment Image Upload" as Image
+        component "Dimensions /\nSize Information" as Dimensions
+        component "Garment Record\nManagement" as Manage
+    }
+
+    component "API Service Layer" as API
+}
+
+' Backend destination
+component "Backend Services" as Backend
+
+' User entry points
+Customer --> CAuth
+Retailer --> RAuth
+
+' Customer workflow
+CAuth --> Video
+Video --> Avatar
+Avatar --> Select
+Select --> Fit
+
+' Retailer workflow
+RAuth --> Register
+Register --> Image
+Image --> Dimensions
+Dimensions --> Manage
+
+' Both interfaces communicate through the API layer
+Fit --> API : API request
+Manage --> API : API request
+
+' API communicates with backend services
+API --> Backend : HTTP / REST
+
+
+' Maintain clean vertical workflow alignment
+CAuth -[hidden]down- Video
+Video -[hidden]down- Avatar
+Avatar -[hidden]down- Select
+Select -[hidden]down- Fit
+
+RAuth -[hidden]down- Register
+Register -[hidden]down- Image
+Image -[hidden]down- Dimensions
+Dimensions -[hidden]down- Manage
+
+@enduml

@@ -1,0 +1,108 @@
+@startuml system_architecture_overview
+
+title Proposed System Architecture and Integration
+
+top to bottom direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowThickness 1.5
+skinparam linetype ortho
+
+skinparam package {
+    BorderColor black
+    FontColor black
+    FontStyle bold
+}
+
+skinparam component {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+}
+
+skinparam database {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+}
+
+'====================================================
+' FRONTEND
+'====================================================
+
+package "Frontend Application" as Frontend {
+
+    component "Customer Interface" as Customer
+
+    component "Retailer Interface" as Retailer
+
+    component "React Web Application" as React
+}
+
+'====================================================
+' BACKEND
+'====================================================
+
+package "Backend Server" as Backend {
+
+    component "FastAPI REST API" as API
+
+    component "Business Logic" as Logic
+}
+
+'====================================================
+' COMPUTER VISION
+'====================================================
+
+package "Computer Vision Processing" as CV {
+
+    component "Video processing" as Video
+    
+    component "OpenCV" as OpenCV
+
+    component "MediaPipe Pose\nEstimation" as MediaPipe
+
+    component "Body Measurement\nEstimation" as Measurements
+}
+
+'====================================================
+' DATABASE
+'====================================================
+
+database "PostgreSQL\nDatabase" as Database
+
+
+'====================================================
+' MAIN ARCHITECTURAL FLOW
+'====================================================
+
+Customer --> React
+Retailer --> React
+
+React --> API : HTTP / REST
+
+API --> Logic
+
+Logic --> Video
+Video --> Measurements
+
+Measurements --> Logic : Measurements
+
+Logic --> Database : Read / Write
+
+
+'====================================================
+' ALIGNMENT
+'====================================================
+
+Customer -[hidden]right- Retailer
+
+OpenCV -[hidden]right- MediaPipe
+MediaPipe -[hidden]right- Measurements
+
+@enduml

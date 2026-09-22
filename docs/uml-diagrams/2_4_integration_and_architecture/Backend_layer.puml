@@ -1,0 +1,102 @@
+@startuml backend_layer
+
+title Backend Layer of the Proposed Virtual Fitting System
+
+top to bottom direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowThickness 1.5
+skinparam linetype ortho
+
+skinparam package {
+    BorderColor black
+    FontColor black
+    FontStyle bold
+}
+
+skinparam component {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+}
+
+skinparam database {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+}
+
+' Frontend entry point
+component "React Frontend" as Frontend
+
+' Main backend
+package "FastAPI Backend Server" as Backend {
+
+    component "Authentication /\nAuthorization" as Auth
+
+    component "Video Upload\nHandling" as Video
+
+    component "Garment Matching\nLogic" as Matching
+
+    component "Avatar Generation\nRequests" as Avatar
+
+    component "Fitting Recommendation\nService" as Recommendation
+
+    component "Backend Coordination\nService" as Coordination
+}
+
+' Processing layer
+package "Processing Modules" as Processing {
+
+    component "Computer Vision\nModule" as CV
+
+    component "Avatar Generation\nModule" as AvatarModule
+
+    component "Recommendation\nModule" as RecommendationModule
+}
+
+database "PostgreSQL\nDatabase" as Database
+
+
+' Main request flow
+Frontend --> Auth
+
+Auth --> Video
+Video --> Matching
+Matching --> Avatar
+Avatar --> Recommendation
+Recommendation --> Coordination
+
+
+' Processing coordination
+Video --> CV
+Avatar --> AvatarModule
+Recommendation --> RecommendationModule
+
+
+' Processing results return to coordination
+CV --> Coordination
+AvatarModule --> Coordination
+RecommendationModule --> Coordination
+
+
+' Database access
+Coordination --> Database
+
+
+' Preserve vertical structure
+Auth -[hidden]down- Video
+Video -[hidden]down- Matching
+Matching -[hidden]down- Avatar
+Avatar -[hidden]down- Recommendation
+Recommendation -[hidden]down- Coordination
+
+CV -[hidden]down- AvatarModule
+AvatarModule -[hidden]down- RecommendationModule
+
+@enduml

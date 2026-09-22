@@ -1,0 +1,67 @@
+@startuml software_development_methodology
+
+title Agile Software Development Methodology
+
+top to bottom direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowThickness 1.5
+skinparam linetype ortho
+
+skinparam package {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+    FontStyle bold
+}
+
+skinparam component {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+}
+
+package "Agile Development Cycle" as Agile {
+
+    component "Requirements\nIdentification" as Requirements
+
+    component "Module\nPlanning" as Planning
+
+    component "Module\nDevelopment" as Development
+
+    component "Module\nTesting" as Testing
+
+    component "Module\nRefinement" as Refinement
+}
+
+component "Full System\nIntegration" as Integration
+
+component "Final System\nTesting" as FinalTesting
+
+component "Next Development\nIteration" as NextIteration
+
+Requirements --> Planning
+Planning --> Development
+Development --> Testing
+Testing --> Refinement
+
+Refinement --> Integration
+
+Integration --> FinalTesting
+Integration --> NextIteration
+
+FinalTesting --> NextIteration
+
+NextIteration --> Planning
+
+Requirements -[hidden]down- Planning
+Planning -[hidden]down- Development
+Development -[hidden]down- Testing
+Testing -[hidden]down- Refinement
+
+@enduml

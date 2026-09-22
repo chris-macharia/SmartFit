@@ -1,0 +1,67 @@
+@startuml data_collection_methods
+
+title Data Collection Methods
+
+top to bottom direction
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Arial
+skinparam defaultFontSize 11
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam ArrowThickness 1.5
+skinparam linetype ortho
+
+skinparam package {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+    FontStyle bold
+}
+
+skinparam component {
+    BorderColor black
+    BackgroundColor white
+    FontColor black
+}
+
+package "Data Collection" as Collection {
+
+    package "Primary Data" as Primary {
+
+        component "Interviews" as Interviews
+
+        component "Questionnaires" as Questionnaires
+
+        component "Online Fashion Shoppers" as Shoppers
+
+        component "Small-Scale Online\nClothing Retailers" as Retailers
+    }
+
+    package "Secondary Data" as Secondary {
+
+        component "Research Papers\nand Journals" as Literature
+
+        component "Existing Literature" as Existing
+
+        component "Online Resources" as Resources
+    }
+}
+
+component "User Requirements and\nSystem Design Insights" as Insights
+
+Interviews --> Shoppers
+Questionnaires --> Shoppers
+
+Interviews --> Retailers
+Questionnaires --> Retailers
+
+Shoppers --> Insights
+Retailers --> Insights
+
+Literature --> Insights
+Existing --> Insights
+Resources --> Insights
+
+@enduml

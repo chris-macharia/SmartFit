@@ -1,12 +1,33 @@
 @startuml erd
 
-title Figure 3.X: Entity Relationship Diagram for the Proposed Virtual Fitting System
+title Entity Relationship Diagram for the Proposed Virtual Fitting System
+
+top to bottom direction
 
 hide circle
+
 skinparam linetype ortho
 skinparam shadowing false
 skinparam packageStyle rectangle
+
 skinparam defaultFontName Arial
+skinparam defaultTextAlignment center
+skinparam defaultFontSize 10
+
+skinparam entity {
+    BackgroundColor White
+    BorderColor Black
+    FontColor Black
+    FontSize 11
+    AttributeFontSize 9
+}
+
+skinparam nodesep 35
+skinparam ranksep 45
+
+'================================================
+' ENTITIES
+'================================================
 
 entity Users {
     * user_id : UUID <<PK>>
@@ -74,6 +95,10 @@ entity VirtualFittings {
     created_at : TIMESTAMP
 }
 
+'================================================
+' RELATIONSHIPS
+'================================================
+
 Users ||--o{ Videos : uploads
 
 Videos ||--|| BodyMeasurements : produces
@@ -87,5 +112,18 @@ Users ||--o{ VirtualFittings : performs
 Garments ||--o{ VirtualFittings : selected
 
 Avatars ||--o{ VirtualFittings : used
+
+'================================================
+' LAYOUT HINTS
+'================================================
+
+Users -[hidden]down- Videos
+Videos -[hidden]down- BodyMeasurements
+BodyMeasurements -[hidden]down- Avatars
+
+Users -[hidden]right- Garments
+Garments -[hidden]down- VirtualFittings
+
+Avatars -[hidden]right- VirtualFittings
 
 @enduml

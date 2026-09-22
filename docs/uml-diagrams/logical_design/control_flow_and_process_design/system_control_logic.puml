@@ -1,6 +1,6 @@
 @startuml System_Control_Logic
 
-title Figure 3.X: System Control Logic
+title System Control Logic
 
 top to bottom direction
 

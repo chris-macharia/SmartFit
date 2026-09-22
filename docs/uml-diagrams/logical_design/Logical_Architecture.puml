@@ -1,5 +1,5 @@
 @startuml Logical_Architecture
-title Figure 3.X: Logical Architecture of the Proposed Virtual Fitting System
+title Logical Architecture of the Proposed Virtual Fitting System
 
 top to bottom direction
 

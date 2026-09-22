@@ -1,6 +1,6 @@
 @startuml Retailer_Garment_Management_Process
 
-title Figure 3.X: Retailer Garment Management Process
+title Retailer Garment Management Process
 
 skinparam shadowing false
 skinparam linetype ortho

@@ -1,6 +1,6 @@
 @startuml Customer_Virtual_Fitting_Process
 
-title Figure 3.X: Customer Virtual Fitting Process
+title Customer Virtual Fitting Process
 
 skinparam shadowing false
 skinparam linetype ortho

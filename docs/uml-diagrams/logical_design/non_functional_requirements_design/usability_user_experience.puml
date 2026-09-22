@@ -1,6 +1,6 @@
 @startuml Usability_User_Experience
 
-title Figure 3.X: Usability and User Experience Design
+title Usability and User Experience Design
 
 skinparam shadowing false
 skinparam linetype ortho

@@ -1,6 +1,6 @@
 @startuml Performance_Maintainability_Scalability
 
-title Figure 3.X: Performance, Maintainability and Scalability Design
+title Performance, Maintainability and Scalability Design
 
 top to bottom direction
 

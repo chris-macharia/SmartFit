@@ -1,6 +1,6 @@
 @startuml Error_Exception_Handling
 
-title Figure 3.X: Error and Exception Handling
+title Error and Exception Handling
 
 skinparam shadowing false
 skinparam linetype ortho

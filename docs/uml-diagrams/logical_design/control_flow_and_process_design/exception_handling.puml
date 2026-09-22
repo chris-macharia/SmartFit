@@ -1,6 +1,6 @@
 @startuml Exception_Handling
 
-title Figure 3.X: Exception Handling and Validation Flow
+title Exception Handling and Validation Flow
 
 skinparam shadowing false
 skinparam linetype ortho

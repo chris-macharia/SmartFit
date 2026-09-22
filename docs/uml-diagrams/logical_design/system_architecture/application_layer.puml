@@ -1,6 +1,6 @@
 @startuml Application_Layer
 
-title Figure 3.X: Application Layer of the Proposed Virtual Fitting System
+title Application Layer of the Proposed Virtual Fitting System
 
 top to bottom direction
 

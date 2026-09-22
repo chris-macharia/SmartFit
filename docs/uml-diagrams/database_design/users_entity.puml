@@ -1,6 +1,6 @@
 @startuml Users_Entity
 
-title Figure 3.X: Users Entity
+title Users Entity
 
 hide circle
 

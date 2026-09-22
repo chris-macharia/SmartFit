@@ -1,8 +1,8 @@
 @startuml Data_Layer
 
-title Figure 3.X: Data Layer of the Proposed Virtual Fitting System
+title Data Layer of the Proposed Virtual Fitting System
 
-left to right direction
+top to bottom direction
 
 skinparam componentStyle rectangle
 skinparam packageStyle rectangle
@@ -14,8 +14,21 @@ skinparam ArrowThickness 1.5
 skinparam packageBorderColor Black
 skinparam packageBackgroundColor White
 
-skinparam nodesep 60
-skinparam ranksep 80
+skinparam componentBorderColor Black
+skinparam componentBackgroundColor White
+
+skinparam databaseBorderColor Black
+skinparam databaseBackgroundColor White
+
+skinparam noteBorderColor Black
+skinparam noteBackgroundColor White
+
+skinparam nodesep 50
+skinparam ranksep 60
+
+'========================
+' Application Layer
+'========================
 
 package "Application Layer" {
 
@@ -23,24 +36,34 @@ package "Application Layer" {
 
 }
 
+'========================
+' Data Layer
+'========================
+
 package "Data Layer" {
 
     database "PostgreSQL Database" as DB
 
 }
 
-'======================
-' Database Interaction
-'======================
+'========================
+' Data Flow
+'========================
 
-Backend --> DB : Users
+Backend --> DB
 
-Backend --> DB : Garments
+'========================
+' Stored Data
+'========================
 
-Backend --> DB : Measurements
-
-Backend --> DB : Avatars
-
-Backend --> DB : Recommendations
+note bottom of DB
+    Stored Data
+    -------------------------
+    Users
+    Garments
+    Body Measurements
+    Avatars
+    Virtual Fitting Results
+end note
 
 @enduml

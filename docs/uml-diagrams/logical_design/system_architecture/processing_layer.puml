@@ -1,0 +1,49 @@
+@startuml Processing Layer
+title Figure Processing Layer of the Proposed Virtual Fitting System
+
+top to bottom direction
+
+skinparam componentStyle rectangle
+skinparam packageStyle rectangle
+skinparam shadowing false
+skinparam linetype ortho
+skinparam ArrowThickness 1.5
+skinparam nodesep 60
+skinparam ranksep 90
+
+package "Presentation Layer" as Presentation {
+    component "React Web Application\n(User Interface)" as React
+}
+
+package "Application Layer" as Application {
+    component "FastAPI Backend\n(Business Logic & API Services)" as FastAPI
+}
+
+package "Processing Layer" as Processing {
+
+    component "Garment Processing Module" as GarmentProcessing
+
+    component "Computer Vision Module\n(OpenCV + MediaPipe)" as ComputerVision
+
+    component "Avatar Generation Module" as AvatarGeneration
+
+    component "Recommendation Module" as Recommendation
+
+    component "Visualization Module\n(Three.js)" as Visualization
+}
+
+FastAPI --> GarmentProcessing : Validate garment data
+GarmentProcessing --> FastAPI : Valid garment data
+
+FastAPI --> ComputerVision : Process body video
+ComputerVision --> AvatarGeneration : Estimated\nmeasurements
+
+FastAPI --> Visualization : Render fitting
+
+AvatarGeneration --> Recommendation : Avatar data
+
+Recommendation --> FastAPI : Recommended size
+
+Visualization --> React : Display results
+
+@enduml

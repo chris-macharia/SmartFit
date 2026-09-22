@@ -1,6 +1,6 @@
 @startuml BodyMeasurements_Entity
 
-title Figure 3.X: BodyMeasurements Entity
+title BodyMeasurements Entity
 
 hide circle
 

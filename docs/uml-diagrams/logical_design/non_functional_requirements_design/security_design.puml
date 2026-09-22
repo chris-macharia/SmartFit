@@ -1,6 +1,6 @@
 @startuml Security_Design
 
-title Figure 3.X: Security Design
+title Security Design
 
 skinparam shadowing false
 skinparam linetype ortho

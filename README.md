@@ -368,31 +368,127 @@ frontend/
 
 ```text
 docs/
-└── uml/
-    ├── database_design/
-    │   ├── erd.png
-    │   └── erd.puml
-    │
-    ├── logical_design/
-    │   └── system_architecture/
-    │       ├── Logical_Architecture.png
-    │       └── Logical_Architecture.puml
-    │
-    ├── sequence/
-    │   ├── Sequence_Avatar_Generation.png
-    │   ├── Sequence_Garment_Generation.png
-    │   ├── Sequence_User_Authentication.png
-    │   └── Sequence_Virtual_Fitting.png
-    │
-    └── ui/
-        ├── customer_dashboard.png
-        ├── login.png
-        ├── retailer_dashboard.png
-        ├── upload_body_video.png
-        ├── upload_garment_interface.png
-        └── virtual_fitting_interface.png
-```        
+├── ui-design/
+│   ├── avatar_generation_interface.png
+│   ├── customer_dashboard_interface.png
+│   ├── garment_upload_and_management_interface.png
+│   ├── home_screen_interface.png
+│   ├── retailer_dashboard_interface.png
+│   ├── user_login_interface.png
+│   ├── user_registration_interface.png
+│   ├── video_processing_interface.png
+│   ├── video_upload_and_processing_interface.png
+│   └── virtual_fitting_interface.png
+│
+├── uml-diagrams/
+│   ├── 1_8_proposed_system_methodology/
+│   │   ├── Data Collection Methods.png
+│   │   ├── Data_collection_methods.puml
+│   │   ├── Modular System Design Approach.png
+│   │   ├── modular_system_design_approach.puml
+│   │   ├── Software Development Methodology.png
+│   │   ├── software_development_methodology.puml
+│   │   ├── Testing and Evaluation Approach.png
+│   │   ├── Testing_and_evaluation_report.puml
+│   │   ├── Tools and Technologies used in the proposed system architecture.png
+│   │   └── Tools_and_technologies_used.puml
+│   │
+│   ├── 2_4_integration_and_architecture/
+│   │   ├── Avatar Generation and Visualization Module of the Proposed Virtual Fitting System.png
+│   │   ├── Avatar_generation.puml
+│   │   ├── Backend Layer of the Proposed Virtual Fitting System.png
+│   │   ├── Backend_layer.puml
+│   │   ├── Computer Vision Processing Module of the Proposed Virtual Fitting System.png
+│   │   ├── Computer_vision_processing_module.puml
+│   │   ├── Database Layer of the Proposed Virtual Fitting System.png
+│   │   ├── Database_layer.puml
+│   │   ├── Frontend Layer of the Proposed Virtual Fitting System.png
+│   │   ├── Frontend_Layer.puml
+│   │   ├── Integration_architecture.puml
+│   │   ├── Integration_architecture_of_the_proposed_virtual_fitting_system.png
+│   │   ├── System Integration Workflow of the Proposed Virtual Fitting System.png
+│   │   └── System_integration_workflow.puml
+│   │
+│   ├── 3_6_system_specification/
+│   │   ├── functional_requirement.png
+│   │   ├── functional_requirement.puml
+│   │   ├── non_functional_requirement.puml
+│   │   └── non_functional_requirements.png
+│   │
+│   ├── 3_7_1_1_use_case_diagrams/
+│   │   └── Use Case Diagram.png
+│   │
+│   ├── 3_7_4_activity_diagram/
+│   │   └── Activity Diagrams.png
+│   │
+│   ├── 3_7_5_sequence_diagrams/
+│   │   ├── Sequence_Avatar_Generation.png
+│   │   ├── Sequence_Avatar_Generation.puml
+│   │   ├── Sequence_Garment_Generation.png
+│   │   ├── Sequence_Garment_Generation.puml
+│   │   ├── Sequence_User_Authentication.png
+│   │   ├── Sequence_User_Authentication.puml
+│   │   ├── Sequence_Virtual_Fitting.png
+│   │   └── Sequence_Virtual_Fitting.puml
+│   │
+│   ├── 3_8_logical_design/
+│   │   ├── 3_8_1_system_architecture/
+│   │   │   ├── application_layer.png
+│   │   │   ├── application_layer.puml
+│   │   │   ├── data_layer.png
+│   │   │   ├── data_layer.puml
+│   │   │   ├── presentation_layer.png
+│   │   │   ├── presentation_layer.puml
+│   │   │   ├── processing_layer.png
+│   │   │   └── processing_layer.puml
+│   │   │
+│   │   ├── 3_8_2_control_flow_and_process_design/
+│   │   │   ├── customer_virtual_fitting_process.png
+│   │   │   ├── customer_virtual_fitting_process.puml
+│   │   │   ├── exception_handling.png
+│   │   │   ├── exception_handling.puml
+│   │   │   ├── retailer_garment_management_process.png
+│   │   │   ├── retailer_garment_management_process.puml
+│   │   │   ├── system_control_logic.png
+│   │   │   └── system_control_logic.puml
+│   │   │
+│   │   ├── 3_8_3_non_functional_requirements_design/
+│   │   │   ├── error_exception_handling.png
+│   │   │   ├── error_exception_handling.puml
+│   │   │   ├── performance_maintainability_scalability.png
+│   │   │   ├── performance_maintainability_scalability.puml
+│   │   │   ├── security_design.png
+│   │   │   ├── security_design.puml
+│   │   │   ├── usability_user_experience.png
+│   │   │   └── usability_user_experience.puml
+│   │   │
+│   │   ├── Logical_Architecture.png
+│   │   └── Logical_Architecture.puml
+│   │
+│   └── 3_9_1_database_design/
+│       ├── avatars_entity.png
+│       ├── avatars_entity.puml
+│       ├── body_measurements_entity.png
+│       ├── body_measurements_entity.puml
+│       ├── erd.png
+│       ├── erd.puml
+│       ├── garments_entity.png
+│       ├── garments_entity.puml
+│       ├── users_entity.png
+│       ├── users_entity.puml
+│       ├── videos_entity.png
+│       ├── videos_entity.puml
+│       ├── virtual_fittings_entity.png
+│       └── virtual_fittings_entity.puml
+│
+├── Official SmartFit Documentation.docx
+└── Official SmartFit Documentation.pdf
+```
+
+The `docs/` directory contains the project's formal documentation, UML/architecture source files, generated diagrams, and interface design references. PlantUML `.puml` files are retained alongside their corresponding `.png` diagrams to allow diagrams to be regenerated or modified when required.
+
 </details>
+
 
 <details>
 <summary><b>📄 Root Files</b></summary>

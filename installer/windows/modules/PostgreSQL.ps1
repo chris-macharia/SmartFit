@@ -558,6 +558,19 @@ function Write-EnvValue {
     )
 
 
+    # --------------------------------------------------------
+    # Remove a UTF-8 BOM if the existing .env file contains
+    # one at the beginning of its content.
+    #
+    # This prevents an existing malformed first variable such
+    # as "﻿DATABASE_URL" from surviving the update.
+    # --------------------------------------------------------
+
+    if ($Content.Length -gt 0 -and $Content[0] -eq [char]0xFEFF) {
+        $Content = $Content.Substring(1)
+    }
+
+
     $NewLine = "$Key=$Value"
 
 
@@ -692,6 +705,24 @@ function Write-PostgresEnvironment {
 
 
         # ----------------------------------------------------
+        # Remove an existing UTF-8 BOM before processing the
+        # environment variables.
+        # ----------------------------------------------------
+
+        if (
+            $EnvironmentContent.Length -gt 0 -and
+            $EnvironmentContent[0] -eq [char]0xFEFF
+        ) {
+
+            $EnvironmentContent = `
+                $EnvironmentContent.Substring(1)
+
+            Write-Info `
+                "Removed an existing UTF-8 BOM from backend/.env."
+        }
+
+
+        # ----------------------------------------------------
         # Build the database URLs.
         # ----------------------------------------------------
 
@@ -750,15 +781,32 @@ function Write-PostgresEnvironment {
 
 
         # ----------------------------------------------------
-        # Write the updated .env file.
+        # Write the updated .env file as UTF-8 WITHOUT BOM.
+        #
+        # This is the important fix.
+        #
+        # Windows PowerShell's Set-Content -Encoding UTF8 can
+        # write a UTF-8 BOM. That causes python-dotenv to read:
+        #
+        #     ﻿DATABASE_URL
+        #
+        # instead of:
+        #
+        #     DATABASE_URL
+        #
+        # File.WriteAllText with UTF8Encoding($false) explicitly
+        # prevents the BOM.
         # ----------------------------------------------------
 
-        Set-Content `
-            -Path $BackendEnvFile `
-            -Value $EnvironmentContent.TrimEnd() `
-            -Encoding UTF8 `
-            -Force `
-            -ErrorAction Stop
+        $Utf8NoBom = New-Object `
+            System.Text.UTF8Encoding($false)
+
+
+        [System.IO.File]::WriteAllText(
+            $BackendEnvFile,
+            $EnvironmentContent.TrimEnd(),
+            $Utf8NoBom
+        )
     }
     catch {
 
@@ -783,8 +831,6 @@ function Write-PostgresEnvironment {
 
 
     # --------------------------------------------------------
-    # IMPORTANT:
-    #
     # Synchronize the database configuration into the current
     # PowerShell process environment.
     #
@@ -929,6 +975,24 @@ function Test-PostgresEnvironment {
 
         Write-SetupFailure `
             -Message "Unable to read the backend .env file: $($_.Exception.Message)" `
+            -ExitCode $EXIT_ENV
+    }
+
+
+    # --------------------------------------------------------
+    # Verify that the .env file does NOT begin with a UTF-8 BOM.
+    #
+    # This specifically protects against the issue discovered
+    # during SmartFit release testing.
+    # --------------------------------------------------------
+
+    if (
+        $EnvironmentContent.Length -gt 0 -and
+        $EnvironmentContent[0] -eq [char]0xFEFF
+    ) {
+
+        Write-SetupFailure `
+            -Message "The backend .env file contains a UTF-8 BOM. DATABASE_URL may not be readable by python-dotenv." `
             -ExitCode $EXIT_ENV
     }
 

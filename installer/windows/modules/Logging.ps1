@@ -16,6 +16,11 @@
 # All installer modules then use that shared project root.
 # ============================================================
 
+
+# ------------------------------------------------------------
+# Section output
+# ------------------------------------------------------------
+
 function Write-Section {
     [CmdletBinding()]
     param (
@@ -29,6 +34,11 @@ function Write-Section {
     Write-Information "============================================================" -InformationAction Continue
 }
 
+
+# ------------------------------------------------------------
+# Step output
+# ------------------------------------------------------------
+
 function Write-Step {
     [CmdletBinding()]
     param (
@@ -38,6 +48,11 @@ function Write-Step {
 
     Write-Information "[STEP] $Message" -InformationAction Continue
 }
+
+
+# ------------------------------------------------------------
+# Informational output
+# ------------------------------------------------------------
 
 function Write-Info {
     [CmdletBinding()]
@@ -49,6 +64,11 @@ function Write-Info {
     Write-Information "[INFO] $Message" -InformationAction Continue
 }
 
+
+# ------------------------------------------------------------
+# Success output
+# ------------------------------------------------------------
+
 function Write-Success {
     [CmdletBinding()]
     param (
@@ -58,6 +78,11 @@ function Write-Success {
 
     Write-Information "[SUCCESS] $Message" -InformationAction Continue
 }
+
+
+# ------------------------------------------------------------
+# Warning output
+# ------------------------------------------------------------
 
 function Write-WarningMessage {
     [CmdletBinding()]
@@ -69,6 +94,11 @@ function Write-WarningMessage {
     Write-Warning "[WARNING] $Message"
 }
 
+
+# ------------------------------------------------------------
+# Failure output
+# ------------------------------------------------------------
+
 function Write-Failure {
     [CmdletBinding()]
     param (
@@ -78,6 +108,56 @@ function Write-Failure {
 
     Write-Error "[ERROR] $Message"
 }
+
+
+# ------------------------------------------------------------
+# Installer log
+# ------------------------------------------------------------
+#
+# This is the common logging function used internally by the
+# installer modules.
+#
+# The function deliberately writes through Write-Information
+# so normal installer output remains visible in PowerShell.
+#
+# Level values:
+#
+#     INFO
+#     SUCCESS
+#     WARNING
+#     ERROR
+#     DEBUG
+#
+# ------------------------------------------------------------
+
+function Write-InstallerLog {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$Message,
+
+        [Parameter()]
+        [ValidateSet(
+            "INFO",
+            "SUCCESS",
+            "WARNING",
+            "ERROR",
+            "DEBUG"
+        )]
+        [string]$Level = "INFO"
+    )
+
+    $Prefix = "[$Level]"
+
+    Write-Information `
+        "$Prefix $Message" `
+        -InformationAction Continue
+}
+
+
+# ------------------------------------------------------------
+# Command header
+# ------------------------------------------------------------
 
 function Write-CommandHeader {
     [CmdletBinding()]
@@ -92,6 +172,11 @@ function Write-CommandHeader {
     Write-Information "" -InformationAction Continue
 }
 
+
+# ------------------------------------------------------------
+# Command footer
+# ------------------------------------------------------------
+
 function Write-CommandFooter {
     [CmdletBinding()]
     param (
@@ -104,6 +189,11 @@ function Write-CommandFooter {
     Write-Information "Exit code: $ExitCode" -InformationAction Continue
     Write-Information "------------------------------------------------------------" -InformationAction Continue
 }
+
+
+# ------------------------------------------------------------
+# Setup failure
+# ------------------------------------------------------------
 
 function Write-SetupFailure {
     [CmdletBinding()]
@@ -124,6 +214,11 @@ function Write-SetupFailure {
     exit $ExitCode
 }
 
+
+# ------------------------------------------------------------
+# Command existence
+# ------------------------------------------------------------
+
 function Test-CommandExistence {
     [CmdletBinding()]
     [OutputType([bool])]
@@ -138,6 +233,11 @@ function Test-CommandExistence {
 
     return ($null -ne $Command)
 }
+
+
+# ------------------------------------------------------------
+# Refresh current PowerShell process PATH
+# ------------------------------------------------------------
 
 function Initialize-ProcessPath {
     [CmdletBinding()]
@@ -166,4 +266,121 @@ function Initialize-ProcessPath {
     $env:Path = "$MachinePath;$UserPath"
 
     Write-Info "Current PowerShell process PATH refreshed."
+}
+
+
+# ------------------------------------------------------------
+# Execute external command
+# ------------------------------------------------------------
+#
+# Runs an external executable while:
+#
+# 1. Displaying the command.
+# 2. Capturing its output.
+# 3. Returning the process exit code.
+# 4. Logging failures consistently.
+#
+# The function does not automatically terminate the installer.
+# The calling module decides which installer exit code applies.
+#
+# ------------------------------------------------------------
+
+function Invoke-InstallerCommand {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$FilePath,
+
+        [Parameter()]
+        [string[]]$ArgumentList = @(),
+
+        [Parameter()]
+        [switch]$IgnoreExitCode
+    )
+
+    $ArgumentDisplay = if ($ArgumentList.Count -gt 0) {
+        $ArgumentList -join " "
+    }
+    else {
+        ""
+    }
+
+    $CommandDisplay = if ([string]::IsNullOrWhiteSpace($ArgumentDisplay)) {
+        $FilePath
+    }
+    else {
+        "$FilePath $ArgumentDisplay"
+    }
+
+    Write-CommandHeader $CommandDisplay
+
+    try {
+        $Output = & $FilePath @ArgumentList 2>&1
+
+        $ExitCode = $LASTEXITCODE
+
+        if ($Output) {
+            foreach ($Line in $Output) {
+                Write-Information `
+                    "$Line" `
+                    -InformationAction Continue
+            }
+        }
+
+        Write-CommandFooter $ExitCode
+
+        if (($ExitCode -ne 0) -and (-not $IgnoreExitCode)) {
+            Write-InstallerLog `
+                -Message "Command failed with exit code $ExitCode." `
+                -Level "ERROR"
+
+            return $false
+        }
+
+        return $true
+    }
+    catch {
+        Write-CommandFooter -ExitCode 1
+
+        Write-InstallerLog `
+            -Message "Failed to execute command: $($_.Exception.Message)" `
+            -Level "ERROR"
+
+        if (-not $IgnoreExitCode) {
+            return $false
+        }
+
+        return $false
+    }
+}
+
+
+# ------------------------------------------------------------
+# Require external command
+# ------------------------------------------------------------
+#
+# Verifies that an executable is available before a module
+# attempts to use it.
+#
+# ------------------------------------------------------------
+
+function Assert-CommandExists {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$CommandName,
+
+        [Parameter()]
+        [string]$Description = $CommandName
+    )
+
+    if (-not (Test-CommandExistence $CommandName)) {
+        Write-InstallerLog `
+            -Message "$Description was not found: $CommandName" `
+            -Level "ERROR"
+
+        return $false
+    }
+
+    return $true
 }

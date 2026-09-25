@@ -3,60 +3,40 @@
 # Windows Installer - PostgreSQL Module
 # ============================================================
 #
-# This module:
+# This module installs and configures PostgreSQL 18 for SmartFit.
 #
-# 1. Detects PostgreSQL.
-# 2. Installs PostgreSQL 18 using winget when required.
-# 3. Preserves an existing PostgreSQL password.
-# 4. Uses SmartFit2026 for a new PostgreSQL installation.
-# 5. Verifies PostgreSQL authentication.
-# 6. Creates SmartFit_db when missing.
-# 7. Creates SmartFit_Test_db when missing.
-# 8. Preserves existing backend .env configuration.
-# 9. Updates only PostgreSQL-related .env values.
-# 10. Synchronizes database configuration into the current
-#     PowerShell process environment.
-# 11. Verifies the generated database configuration.
+# Fresh installation:
+#   1. Install PostgreSQL 18 through winget.
+#   2. Detect the PostgreSQL installation.
+#   3. Configure the postgres role password as SmartFit2026.
+#   4. Verify password authentication.
+#   5. Create SmartFit_db if missing.
+#   6. Create SmartFit_Test_db if missing.
+#   7. Preserve/update backend/.env.
+#   8. Verify PostgreSQL environment configuration.
+#
+# Existing installation:
+#   1. Detect the existing PostgreSQL installation.
+#   2. Ask the user for the existing postgres password.
+#   3. Verify authentication.
+#   4. DO NOT change the existing password.
+#   5. Create SmartFit databases if missing.
+#   6. Preserve/update backend/.env.
 #
 # IMPORTANT:
+#   - PostgreSQL passwords belong to database roles, not databases.
+#   - SmartFit2026 is therefore assigned to the PostgreSQL
+#     "postgres" role on a NEW installation.
+#   - Existing PostgreSQL passwords are never overwritten.
 #
-# The existing backend .env file is preserved.
-# Only PostgreSQL-related configuration values are changed.
-#
-# Database configuration written by this installer:
-#
-# DATABASE_URL=postgresql://postgres:<encoded-password>@localhost:5432/SmartFit_db
-# TEST_DATABASE_URL=postgresql://postgres:<encoded-password>@localhost:5432/SmartFit_Test_db
-# POSTGRES_USER=postgres
-# POSTGRES_PASSWORD=<password>
-# POSTGRES_HOST=localhost
-# POSTGRES_PORT=5432
-# POSTGRES_DB=SmartFit_db
-#
-# The password is URL-encoded inside DATABASE_URL and
-# TEST_DATABASE_URL so that special characters in the PostgreSQL
-# password cannot produce an invalid SQLAlchemy URL.
-#
-# Exit codes:
-# 30 - PostgreSQL installation failure
-# 31 - PostgreSQL authentication/connection failure
-# 32 - Database creation failure
-# 40 - Environment configuration failure
-# ============================================================
-
-
-# ============================================================
-# PostgreSQL Configuration
 # ============================================================
 
 $PostgresWingetId = "PostgreSQL.PostgreSQL.18"
 
 $PostgresUser = "postgres"
 
-# Password used only when PostgreSQL is installed by this installer.
-#
-# If PostgreSQL already exists, the installer asks for the existing
-# password and does NOT replace it.
+# Password used for a NEW PostgreSQL installation.
+# Existing installations keep their existing password.
 $DefaultPostgresPassword = "SmartFit2026"
 
 $PostgresHost = "localhost"
@@ -65,1191 +45,1336 @@ $PostgresPort = "5432"
 $DevelopmentDatabase = "SmartFit_db"
 $TestDatabase = "SmartFit_Test_db"
 
-# Default PostgreSQL 18 installation location.
-$PostgresBinDirectory = "C:\Program Files\PostgreSQL\18\bin"
-
-
-# ============================================================
-# SmartFit Paths
-# ============================================================
 
 $BackendRoot = Join-Path $ProjectRoot "backend"
+$BackendEnvFile = Join-Path $BackendRoot ".env"
 
-$BackendEnvFile = Join-Path `
-    $BackendRoot `
-    ".env"
+# ------------------------------------------------------------
+# Exit codes
+# ------------------------------------------------------------
 
+$PostgresInstallFailureCode = 30
+$PostgresAuthenticationFailureCode = 31
+$PostgresDatabaseFailureCode = 32
+$PostgresEnvironmentFailureCode = 40
 
-# ============================================================
-# Exit Codes
-# ============================================================
-
-$EXIT_POSTGRES_INSTALL = 30
-$EXIT_POSTGRES_AUTH = 31
-$EXIT_DATABASE = 32
-$EXIT_ENV = 40
-
-
-# ============================================================
-# Module State
-# ============================================================
+# ------------------------------------------------------------
+# Module state
+# ------------------------------------------------------------
 
 $script:PsqlPath = $null
-
 $script:PostgresPassword = $null
-
 $script:PostgresWasPreviouslyInstalled = $false
 
-
 # ============================================================
-# Find PostgreSQL psql
+# Find psql
 # ============================================================
 
 function Find-Psql {
-    [CmdletBinding()]
-    [OutputType([string])]
-    param ()
+
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "Searching for PostgreSQL client (psql)..."
 
     # --------------------------------------------------------
-    # First check whether psql is already available on PATH.
+    # First check PATH
     # --------------------------------------------------------
 
-    $Command = Get-Command `
-        "psql" `
-        -ErrorAction SilentlyContinue
+    try {
 
-    if ($Command) {
-        return $Command.Source
+        $command = Get-Command "psql.exe" -ErrorAction SilentlyContinue
+
+        if ($null -ne $command) {
+
+            $resolvedPath = $command.Source
+
+            if (Test-Path $resolvedPath) {
+
+                Write-InstallerLog `
+                    -Level "INFO" `
+                    -Message "Found psql through PATH: $resolvedPath"
+
+                return $resolvedPath
+            }
+        }
+
+    }
+    catch {
+
+        Write-InstallerLog `
+            -Level "DEBUG" `
+            -Message "Unable to resolve psql through PATH: $($_.Exception.Message)"
     }
 
-
     # --------------------------------------------------------
-    # Check common PostgreSQL installation locations.
-    #
-    # PostgreSQL 18 is the expected SmartFit installation.
-    # Older versions are also checked so that an existing
-    # PostgreSQL installation can be reused.
+    # Check known PostgreSQL installation directories
     # --------------------------------------------------------
 
-    $CandidatePaths = @(
-        (Join-Path $PostgresBinDirectory "psql.exe"),
+    $candidatePaths = @(
+        "C:\Program Files\PostgreSQL\18\bin\psql.exe",
         "C:\Program Files\PostgreSQL\17\bin\psql.exe",
         "C:\Program Files\PostgreSQL\16\bin\psql.exe",
         "C:\Program Files\PostgreSQL\15\bin\psql.exe",
         "C:\Program Files\PostgreSQL\14\bin\psql.exe"
     )
 
+    foreach ($candidate in $candidatePaths) {
 
-    foreach ($CandidatePath in $CandidatePaths) {
+        if (Test-Path $candidate) {
 
-        if (Test-Path `
-            $CandidatePath `
-            -PathType Leaf) {
+            Write-InstallerLog `
+                -Level "INFO" `
+                -Message "Found psql: $candidate"
 
-            return $CandidatePath
+            return $candidate
         }
     }
 
+    Write-InstallerLog `
+        -Level "WARN" `
+        -Message "psql.exe could not be found."
 
     return $null
 }
 
-
 # ============================================================
-# Detect PostgreSQL installation
+# Find PostgreSQL
 # ============================================================
 
 function Find-PostgreSQL {
-    [CmdletBinding()]
-    [OutputType([bool])]
-    param ()
 
-    $PsqlCommand = Find-Psql
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "Searching for PostgreSQL installation..."
 
+    $psql = Find-Psql
 
-    if ($PsqlCommand) {
+    if ($null -ne $psql) {
 
-        $script:PsqlPath = $PsqlCommand
+        $script:PsqlPath = $psql
+
+        Write-InstallerLog `
+            -Level "INFO" `
+            -Message "PostgreSQL detected through psql."
 
         return $true
     }
 
-
     # --------------------------------------------------------
-    # As an additional check, look for a PostgreSQL service.
+    # Check PostgreSQL Windows services
     # --------------------------------------------------------
 
-    $Service = Get-Service `
-        -Name "postgresql*" `
-        -ErrorAction SilentlyContinue |
-        Select-Object -First 1
+    try {
 
+        $services = Get-Service -ErrorAction SilentlyContinue |
+            Where-Object {
+                $_.Name -like "postgresql*" -or
+                $_.DisplayName -like "*PostgreSQL*"
+            }
 
-    if ($Service) {
+        if ($null -ne $services -and $services.Count -gt 0) {
 
-        $PsqlCommand = Find-Psql
+            Write-InstallerLog `
+                -Level "INFO" `
+                -Message "PostgreSQL Windows service detected."
 
+            $psql = Find-Psql
 
-        if ($PsqlCommand) {
+            if ($null -ne $psql) {
 
-            $script:PsqlPath = $PsqlCommand
+                $script:PsqlPath = $psql
 
-            return $true
+                return $true
+            }
         }
+
+    }
+    catch {
+
+        Write-InstallerLog `
+            -Level "DEBUG" `
+            -Message "Unable to inspect PostgreSQL services: $($_.Exception.Message)"
     }
 
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "PostgreSQL was not detected."
 
     return $false
 }
-
 
 # ============================================================
 # Install PostgreSQL
 # ============================================================
 
 function Install-PostgreSQL {
-    [CmdletBinding()]
-    param ()
 
-    Write-Section "PostgreSQL Installation"
-
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "Installing PostgreSQL 18..."
 
     # --------------------------------------------------------
-    # Verify winget.
+    # Verify winget
     # --------------------------------------------------------
-
-    if (-not (Test-CommandExistence "winget")) {
-
-        Write-SetupFailure `
-            -Message "Windows Package Manager (winget) is required to install PostgreSQL automatically." `
-            -ExitCode $EXIT_POSTGRES_INSTALL
-    }
-
-
-    $WingetExitCode = 1
-
-
-    Write-Step "Installing PostgreSQL 18 using winget."
-
-
-    Write-CommandHeader `
-        "winget install --id $PostgresWingetId --exact --source winget"
-
 
     try {
 
-        & winget install `
-            --id $PostgresWingetId `
-            --exact `
-            --source winget
+        $winget = Get-Command "winget.exe" -ErrorAction Stop
 
-        $WingetExitCode = [int]$LASTEXITCODE
+        Write-InstallerLog `
+            -Level "INFO" `
+            -Message "Using winget: $($winget.Source)"
     }
     catch {
 
-        $WingetExitCode = 1
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "winget is not available."
+
+        Exit-WithInstallerCode $PostgresInstallFailureCode
     }
-
-
-    Write-CommandFooter `
-        -ExitCode $WingetExitCode
-
-
-    if ($WingetExitCode -ne 0) {
-
-        Write-SetupFailure `
-            -Message "PostgreSQL installation failed through winget." `
-            -ExitCode $EXIT_POSTGRES_INSTALL
-    }
-
 
     # --------------------------------------------------------
-    # Refresh PATH because winget may have installed psql into
-    # a directory that was not present in the current process.
+    # Install PostgreSQL
+    # --------------------------------------------------------
+
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "Running PostgreSQL 18 installation..."
+
+    & winget install `
+        --id $PostgresWingetId `
+        --exact `
+        --source winget `
+        --accept-source-agreements `
+        --accept-package-agreements
+
+    $wingetExitCode = $LASTEXITCODE
+
+    if ($wingetExitCode -ne 0) {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "PostgreSQL installation failed. winget exit code: $wingetExitCode"
+
+        Exit-WithInstallerCode $PostgresInstallFailureCode
+    }
+
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "PostgreSQL installation command completed."
+
+    # --------------------------------------------------------
+    # Refresh PATH
     # --------------------------------------------------------
 
     Initialize-ProcessPath
 
-
     # --------------------------------------------------------
-    # Verify that psql can now be found.
+    # Locate PostgreSQL after installation
     # --------------------------------------------------------
 
-    if (-not (Find-PostgreSQL)) {
+    $found = $false
 
-        Write-SetupFailure `
-            -Message "PostgreSQL was installed, but psql could not be detected." `
-            -ExitCode $EXIT_POSTGRES_INSTALL
+    for ($attempt = 1; $attempt -le 10; $attempt++) {
+
+        Write-InstallerLog `
+            -Level "DEBUG" `
+            -Message "Checking PostgreSQL installation (attempt $attempt/10)..."
+
+        if (Find-PostgreSQL) {
+
+            $found = $true
+            break
+        }
+
+        Start-Sleep -Seconds 2
     }
 
+    if (-not $found) {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "PostgreSQL was installed but psql.exe could not be located."
+
+        Exit-WithInstallerCode $PostgresInstallFailureCode
+    }
 
     # --------------------------------------------------------
-    # A newly installed PostgreSQL instance uses the SmartFit
-    # default password.
+    # Mark installation as NEW
     # --------------------------------------------------------
 
     $script:PostgresWasPreviouslyInstalled = $false
 
+    # --------------------------------------------------------
+    # IMPORTANT:
+    #
+    # Do NOT assume that SmartFit2026 is already the PostgreSQL
+    # password.
+    #
+    # The PostgreSQL installer initializes the cluster first.
+    # We configure the postgres role password explicitly below.
+    # --------------------------------------------------------
+
     $script:PostgresPassword = $DefaultPostgresPassword
 
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "PostgreSQL 18 detected after installation."
 
-    Write-Success "PostgreSQL is installed."
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "The new PostgreSQL postgres role will be configured with the SmartFit default password."
 
-    Write-Info `
-        "The SmartFit PostgreSQL password for this new installation is: $DefaultPostgresPassword"
+    return $true
 }
 
-
 # ============================================================
-# Request password for existing PostgreSQL installation
+# Request existing PostgreSQL password
 # ============================================================
 
 function Request-ExistingPostgresPassword {
-    [CmdletBinding()]
-    [OutputType([string])]
-    param ()
 
-    Write-Step "PostgreSQL is already installed."
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "PostgreSQL already exists on this machine."
 
-    Write-Info `
-        "The existing PostgreSQL password will not be changed."
+    Write-Host ""
+    Write-Host "PostgreSQL was detected on this machine." -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "The existing PostgreSQL password will NOT be changed." -ForegroundColor Yellow
+    Write-Host "Please enter the current password for the PostgreSQL '$PostgresUser' role." -ForegroundColor Yellow
+    Write-Host ""
 
-    Write-Info `
-        "Enter the current password for the PostgreSQL postgres user."
+    $securePassword = Read-Host `
+        -Prompt "PostgreSQL password" `
+        -AsSecureString
 
+    $credential = New-Object System.Management.Automation.PSCredential(
+        $PostgresUser,
+        $securePassword
+    )
 
-    $EnteredCredential = Read-Host `
-        "PostgreSQL password"
+    $script:PostgresPassword = $credential.GetNetworkCredential().Password
 
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "Existing PostgreSQL password was supplied by the user."
 
-    if ([string]::IsNullOrWhiteSpace($EnteredCredential)) {
-
-        Write-SetupFailure `
-            -Message "A PostgreSQL password is required to continue." `
-            -ExitCode $EXIT_POSTGRES_AUTH
-    }
-
-
-    return $EnteredCredential
+    return $true
 }
 
+# ============================================================
+# Run psql command
+# ============================================================
+
+function Invoke-PostgresSql {
+
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Sql,
+
+        [string]$Database = "postgres",
+
+        [switch]$SuppressOutput
+    )
+
+    if ([string]::IsNullOrWhiteSpace($script:PsqlPath)) {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "psql path has not been initialized."
+
+        return $false
+    }
+
+    if ([string]::IsNullOrWhiteSpace($script:PostgresPassword)) {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "PostgreSQL password has not been initialized."
+
+        return $false
+    }
+
+    $previousPassword = $env:PGPASSWORD
+
+    try {
+
+        $env:PGPASSWORD = $script:PostgresPassword
+
+        $arguments = @(
+            "--host=$PostgresHost"
+            "--port=$PostgresPort"
+            "--username=$PostgresUser"
+            "--dbname=$Database"
+            "--no-password"
+            "--command=$Sql"
+        )
+
+        if ($SuppressOutput) {
+
+            & $script:PsqlPath @arguments 2>$null | Out-Null
+
+        }
+        else {
+
+            & $script:PsqlPath @arguments
+        }
+
+        return ($LASTEXITCODE -eq 0)
+    }
+    finally {
+
+        if ($null -eq $previousPassword) {
+
+            Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
+        }
+        else {
+
+            $env:PGPASSWORD = $previousPassword
+        }
+    }
+}
+
+# ============================================================
+# Configure password on NEW PostgreSQL installation
+# ============================================================
+
+function Set-NewPostgresPassword {
+
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "Configuring the PostgreSQL postgres role password..."
+
+    if ([string]::IsNullOrWhiteSpace($script:PsqlPath)) {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "Cannot configure PostgreSQL password because psql.exe was not found."
+
+        return $false
+    }
+
+    # --------------------------------------------------------
+    # A newly initialized PostgreSQL cluster can normally be
+    # accessed locally during initial configuration.
+    #
+    # We first attempt a local connection using the Windows
+    # PostgreSQL installation's local authentication.
+    #
+    # No password is supplied here intentionally.
+    # --------------------------------------------------------
+
+    $previousPassword = $env:PGPASSWORD
+
+    try {
+
+        Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
+
+        Write-InstallerLog `
+            -Level "INFO" `
+            -Message "Attempting local PostgreSQL administrative connection..."
+
+        $localArguments = @(
+            "--host=localhost"
+            "--port=$PostgresPort"
+            "--username=$PostgresUser"
+            "--dbname=postgres"
+            "--no-password"
+            "--command=SELECT 1;"
+        )
+
+        $localOutput = & $script:PsqlPath @localArguments 2>&1
+
+        $localExitCode = $LASTEXITCODE
+
+        if ($localExitCode -ne 0) {
+
+            Write-InstallerLog `
+                -Level "WARN" `
+                -Message "Local passwordless PostgreSQL connection was not available."
+
+            Write-InstallerLog `
+                -Level "DEBUG" `
+                -Message "psql output: $localOutput"
+
+            # ------------------------------------------------
+            # Fallback:
+            #
+            # Some PostgreSQL Windows installations may already
+            # have the desired password configured during their
+            # initialization. Test SmartFit2026 before failing.
+            # ------------------------------------------------
+
+            Write-InstallerLog `
+                -Level "INFO" `
+                -Message "Testing the configured SmartFit default password..."
+
+            if (Test-PostgresAuthentication -Password $DefaultPostgresPassword) {
+
+                Write-InstallerLog `
+                    -Level "INFO" `
+                    -Message "PostgreSQL already accepts the SmartFit default password."
+
+                $script:PostgresPassword = $DefaultPostgresPassword
+
+                return $true
+            }
+
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "Unable to obtain administrative access to the newly installed PostgreSQL instance."
+
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "PostgreSQL may have been initialized with a password that this installer cannot determine automatically."
+
+            return $false
+        }
+
+    }
+    finally {
+
+        if ($null -eq $previousPassword) {
+
+            Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
+        }
+        else {
+
+            $env:PGPASSWORD = $previousPassword
+        }
+    }
+
+    # --------------------------------------------------------
+    # We have local administrative access.
+    #
+    # PostgreSQL passwords are properties of roles. Therefore
+    # SmartFit2026 is assigned to the postgres role.
+    # --------------------------------------------------------
+
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "Setting postgres role password to the SmartFit default password..."
+
+    $passwordSql = @"
+ALTER ROLE "$PostgresUser" WITH PASSWORD '$DefaultPostgresPassword';
+"@
+
+    $previousPassword = $env:PGPASSWORD
+
+    try {
+
+        Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
+
+        & $script:PsqlPath `
+            "--host=localhost" `
+            "--port=$PostgresPort" `
+            "--username=$PostgresUser" `
+            "--dbname=postgres" `
+            "--no-password" `
+            "--command=$passwordSql" 2>&1 | Out-Null
+
+        $exitCode = $LASTEXITCODE
+
+    }
+    finally {
+
+        if ($null -eq $previousPassword) {
+
+            Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
+        }
+        else {
+
+            $env:PGPASSWORD = $previousPassword
+        }
+    }
+
+    if ($exitCode -ne 0) {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "Failed to configure the postgres role password."
+
+        return $false
+    }
+
+    $script:PostgresPassword = $DefaultPostgresPassword
+
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "PostgreSQL postgres role password configured successfully."
+
+    # --------------------------------------------------------
+    # Immediately verify password authentication.
+    # --------------------------------------------------------
+
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "Verifying PostgreSQL password authentication..."
+
+    if (-not (Test-PostgresAuthentication)) {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "PostgreSQL password authentication failed after password configuration."
+
+        return $false
+    }
+
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "PostgreSQL password authentication verified successfully."
+
+    return $true
+}
 
 # ============================================================
 # Test PostgreSQL authentication
 # ============================================================
 
 function Test-PostgresAuthentication {
-    [CmdletBinding()]
-    [OutputType([bool])]
-    param ()
 
-    if (-not $script:PsqlPath) {
+    if ([string]::IsNullOrWhiteSpace($script:PostgresPassword)) {
 
-        $script:PsqlPath = Find-Psql
-    }
-
-
-    if (-not $script:PsqlPath) {
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "No PostgreSQL password is available for authentication testing."
 
         return $false
     }
 
+    if ([string]::IsNullOrWhiteSpace($script:PsqlPath)) {
 
-    $PreviousPgPassword = $env:PGPASSWORD
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "psql.exe is not available for PostgreSQL authentication testing."
 
+        return $false
+    }
+
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "Testing PostgreSQL authentication..."
+
+    $previousPassword = $env:PGPASSWORD
 
     try {
 
-        # ----------------------------------------------------
-        # PGPASSWORD allows psql to authenticate without
-        # prompting interactively.
-        # ----------------------------------------------------
-
         $env:PGPASSWORD = $script:PostgresPassword
 
-
         & $script:PsqlPath `
-            --host=$PostgresHost `
-            --port=$PostgresPort `
-            --username=$PostgresUser `
-            --dbname=postgres `
-            --command="SELECT 1;" `
-            --no-password `
-            2>&1 | Out-Null
+            "--host=$PostgresHost" `
+            "--port=$PostgresPort" `
+            "--username=$PostgresUser" `
+            "--dbname=postgres" `
+            "--no-password" `
+            "--command=SELECT 1;" 2>&1 | Out-Null
 
+        $exitCode = $LASTEXITCODE
 
-        return ($LASTEXITCODE -eq 0)
-    }
-    catch {
+        if ($exitCode -eq 0) {
+
+            Write-InstallerLog `
+                -Level "INFO" `
+                -Message "PostgreSQL authentication successful."
+
+            return $true
+        }
+
+        Write-InstallerLog `
+            -Level "WARN" `
+            -Message "PostgreSQL authentication failed."
 
         return $false
     }
     finally {
 
-        # Restore the environment exactly as it was before
-        # authentication testing.
-        $env:PGPASSWORD = $PreviousPgPassword
+        if ($null -eq $previousPassword) {
+
+            Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
+        }
+        else {
+
+            $env:PGPASSWORD = $previousPassword
+        }
     }
 }
 
-
 # ============================================================
-# Create PostgreSQL database when missing
+# Create database if missing
 # ============================================================
 
 function New-DatabaseIfMissing {
-    [CmdletBinding(SupportsShouldProcess = $true)]
-    param (
+
+    param(
         [Parameter(Mandatory = $true)]
         [string]$DatabaseName
     )
 
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "Checking database '$DatabaseName'..."
 
-    if (-not $script:PsqlPath) {
-
-        $script:PsqlPath = Find-Psql
-    }
-
-
-    if (-not $script:PsqlPath) {
-
-        Write-SetupFailure `
-            -Message "psql could not be found." `
-            -ExitCode $EXIT_DATABASE
-    }
-
-
-    $DatabaseCheckOutput = $null
-
-    $DatabaseCheckExitCode = 1
-
-    $PreviousPgPassword = $env:PGPASSWORD
-
+    $previousPassword = $env:PGPASSWORD
 
     try {
 
         $env:PGPASSWORD = $script:PostgresPassword
 
+        $query = "SELECT 1 FROM pg_database WHERE datname = '$DatabaseName';"
 
-        $DatabaseCheckOutput = & $script:PsqlPath `
-            --host=$PostgresHost `
-            --port=$PostgresPort `
-            --username=$PostgresUser `
-            --dbname=postgres `
-            --command="SELECT 1 FROM pg_database WHERE datname='$DatabaseName';" `
-            --tuples-only `
-            --no-align `
-            --no-password `
-            2>&1
+        $result = & $script:PsqlPath `
+            "--host=$PostgresHost" `
+            "--port=$PostgresPort" `
+            "--username=$PostgresUser" `
+            "--dbname=postgres" `
+            "--no-password" `
+            "--tuples-only" `
+            "--no-align" `
+            "--command=$query" 2>&1
 
+        $exitCode = $LASTEXITCODE
 
-        $DatabaseCheckExitCode = [int]$LASTEXITCODE
-    }
-    catch {
+        if ($exitCode -ne 0) {
 
-        $DatabaseCheckExitCode = 1
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "Unable to query PostgreSQL for database '$DatabaseName'."
+
+            Write-InstallerLog `
+                -Level "DEBUG" `
+                -Message "psql output: $result"
+
+            return $false
+        }
+
+        $databaseExists = ($result | Out-String).Trim() -eq "1"
+
+        if ($databaseExists) {
+
+            Write-InstallerLog `
+                -Level "INFO" `
+                -Message "Database '$DatabaseName' already exists."
+
+            return $true
+        }
+
+        Write-InstallerLog `
+            -Level "INFO" `
+            -Message "Database '$DatabaseName' does not exist. Creating it..."
+
+        $createQuery = 'CREATE DATABASE "' + $DatabaseName + '";'
+
+        & $script:PsqlPath `
+            "--host=$PostgresHost" `
+            "--port=$PostgresPort" `
+            "--username=$PostgresUser" `
+            "--dbname=postgres" `
+            "--no-password" `
+            "--command=$createQuery" 2>&1 | Out-Null
+
+        $createExitCode = $LASTEXITCODE
+
+        if ($createExitCode -ne 0) {
+
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "Failed to create database '$DatabaseName'."
+
+            return $false
+        }
+
+        Write-InstallerLog `
+            -Level "INFO" `
+            -Message "Database '$DatabaseName' created successfully."
+
+        return $true
     }
     finally {
 
-        $env:PGPASSWORD = $PreviousPgPassword
-    }
+        if ($null -eq $previousPassword) {
 
-
-    if ($DatabaseCheckExitCode -ne 0) {
-
-        Write-SetupFailure `
-            -Message "Unable to check whether database '$DatabaseName' exists." `
-            -ExitCode $EXIT_DATABASE
-    }
-
-
-    # --------------------------------------------------------
-    # If the database exists, do not recreate it.
-    # --------------------------------------------------------
-
-    if ($DatabaseCheckOutput -match "1") {
-
-        Write-Info `
-            "Database already exists: $DatabaseName"
-
-        return
-    }
-
-
-    # --------------------------------------------------------
-    # Create the database.
-    # --------------------------------------------------------
-
-    if ($PSCmdlet.ShouldProcess(
-        $DatabaseName,
-        "Create PostgreSQL database"
-    )) {
-
-        $CreateExitCode = 1
-
-        $PreviousPgPassword = $env:PGPASSWORD
-
-
-        try {
-
-            $env:PGPASSWORD = $script:PostgresPassword
-
-
-            Write-CommandHeader `
-                "CREATE DATABASE $DatabaseName"
-
-
-            & $script:PsqlPath `
-                --host=$PostgresHost `
-                --port=$PostgresPort `
-                --username=$PostgresUser `
-                --dbname=postgres `
-                --command="CREATE DATABASE `"$DatabaseName`";" `
-                --no-password
-
-
-            $CreateExitCode = [int]$LASTEXITCODE
+            Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
         }
-        catch {
+        else {
 
-            $CreateExitCode = 1
+            $env:PGPASSWORD = $previousPassword
         }
-        finally {
-
-            $env:PGPASSWORD = $PreviousPgPassword
-        }
-
-
-        Write-CommandFooter `
-            -ExitCode $CreateExitCode
-
-
-        if ($CreateExitCode -ne 0) {
-
-            Write-SetupFailure `
-                -Message "Failed to create PostgreSQL database '$DatabaseName'." `
-                -ExitCode $EXIT_DATABASE
-        }
-
-
-        Write-Success `
-            "Database created: $DatabaseName"
     }
 }
 
-
 # ============================================================
-# Update one environment variable in the .env file
+# Write environment variable
 # ============================================================
 
 function Write-EnvValue {
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true)]
-        [AllowEmptyString()]
-        [string]$Content,
 
-        [Parameter(Mandatory = $true)]
+    param(
+        [string[]]$Lines,
         [string]$Key,
-
-        [Parameter(Mandatory = $true)]
-        [AllowEmptyString()]
         [string]$Value
     )
 
+    $escapedKey = [regex]::Escape($Key)
 
-    # --------------------------------------------------------
-    # Remove a UTF-8 BOM if the existing .env file contains
-    # one at the beginning of its content.
-    #
-    # This prevents an existing malformed first variable such
-    # as "﻿DATABASE_URL" from surviving the update.
-    # --------------------------------------------------------
+    $found = $false
 
-    if ($Content.Length -gt 0 -and $Content[0] -eq [char]0xFEFF) {
-        $Content = $Content.Substring(1)
+    $updatedLines = foreach ($line in $Lines) {
+
+        if ($line -match "^\s*$escapedKey\s*=") {
+
+            $found = $true
+
+            "$Key=$Value"
+        }
+        else {
+
+            $line
+        }
     }
 
+    if (-not $found) {
 
-    $NewLine = "$Key=$Value"
-
-
-    $Pattern = "^\s*$([regex]::Escape($Key))\s*=.*$"
-
-
-    # --------------------------------------------------------
-    # Replace an existing key.
-    # --------------------------------------------------------
-
-    if ($Content -match $Pattern) {
-
-        return [regex]::Replace(
-            $Content,
-            $Pattern,
-            $NewLine,
-            [System.Text.RegularExpressions.RegexOptions]::Multiline
-        )
+        $updatedLines += "$Key=$Value"
     }
 
-
-    # --------------------------------------------------------
-    # Add the key when the file is empty.
-    # --------------------------------------------------------
-
-    if ([string]::IsNullOrWhiteSpace($Content)) {
-
-        return $NewLine
-    }
-
-
-    # --------------------------------------------------------
-    # Add the key to the end of the existing configuration.
-    # --------------------------------------------------------
-
-    return "$Content`r`n$NewLine"
+    return $updatedLines
 }
 
-
 # ============================================================
-# Build database URLs
+# Build PostgreSQL DATABASE_URL
 # ============================================================
 
 function Get-PostgresDatabaseUrl {
-    [CmdletBinding()]
-    [OutputType([string])]
-    param (
+
+    param(
         [Parameter(Mandatory = $true)]
         [string]$DatabaseName
     )
 
+    $encodedUser = [System.Uri]::EscapeDataString($PostgresUser)
+    $encodedPassword = [System.Uri]::EscapeDataString($script:PostgresPassword)
 
-    # --------------------------------------------------------
-    # PostgreSQL credentials are URL-encoded because passwords
-    # may contain characters that have special meaning inside
-    # connection URLs.
-    # --------------------------------------------------------
-
-    $EncodedUser = [System.Uri]::EscapeDataString(
-        $PostgresUser
-    )
-
-
-    $EncodedPassword = [System.Uri]::EscapeDataString(
-        $script:PostgresPassword
-    )
-
-
-    return `
-        "postgresql://${EncodedUser}:${EncodedPassword}@${PostgresHost}:${PostgresPort}/${DatabaseName}"
+    return "postgresql://${encodedUser}:${encodedPassword}@${PostgresHost}:${PostgresPort}/${DatabaseName}"
 }
 
-
 # ============================================================
-# Update backend .env database configuration
+# Write PostgreSQL environment configuration
 # ============================================================
 
 function Write-PostgresEnvironment {
-    [CmdletBinding()]
-    param ()
 
-    Write-Section "Backend Database Environment"
-
-
-    # --------------------------------------------------------
-    # Verify backend directory.
-    # --------------------------------------------------------
-
-    if (-not (Test-Path `
-        $BackendRoot `
-        -PathType Container)) {
-
-        Write-SetupFailure `
-            -Message "The backend directory was not found: $BackendRoot" `
-            -ExitCode $EXIT_ENV
-    }
-
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "Updating backend PostgreSQL environment configuration..."
 
     try {
 
+        if (-not (Test-Path $BackendRoot)) {
+
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "Backend directory does not exist: $BackendRoot"
+
+            Exit-WithInstallerCode $PostgresEnvironmentFailureCode
+        }
+
         # ----------------------------------------------------
-        # Read existing .env when present.
+        # Preserve existing .env
         # ----------------------------------------------------
 
-        if (Test-Path `
-            $BackendEnvFile `
-            -PathType Leaf) {
+        $lines = @()
 
-            $EnvironmentContent = Get-Content `
+        if (Test-Path $BackendEnvFile) {
+
+            Write-InstallerLog `
+                -Level "INFO" `
+                -Message "Existing backend .env detected. Preserving existing configuration."
+
+            $content = Get-Content `
                 -Path $BackendEnvFile `
                 -Raw `
                 -ErrorAction Stop
 
+            # Remove UTF-8 BOM if present.
+            $content = $content.TrimStart([char]0xFEFF)
 
-            Write-Info `
-                "Existing backend .env file found."
+            $lines = $content -split "`r?`n"
 
-            Write-Info `
-                "Existing non-database configuration will be preserved."
+            # Remove final empty line generated by split.
+            if ($lines.Count -gt 0 -and $lines[-1] -eq "") {
+
+                $lines = $lines[0..($lines.Count - 2)]
+            }
         }
         else {
 
-            $EnvironmentContent = ""
+            Write-InstallerLog `
+                -Level "INFO" `
+                -Message "backend/.env does not exist. Creating it."
 
-
-            Write-Info `
-                "No backend .env file was found."
-
-            Write-Info `
-                "A new backend .env file will be created."
+            $lines = @()
         }
 
-
         # ----------------------------------------------------
-        # Remove an existing UTF-8 BOM before processing the
-        # environment variables.
+        # Build URLs
         # ----------------------------------------------------
 
-        if (
-            $EnvironmentContent.Length -gt 0 -and
-            $EnvironmentContent[0] -eq [char]0xFEFF
-        ) {
-
-            $EnvironmentContent = `
-                $EnvironmentContent.Substring(1)
-
-            Write-Info `
-                "Removed an existing UTF-8 BOM from backend/.env."
-        }
-
-
-        # ----------------------------------------------------
-        # Build the database URLs.
-        # ----------------------------------------------------
-
-        $DevelopmentDatabaseUrl = Get-PostgresDatabaseUrl `
+        $developmentUrl = Get-PostgresDatabaseUrl `
             -DatabaseName $DevelopmentDatabase
 
-
-        $TestDatabaseUrl = Get-PostgresDatabaseUrl `
+        $testUrl = Get-PostgresDatabaseUrl `
             -DatabaseName $TestDatabase
 
-
         # ----------------------------------------------------
-        # Update only PostgreSQL-related variables.
+        # Update only PostgreSQL-related keys.
         # ----------------------------------------------------
 
-        $EnvironmentContent = Write-EnvValue `
-            -Content $EnvironmentContent `
+        $lines = Write-EnvValue `
+            -Lines $lines `
             -Key "DATABASE_URL" `
-            -Value $DevelopmentDatabaseUrl
+            -Value $developmentUrl
 
-
-        $EnvironmentContent = Write-EnvValue `
-            -Content $EnvironmentContent `
+        $lines = Write-EnvValue `
+            -Lines $lines `
             -Key "TEST_DATABASE_URL" `
-            -Value $TestDatabaseUrl
+            -Value $testUrl
 
-
-        $EnvironmentContent = Write-EnvValue `
-            -Content $EnvironmentContent `
+        $lines = Write-EnvValue `
+            -Lines $lines `
             -Key "POSTGRES_USER" `
             -Value $PostgresUser
 
-
-        $EnvironmentContent = Write-EnvValue `
-            -Content $EnvironmentContent `
+        $lines = Write-EnvValue `
+            -Lines $lines `
             -Key "POSTGRES_PASSWORD" `
             -Value $script:PostgresPassword
 
-
-        $EnvironmentContent = Write-EnvValue `
-            -Content $EnvironmentContent `
+        $lines = Write-EnvValue `
+            -Lines $lines `
             -Key "POSTGRES_HOST" `
             -Value $PostgresHost
 
-
-        $EnvironmentContent = Write-EnvValue `
-            -Content $EnvironmentContent `
+        $lines = Write-EnvValue `
+            -Lines $lines `
             -Key "POSTGRES_PORT" `
             -Value $PostgresPort
 
-
-        $EnvironmentContent = Write-EnvValue `
-            -Content $EnvironmentContent `
+        $lines = Write-EnvValue `
+            -Lines $lines `
             -Key "POSTGRES_DB" `
             -Value $DevelopmentDatabase
 
-
         # ----------------------------------------------------
-        # Write the updated .env file as UTF-8 WITHOUT BOM.
-        #
-        # This is the important fix.
-        #
-        # Windows PowerShell's Set-Content -Encoding UTF8 can
-        # write a UTF-8 BOM. That causes python-dotenv to read:
-        #
-        #     ﻿DATABASE_URL
-        #
-        # instead of:
-        #
-        #     DATABASE_URL
-        #
-        # File.WriteAllText with UTF8Encoding($false) explicitly
-        # prevents the BOM.
+        # Write UTF-8 WITHOUT BOM
         # ----------------------------------------------------
 
-        $Utf8NoBom = New-Object `
-            System.Text.UTF8Encoding($false)
-
+        $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
         [System.IO.File]::WriteAllText(
             $BackendEnvFile,
-            $EnvironmentContent.TrimEnd(),
-            $Utf8NoBom
+            ($lines -join [Environment]::NewLine),
+            $utf8NoBom
         )
+
+        # ----------------------------------------------------
+        # Synchronize process environment
+        # ----------------------------------------------------
+
+        $env:DATABASE_URL = $developmentUrl
+        $env:TEST_DATABASE_URL = $testUrl
+        $env:POSTGRES_USER = $PostgresUser
+        $env:POSTGRES_PASSWORD = $script:PostgresPassword
+        $env:POSTGRES_HOST = $PostgresHost
+        $env:POSTGRES_PORT = $PostgresPort
+        $env:POSTGRES_DB = $DevelopmentDatabase
+
+        Write-InstallerLog `
+            -Level "INFO" `
+            -Message "PostgreSQL environment configuration written successfully."
+
+        return $true
     }
     catch {
 
-        Write-SetupFailure `
-            -Message "Failed to update the backend .env file: $($_.Exception.Message)" `
-            -ExitCode $EXIT_ENV
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "Failed to write PostgreSQL environment configuration: $($_.Exception.Message)"
+
+        Exit-WithInstallerCode $PostgresEnvironmentFailureCode
     }
-
-
-    # --------------------------------------------------------
-    # Verify that the file now exists.
-    # --------------------------------------------------------
-
-    if (-not (Test-Path `
-        $BackendEnvFile `
-        -PathType Leaf)) {
-
-        Write-SetupFailure `
-            -Message "The backend .env file was not created: $BackendEnvFile" `
-            -ExitCode $EXIT_ENV
-    }
-
-
-    # --------------------------------------------------------
-    # Synchronize the database configuration into the current
-    # PowerShell process environment.
-    #
-    # Python processes launched later by Backend.ps1 inherit
-    # these values.
-    #
-    # This prevents an existing Windows environment variable
-    # such as DATABASE_URL="" from overriding the .env value
-    # when python-dotenv loads the configuration.
-    # --------------------------------------------------------
-
-    $env:DATABASE_URL = $DevelopmentDatabaseUrl
-
-    $env:TEST_DATABASE_URL = $TestDatabaseUrl
-
-    $env:POSTGRES_USER = $PostgresUser
-
-    $env:POSTGRES_PASSWORD = $script:PostgresPassword
-
-    $env:POSTGRES_HOST = $PostgresHost
-
-    $env:POSTGRES_PORT = $PostgresPort
-
-    $env:POSTGRES_DB = $DevelopmentDatabase
-
-
-    Write-Success `
-        "Backend database environment configured."
-
-
-    Write-Info `
-        "Environment file: $BackendEnvFile"
-
-    Write-Info `
-        "Development database: $DevelopmentDatabase"
-
-    Write-Info `
-        "Test database: $TestDatabase"
-
-    Write-Info `
-        "DATABASE_URL has been synchronized with the installer process."
-
-    Write-Info `
-        "TEST_DATABASE_URL has been synchronized with the installer process."
 }
 
-
 # ============================================================
-# Validate backend database environment
+# Verify PostgreSQL environment configuration
 # ============================================================
 
 function Test-PostgresEnvironment {
-    [CmdletBinding()]
-    [OutputType([bool])]
-    param ()
 
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "Verifying PostgreSQL environment configuration..."
 
-    Write-Step `
-        "Verifying the backend PostgreSQL environment configuration."
+    if (-not (Test-Path $BackendEnvFile)) {
 
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "backend/.env does not exist."
 
-    # --------------------------------------------------------
-    # Verify .env exists.
-    # --------------------------------------------------------
-
-    if (-not (Test-Path `
-        $BackendEnvFile `
-        -PathType Leaf)) {
-
-        Write-SetupFailure `
-            -Message "The backend .env file does not exist: $BackendEnvFile" `
-            -ExitCode $EXIT_ENV
+        return $false
     }
-
-
-    # --------------------------------------------------------
-    # Build the expected URLs.
-    # --------------------------------------------------------
-
-    $ExpectedDevelopmentUrl = Get-PostgresDatabaseUrl `
-        -DatabaseName $DevelopmentDatabase
-
-
-    $ExpectedTestUrl = Get-PostgresDatabaseUrl `
-        -DatabaseName $TestDatabase
-
-
-    # --------------------------------------------------------
-    # Verify the process environment.
-    #
-    # This is particularly important because child Python
-    # processes inherit these values.
-    # --------------------------------------------------------
-
-    if ([string]::IsNullOrWhiteSpace($env:DATABASE_URL)) {
-
-        Write-SetupFailure `
-            -Message "DATABASE_URL is missing from the installer environment." `
-            -ExitCode $EXIT_ENV
-    }
-
-
-    if ([string]::IsNullOrWhiteSpace($env:TEST_DATABASE_URL)) {
-
-        Write-SetupFailure `
-            -Message "TEST_DATABASE_URL is missing from the installer environment." `
-            -ExitCode $EXIT_ENV
-    }
-
-
-    if ($env:DATABASE_URL -ne $ExpectedDevelopmentUrl) {
-
-        Write-SetupFailure `
-            -Message "DATABASE_URL does not match the SmartFit development database configuration." `
-            -ExitCode $EXIT_ENV
-    }
-
-
-    if ($env:TEST_DATABASE_URL -ne $ExpectedTestUrl) {
-
-        Write-SetupFailure `
-            -Message "TEST_DATABASE_URL does not match the SmartFit test database configuration." `
-            -ExitCode $EXIT_ENV
-    }
-
-
-    # --------------------------------------------------------
-    # Read the .env file.
-    #
-    # Do not print the password or complete URLs because they
-    # contain credentials.
-    # --------------------------------------------------------
 
     try {
 
-        $EnvironmentContent = Get-Content `
+        $content = Get-Content `
             -Path $BackendEnvFile `
             -Raw `
             -ErrorAction Stop
+
+        # ----------------------------------------------------
+        # Verify no UTF-8 BOM
+        # ----------------------------------------------------
+
+        $bytes = [System.IO.File]::ReadAllBytes($BackendEnvFile)
+
+        if (
+            $bytes.Length -ge 3 -and
+            $bytes[0] -eq 0xEF -and
+            $bytes[1] -eq 0xBB -and
+            $bytes[2] -eq 0xBF
+        ) {
+
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "backend/.env contains a UTF-8 BOM."
+
+            return $false
+        }
+
+        # ----------------------------------------------------
+        # Expected values
+        # ----------------------------------------------------
+
+        $expectedDevelopmentUrl = Get-PostgresDatabaseUrl `
+            -DatabaseName $DevelopmentDatabase
+
+        $expectedTestUrl = Get-PostgresDatabaseUrl `
+            -DatabaseName $TestDatabase
+
+        $requiredKeys = @(
+            "DATABASE_URL",
+            "TEST_DATABASE_URL",
+            "POSTGRES_USER",
+            "POSTGRES_PASSWORD",
+            "POSTGRES_HOST",
+            "POSTGRES_PORT",
+            "POSTGRES_DB"
+        )
+
+        foreach ($key in $requiredKeys) {
+
+            if ($content -notmatch "(?m)^\s*$([regex]::Escape($key))\s*=") {
+
+                Write-InstallerLog `
+                    -Level "ERROR" `
+                    -Message "Required environment key is missing: $key"
+
+                return $false
+            }
+        }
+
+        # ----------------------------------------------------
+        # Verify exact database URLs
+        # ----------------------------------------------------
+
+        if ($content -notmatch "(?m)^DATABASE_URL=$([regex]::Escape($expectedDevelopmentUrl))\s*$") {
+
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "DATABASE_URL does not match the expected SmartFit development database."
+
+            return $false
+        }
+
+        if ($content -notmatch "(?m)^TEST_DATABASE_URL=$([regex]::Escape($expectedTestUrl))\s*$") {
+
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "TEST_DATABASE_URL does not match the expected SmartFit test database."
+
+            return $false
+        }
+
+        # ----------------------------------------------------
+        # Verify process environment
+        # ----------------------------------------------------
+
+        if ($env:DATABASE_URL -ne $expectedDevelopmentUrl) {
+
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "Process DATABASE_URL does not match the expected value."
+
+            return $false
+        }
+
+        if ($env:TEST_DATABASE_URL -ne $expectedTestUrl) {
+
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "Process TEST_DATABASE_URL does not match the expected value."
+
+            return $false
+        }
+
+        if ($env:POSTGRES_USER -ne $PostgresUser) {
+
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "Process POSTGRES_USER does not match the expected value."
+
+            return $false
+        }
+
+        if ($env:POSTGRES_PASSWORD -ne $script:PostgresPassword) {
+
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "Process POSTGRES_PASSWORD does not match the configured PostgreSQL password."
+
+            return $false
+        }
+
+        if ($env:POSTGRES_HOST -ne $PostgresHost) {
+
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "Process POSTGRES_HOST does not match the expected value."
+
+            return $false
+        }
+
+        if ($env:POSTGRES_PORT -ne $PostgresPort) {
+
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "Process POSTGRES_PORT does not match the expected value."
+
+            return $false
+        }
+
+        if ($env:POSTGRES_DB -ne $DevelopmentDatabase) {
+
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "Process POSTGRES_DB does not match the expected value."
+
+            return $false
+        }
+
+        Write-InstallerLog `
+            -Level "INFO" `
+            -Message "PostgreSQL environment configuration verified successfully."
+
+        return $true
     }
     catch {
 
-        Write-SetupFailure `
-            -Message "Unable to read the backend .env file: $($_.Exception.Message)" `
-            -ExitCode $EXIT_ENV
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "Failed to verify PostgreSQL environment: $($_.Exception.Message)"
+
+        return $false
     }
-
-
-    # --------------------------------------------------------
-    # Verify that the .env file does NOT begin with a UTF-8 BOM.
-    #
-    # This specifically protects against the issue discovered
-    # during SmartFit release testing.
-    # --------------------------------------------------------
-
-    if (
-        $EnvironmentContent.Length -gt 0 -and
-        $EnvironmentContent[0] -eq [char]0xFEFF
-    ) {
-
-        Write-SetupFailure `
-            -Message "The backend .env file contains a UTF-8 BOM. DATABASE_URL may not be readable by python-dotenv." `
-            -ExitCode $EXIT_ENV
-    }
-
-
-    # --------------------------------------------------------
-    # Verify required database keys exist in .env.
-    # --------------------------------------------------------
-
-    $RequiredEnvironmentKeys = @(
-        "DATABASE_URL",
-        "TEST_DATABASE_URL",
-        "POSTGRES_USER",
-        "POSTGRES_PASSWORD",
-        "POSTGRES_HOST",
-        "POSTGRES_PORT",
-        "POSTGRES_DB"
-    )
-
-
-    foreach ($Key in $RequiredEnvironmentKeys) {
-
-        $Pattern = "(?m)^\s*$([regex]::Escape($Key))\s*=\s*(.+?)\s*$"
-
-
-        if ($EnvironmentContent -notmatch $Pattern) {
-
-            Write-SetupFailure `
-                -Message "Required PostgreSQL configuration '$Key' is missing from backend/.env." `
-                -ExitCode $EXIT_ENV
-        }
-    }
-
-
-    # --------------------------------------------------------
-    # Verify database URL values in .env match the values that
-    # were placed into the process environment.
-    #
-    # This prevents the installer from reporting success when
-    # the file and the Python process would see different
-    # database configurations.
-    # --------------------------------------------------------
-
-    $DotEnvDatabaseUrl = $null
-
-    $DotEnvTestDatabaseUrl = $null
-
-
-    $DatabaseUrlMatch = [regex]::Match(
-        $EnvironmentContent,
-        "(?m)^\s*DATABASE_URL\s*=\s*(.*?)\s*$"
-    )
-
-
-    if ($DatabaseUrlMatch.Success) {
-
-        $DotEnvDatabaseUrl = $DatabaseUrlMatch.Groups[1].Value.Trim()
-    }
-
-
-    $TestDatabaseUrlMatch = [regex]::Match(
-        $EnvironmentContent,
-        "(?m)^\s*TEST_DATABASE_URL\s*=\s*(.*?)\s*$"
-    )
-
-
-    if ($TestDatabaseUrlMatch.Success) {
-
-        $DotEnvTestDatabaseUrl = $TestDatabaseUrlMatch.Groups[1].Value.Trim()
-    }
-
-
-    if ($DotEnvDatabaseUrl -ne $ExpectedDevelopmentUrl) {
-
-        Write-SetupFailure `
-            -Message "The DATABASE_URL stored in backend/.env is not the expected SmartFit development database URL." `
-            -ExitCode $EXIT_ENV
-    }
-
-
-    if ($DotEnvTestDatabaseUrl -ne $ExpectedTestUrl) {
-
-        Write-SetupFailure `
-            -Message "The TEST_DATABASE_URL stored in backend/.env is not the expected SmartFit test database URL." `
-            -ExitCode $EXIT_ENV
-    }
-
-
-    Write-Success `
-        "Backend PostgreSQL environment configuration verified."
-
-
-    Write-Info `
-        "Development database configuration: verified"
-
-    Write-Info `
-        "Test database configuration: verified"
-
-    Write-Info `
-        "PostgreSQL credentials: verified without displaying the password"
-
-
-    return $true
 }
 
-
 # ============================================================
-# Main PostgreSQL setup
+# Initialize PostgreSQL
 # ============================================================
 
 function Initialize-PostgreSQL {
-    [CmdletBinding()]
-    param ()
 
-
-    Write-Section "PostgreSQL Setup"
-
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "Initializing PostgreSQL for SmartFit..."
 
     # --------------------------------------------------------
-    # Detect an existing PostgreSQL installation.
+    # Determine whether PostgreSQL already exists.
     # --------------------------------------------------------
 
-    $ExistingPostgreSQL = Find-PostgreSQL
+    $postgresExists = Find-PostgreSQL
 
-
-    # ========================================================
-    # Existing PostgreSQL installation
-    # ========================================================
-
-    if ($ExistingPostgreSQL) {
+    if ($postgresExists) {
 
         $script:PostgresWasPreviouslyInstalled = $true
 
+        Write-InstallerLog `
+            -Level "INFO" `
+            -Message "Existing PostgreSQL installation detected."
 
-        Write-Success `
-            "Existing PostgreSQL installation detected."
+        # ----------------------------------------------------
+        # Existing installation:
+        # ask for the current password.
+        # ----------------------------------------------------
 
-
-        Write-Info `
-            "The existing PostgreSQL password will be preserved."
-
-
-        $script:PostgresPassword = `
-            Request-ExistingPostgresPassword
-
-
-        Write-Step `
-            "Verifying the existing PostgreSQL credentials."
-
+        Request-ExistingPostgresPassword
 
         if (-not (Test-PostgresAuthentication)) {
 
-            Write-SetupFailure `
-                -Message "The supplied PostgreSQL password could not be verified." `
-                -ExitCode $EXIT_POSTGRES_AUTH
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "The supplied PostgreSQL password is incorrect."
+
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "The existing PostgreSQL installation was NOT modified."
+
+            Exit-WithInstallerCode $PostgresAuthenticationFailureCode
         }
 
-
-        Write-Success `
-            "Existing PostgreSQL credentials verified."
+        Write-InstallerLog `
+            -Level "INFO" `
+            -Message "Existing PostgreSQL authentication verified."
     }
-
-
-    # ========================================================
-    # New PostgreSQL installation
-    # ========================================================
-
     else {
+
+        # ----------------------------------------------------
+        # Fresh installation.
+        # ----------------------------------------------------
+
+        Write-InstallerLog `
+            -Level "INFO" `
+            -Message "No PostgreSQL installation detected. Starting fresh installation."
 
         Install-PostgreSQL
 
+        # ----------------------------------------------------
+        # Configure SmartFit2026 on the new postgres role.
+        # ----------------------------------------------------
 
-        Write-Step `
-            "Verifying the new PostgreSQL installation."
+        if (-not (Set-NewPostgresPassword)) {
 
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "Failed to configure PostgreSQL for SmartFit."
 
-        if (-not (Test-PostgresAuthentication)) {
-
-            Write-SetupFailure `
-                -Message "The default PostgreSQL password could not be verified after installation." `
-                -ExitCode $EXIT_POSTGRES_AUTH
+            Exit-WithInstallerCode $PostgresAuthenticationFailureCode
         }
-
-
-        Write-Success `
-            "New PostgreSQL credentials verified."
     }
 
-
-    # ========================================================
-    # Refresh PATH and verify PostgreSQL
-    # ========================================================
+    # --------------------------------------------------------
+    # Refresh process PATH again after PostgreSQL setup.
+    # --------------------------------------------------------
 
     Initialize-ProcessPath
 
+    # --------------------------------------------------------
+    # Ensure PostgreSQL is still discoverable.
+    # --------------------------------------------------------
 
     if (-not (Find-PostgreSQL)) {
 
-        Write-SetupFailure `
-            -Message "PostgreSQL could not be located after setup." `
-            -ExitCode $EXIT_POSTGRES_INSTALL
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "PostgreSQL could not be located after initialization."
+
+        Exit-WithInstallerCode $PostgresInstallFailureCode
     }
 
+    # --------------------------------------------------------
+    # Final authentication verification.
+    # --------------------------------------------------------
 
-    # ========================================================
-    # Create SmartFit databases
-    # ========================================================
+    if (-not (Test-PostgresAuthentication)) {
 
-    New-DatabaseIfMissing `
-        -DatabaseName $DevelopmentDatabase
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "PostgreSQL authentication verification failed."
 
+        Exit-WithInstallerCode $PostgresAuthenticationFailureCode
+    }
 
-    New-DatabaseIfMissing `
-        -DatabaseName $TestDatabase
+    # --------------------------------------------------------
+    # Create development database.
+    # --------------------------------------------------------
 
+    if (-not (New-DatabaseIfMissing -DatabaseName $DevelopmentDatabase)) {
 
-    # ========================================================
-    # Update backend .env
-    # ========================================================
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "Failed to initialize SmartFit development database."
 
-    Write-PostgresEnvironment
+        Exit-WithInstallerCode $PostgresDatabaseFailureCode
+    }
 
+    # --------------------------------------------------------
+    # Create test database.
+    # --------------------------------------------------------
 
-    # ========================================================
-    # Verify the configuration BEFORE returning to setup.ps1.
-    #
-    # This guarantees that Initialize-Backend will receive a
-    # valid database configuration.
-    # ========================================================
+    if (-not (New-DatabaseIfMissing -DatabaseName $TestDatabase)) {
 
-    Test-PostgresEnvironment
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "Failed to initialize SmartFit test database."
 
+        Exit-WithInstallerCode $PostgresDatabaseFailureCode
+    }
 
-    # ========================================================
-    # Completion information
-    # ========================================================
+    # --------------------------------------------------------
+    # Write backend/.env.
+    # --------------------------------------------------------
 
-    Write-Success `
-        "PostgreSQL setup completed successfully."
+    if (-not (Write-PostgresEnvironment)) {
 
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "Failed to configure backend PostgreSQL environment."
 
-    if (-not $script:PostgresWasPreviouslyInstalled) {
+        Exit-WithInstallerCode $PostgresEnvironmentFailureCode
+    }
 
-        Write-Info `
-            "Development PostgreSQL password: $($script:PostgresPassword)"
+    # --------------------------------------------------------
+    # Verify backend/.env.
+    # --------------------------------------------------------
 
-        Write-Info `
-            "Change this password after completing the development setup."
+    if (-not (Test-PostgresEnvironment)) {
 
-        Write-Info `
-            "If the password is changed in pgAdmin, update backend/.env as well."
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "PostgreSQL environment verification failed."
+
+        Exit-WithInstallerCode $PostgresEnvironmentFailureCode
+    }
+
+    # --------------------------------------------------------
+    # Final status.
+    # --------------------------------------------------------
+
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "PostgreSQL initialization completed successfully."
+
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "Development database: $DevelopmentDatabase"
+
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "Test database: $TestDatabase"
+
+    if ($script:PostgresWasPreviouslyInstalled) {
+
+        Write-InstallerLog `
+            -Level "INFO" `
+            -Message "Existing PostgreSQL password was preserved."
     }
     else {
 
-        Write-Info `
-            "Existing PostgreSQL password was preserved."
-
-        Write-Info `
-            "The backend .env file uses the verified existing password."
+        Write-InstallerLog `
+            -Level "INFO" `
+            -Message "New PostgreSQL postgres role configured with the SmartFit default password."
     }
+
+    return $true
 }

@@ -25,9 +25,6 @@ backend/uploads/videos*
 # Uploaded  avatars
 backend/uploads/avatars*
 
-# Downloaded MediaPipe model assets
-backend/models/*.task
-
 
 # Test Videos 
 backend/tests/test_videos/*

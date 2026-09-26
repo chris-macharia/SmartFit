@@ -1,12 +1,5 @@
 # ============================================================
-# SmartFit Docker Compose
-# ============================================================
-#
-# Stage 1:
-#   - PostgreSQL 18
-#   - SmartFit FastAPI backend
-#
-# The React frontend will be added in a later stage.
+# SmartFit Docker Compose (Development Stack)
 # ============================================================
 
 services:
@@ -72,6 +65,32 @@ services:
     volumes:
       - smartfit_uploads:/app/uploads
 
+
+# ==========================================================
+  # SmartFit React Frontend (Vite Dev Server)
+  # ==========================================================
+
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/frontend/Dockerfile
+
+    container_name: smartfit-frontend
+
+    restart: unless-stopped
+
+    ports:
+      - "5173:5173"
+
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+    depends_on:
+      - backend
 
 # ============================================================
 # Persistent Docker Volumes

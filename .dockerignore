@@ -27,7 +27,7 @@ backend/.env
 # Test artifacts
 backend/tests/test_videos/
 
-# Frontend dependencies and build output
+# Frontend dependencies and build output (do NOT ignore the frontend/ folder itself)
 frontend/node_modules
 frontend/dist
 
@@ -44,9 +44,6 @@ docs/
 
 # Installer files
 installer/
-
-# Existing frontend source
-frontend/
 
 # Temporary files
 *.log

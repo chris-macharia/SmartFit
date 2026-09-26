@@ -1,0 +1,53 @@
+# ============================================================
+# SmartFit Docker Ignore
+# ============================================================
+
+# Git
+.git
+.gitignore
+.github
+
+# Python virtual environment
+backend/.venv
+backend/venv
+backend/env
+
+# Python cache
+__pycache__
+*.py[cod]
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Local environment files
+.env
+*.env
+backend/.env
+
+# Test artifacts
+backend/tests/test_videos/
+
+# Frontend dependencies and build output
+frontend/node_modules
+frontend/dist
+
+# IDE files
+.vscode
+.idea
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation
+docs/
+
+# Installer files
+installer/
+
+# Existing frontend source
+frontend/
+
+# Temporary files
+*.log
+*.tmp

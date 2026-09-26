@@ -2,14 +2,41 @@
 Main entry point for the SmartFit FastAPI application.
 
 This module creates the FastAPI application instance,
-configures application-wide middleware, and registers
-the central API router.
+configures application-wide middleware, registers
+the central API router, and initializes database tables on startup.
 """
+
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.router import api_router
+from app.db.database import Base, engine
+
+# Import database models so SQLAlchemy registers them with Base.metadata before creation.
+# If your models module is located at a different path (e.g., app.db.models), adjust accordingly.
+import app.models  # noqa: F401
+
+
+# ============================================================
+# LIFESPAN EVENTS & DATABASE INITIALIZATION
+# ============================================================
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Lifespan context manager for managing application startup and shutdown events.
+
+    During application startup, this handler ensures that all database tables
+    defined by SQLAlchemy models in the Base metadata are automatically created
+    if they do not already exist.
+    """
+
+    # Create all database tables registered under SQLAlchemy's Base metadata.
+    Base.metadata.create_all(bind=engine)
+
+    yield
 
 
 # ============================================================
@@ -24,6 +51,7 @@ app = FastAPI(
     title="SmartFit API",
     description="Backend API for the SmartFit Virtual Fitting System",
     version="1.0.0",
+    lifespan=lifespan,
 )
 
 

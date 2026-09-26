@@ -1,0 +1,86 @@
+# ============================================================
+# SmartFit Docker Compose
+# ============================================================
+#
+# Stage 1:
+#   - PostgreSQL 18
+#   - SmartFit FastAPI backend
+#
+# The React frontend will be added in a later stage.
+# ============================================================
+
+services:
+
+  # ==========================================================
+  # PostgreSQL Database
+  # ==========================================================
+
+  db:
+    image: postgres:18
+    container_name: smartfit-db
+
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: SmartFit2026
+      POSTGRES_DB: SmartFit_db
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - smartfit_postgres_data:/var/lib/postgresql/18/docker
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d SmartFit_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+
+  # ==========================================================
+  # SmartFit FastAPI Backend
+  # ==========================================================
+
+  backend:
+    build:
+      context: .
+      dockerfile: docker/backend/Dockerfile
+
+    container_name: smartfit-backend
+
+    restart: unless-stopped
+
+    depends_on:
+      db:
+        condition: service_healthy
+
+    environment:
+      DATABASE_URL: postgresql://postgres:SmartFit2026@db:5432/SmartFit_db
+      TEST_DATABASE_URL: postgresql://postgres:SmartFit2026@db:5432/SmartFit_Test_db
+
+      SECRET_KEY: 9UBuFhnzAmck3GHdH_frqsTUusw0O3kPqKfAcZ8OA
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 30
+
+      POSE_LANDMARKER_MODEL_PATH: models/pose_landmarker_lite.task
+
+    ports:
+      - "8000:8000"
+
+    volumes:
+      - smartfit_uploads:/app/uploads
+
+
+# ============================================================
+# Persistent Docker Volumes
+# ============================================================
+
+volumes:
+
+  smartfit_postgres_data:
+    name: smartfit_postgres_data
+
+  smartfit_uploads:
+    name: smartfit_uploads

@@ -1,4 +1,4 @@
-﻿# ============================================================
+# ============================================================
 # SmartFit v0.0.1
 # Windows Installer - PostgreSQL Module
 # ============================================================
@@ -8,7 +8,7 @@
 # Fresh installation:
 #   1. Install PostgreSQL 18 through winget.
 #   2. Detect the PostgreSQL installation.
-#   3. Configure the postgres role password as SmartFit2026.
+#   3. Configure the postgres role password as postgres.
 #   4. Verify password authentication.
 #   5. Create SmartFit_db if missing.
 #   6. Create SmartFit_Test_db if missing.
@@ -25,7 +25,7 @@
 #
 # IMPORTANT:
 #   - PostgreSQL passwords belong to database roles, not databases.
-#   - SmartFit2026 is therefore assigned to the PostgreSQL
+#   - postgres is therefore assigned to the PostgreSQL
 #     "postgres" role on a NEW installation.
 #   - Existing PostgreSQL passwords are never overwritten.
 #
@@ -37,14 +37,19 @@ $PostgresUser = "postgres"
 
 # Password used for a NEW PostgreSQL installation.
 # Existing installations keep their existing password.
-$DefaultPostgresPassword = "SmartFit2026"
+# NOTE: This is also the password written into backend/.env for a
+# fresh install, so the app can connect out-of-the-box.
+$DefaultPostgresPassword = "postgres"
 
 $PostgresHost = "localhost"
 $PostgresPort = "5432"
 
+# The ONLY two database names SmartFit recognizes. Exact case.
+# Any database name that does not match one of these exactly is
+# a compliance error - see Test-SmartFitDatabaseNamesAreValid
+# and Find-ConflictingDatabaseNames.
 $DevelopmentDatabase = "SmartFit_db"
 $TestDatabase = "SmartFit_Test_db"
-
 
 $BackendRoot = Join-Path $ProjectRoot "backend"
 $BackendEnvFile = Join-Path $BackendRoot ".env"
@@ -57,6 +62,11 @@ $PostgresInstallFailureCode = 30
 $PostgresAuthenticationFailureCode = 31
 $PostgresDatabaseFailureCode = 32
 $PostgresEnvironmentFailureCode = 40
+$PostgresWrongPasswordFailureCode = 41
+
+# Number of times the user is asked to re-enter the existing
+# PostgreSQL password before setup gives up.
+$MaxPostgresPasswordAttempts = 3
 
 # ------------------------------------------------------------
 # Module state
@@ -65,6 +75,13 @@ $PostgresEnvironmentFailureCode = 40
 $script:PsqlPath = $null
 $script:PostgresPassword = $null
 $script:PostgresWasPreviouslyInstalled = $false
+
+# Set to $true only after both SmartFit databases have been
+# confirmed to exist. Any downstream process (e.g. a migration or
+# table-reset script) should check Test-SmartFitDatabasesReady
+# before touching database tables, rather than assuming this
+# module already ran successfully.
+$script:PostgresDatabasesReady = $false
 
 # ============================================================
 # Find psql
@@ -227,11 +244,9 @@ function Install-PostgreSQL {
     }
     catch {
 
-        Write-InstallerLog `
-            -Level "ERROR" `
-            -Message "winget is not available."
-
-        Exit-WithInstallerCode $PostgresInstallFailureCode
+        Write-SetupFailure `
+            -Message "winget is not available." `
+            -ExitCode $PostgresInstallFailureCode
     }
 
     # --------------------------------------------------------
@@ -253,11 +268,9 @@ function Install-PostgreSQL {
 
     if ($wingetExitCode -ne 0) {
 
-        Write-InstallerLog `
-            -Level "ERROR" `
-            -Message "PostgreSQL installation failed. winget exit code: $wingetExitCode"
-
-        Exit-WithInstallerCode $PostgresInstallFailureCode
+        Write-SetupFailure `
+            -Message "PostgreSQL installation failed. winget exit code: $wingetExitCode" `
+            -ExitCode $PostgresInstallFailureCode
     }
 
     Write-InstallerLog `
@@ -293,11 +306,9 @@ function Install-PostgreSQL {
 
     if (-not $found) {
 
-        Write-InstallerLog `
-            -Level "ERROR" `
-            -Message "PostgreSQL was installed but psql.exe could not be located."
-
-        Exit-WithInstallerCode $PostgresInstallFailureCode
+        Write-SetupFailure `
+            -Message "PostgreSQL was installed but psql.exe could not be located." `
+            -ExitCode $PostgresInstallFailureCode
     }
 
     # --------------------------------------------------------
@@ -309,7 +320,7 @@ function Install-PostgreSQL {
     # --------------------------------------------------------
     # IMPORTANT:
     #
-    # Do NOT assume that SmartFit2026 is already the PostgreSQL
+    # Do NOT assume that postgres is already the PostgreSQL
     # password.
     #
     # The PostgreSQL installer initializes the cluster first.
@@ -335,15 +346,35 @@ function Install-PostgreSQL {
 
 function Request-ExistingPostgresPassword {
 
-    Write-InstallerLog `
-        -Level "INFO" `
-        -Message "PostgreSQL already exists on this machine."
+    param(
+        [int]$AttemptNumber = 1,
+        [int]$MaxAttempts = 1
+    )
 
-    Write-Host ""
-    Write-Host "PostgreSQL was detected on this machine." -ForegroundColor Yellow
-    Write-Host ""
-    Write-Host "The existing PostgreSQL password will NOT be changed." -ForegroundColor Yellow
+    if ($AttemptNumber -eq 1) {
+
+        Write-InstallerLog `
+            -Level "INFO" `
+            -Message "PostgreSQL already exists on this machine."
+
+        Write-Host ""
+        Write-Host "PostgreSQL was detected on this machine." -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "The existing PostgreSQL password will NOT be changed." -ForegroundColor Yellow
+    }
+    else {
+
+        Write-Host ""
+        Write-Host "That password was not accepted." -ForegroundColor Red
+    }
+
     Write-Host "Please enter the current password for the PostgreSQL '$PostgresUser' role." -ForegroundColor Yellow
+
+    if ($MaxAttempts -gt 1) {
+
+        Write-Host "(Attempt $AttemptNumber of $MaxAttempts)" -ForegroundColor Yellow
+    }
+
     Write-Host ""
 
     $securePassword = Read-Host `
@@ -359,13 +390,49 @@ function Request-ExistingPostgresPassword {
 
     Write-InstallerLog `
         -Level "INFO" `
-        -Message "Existing PostgreSQL password was supplied by the user."
+        -Message "PostgreSQL password supplied by the user (attempt $AttemptNumber of $MaxAttempts)."
 
     return $true
 }
 
 # ============================================================
-# Run psql command
+# Safe SQL literal / identifier escaping
+# ============================================================
+#
+# Used together with Invoke-PostgresSql below. Values are always
+# written into a temp .sql file and run via --file, never
+# embedded directly into a --command process argument, because
+# Windows native-command argument passing can silently drop
+# literal double quotes embedded inside a larger argument (this
+# previously caused CREATE DATABASE "SmartFit_db" to reach psql
+# unquoted and get lowercase-folded to smartfit_db). Escaping is
+# still applied defensively, in case a value ever contains a
+# quote character of its own.
+# ============================================================
+
+function ConvertTo-PostgresLiteral {
+
+    param(
+        [Parameter(Mandatory = $true)]
+        [AllowEmptyString()]
+        [string]$Value
+    )
+
+    return "'" + ($Value -replace "'", "''") + "'"
+}
+
+function ConvertTo-PostgresIdentifier {
+
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Value
+    )
+
+    return '"' + ($Value -replace '"', '""') + '"'
+}
+
+# ============================================================
+# Run psql command via a temp .sql file
 # ============================================================
 
 function Invoke-PostgresSql {
@@ -376,7 +443,9 @@ function Invoke-PostgresSql {
 
         [string]$Database = "postgres",
 
-        [switch]$SuppressOutput
+        [string]$HostOverride = $PostgresHost,
+
+        [switch]$NoPassword
     )
 
     if ([string]::IsNullOrWhiteSpace($script:PsqlPath)) {
@@ -385,46 +454,62 @@ function Invoke-PostgresSql {
             -Level "ERROR" `
             -Message "psql path has not been initialized."
 
-        return $false
+        return [PSCustomObject]@{ Success = $false; ExitCode = -1; Output = $null }
     }
 
-    if ([string]::IsNullOrWhiteSpace($script:PostgresPassword)) {
+    if (-not $NoPassword -and [string]::IsNullOrWhiteSpace($script:PostgresPassword)) {
 
         Write-InstallerLog `
             -Level "ERROR" `
             -Message "PostgreSQL password has not been initialized."
 
-        return $false
+        return [PSCustomObject]@{ Success = $false; ExitCode = -1; Output = $null }
     }
 
     $previousPassword = $env:PGPASSWORD
 
+    $tempSqlFile = Join-Path `
+        -Path ([System.IO.Path]::GetTempPath()) `
+        -ChildPath ([System.IO.Path]::GetRandomFileName() + ".sql")
+
     try {
 
-        $env:PGPASSWORD = $script:PostgresPassword
+        if ($NoPassword) {
 
-        $arguments = @(
-            "--host=$PostgresHost"
-            "--port=$PostgresPort"
-            "--username=$PostgresUser"
-            "--dbname=$Database"
-            "--no-password"
-            "--command=$Sql"
-        )
-
-        if ($SuppressOutput) {
-
-            & $script:PsqlPath @arguments 2>$null | Out-Null
-
+            Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
         }
         else {
 
-            & $script:PsqlPath @arguments
+            $env:PGPASSWORD = $script:PostgresPassword
         }
 
-        return ($LASTEXITCODE -eq 0)
+        [System.IO.File]::WriteAllText(
+            $tempSqlFile,
+            $Sql,
+            (New-Object System.Text.UTF8Encoding($false))
+        )
+
+        $output = & $script:PsqlPath `
+            "--host=$HostOverride" `
+            "--port=$PostgresPort" `
+            "--username=$PostgresUser" `
+            "--dbname=$Database" `
+            "--no-password" `
+            "--tuples-only" `
+            "--no-align" `
+            "--file=$tempSqlFile" 2>&1
+
+        $exitCode = $LASTEXITCODE
+
+        return [PSCustomObject]@{
+            Success  = ($exitCode -eq 0)
+            ExitCode = $exitCode
+            Output   = $output
+        }
     }
     finally {
+
+        Remove-Item -Path $tempSqlFile -ErrorAction SilentlyContinue
 
         if ($null -eq $previousPassword) {
 
@@ -504,7 +589,7 @@ function Set-NewPostgresPassword {
             #
             # Some PostgreSQL Windows installations may already
             # have the desired password configured during their
-            # initialization. Test SmartFit2026 before failing.
+            # initialization. Test postgres before failing.
             # ------------------------------------------------
 
             Write-InstallerLog `
@@ -550,51 +635,41 @@ function Set-NewPostgresPassword {
     # We have local administrative access.
     #
     # PostgreSQL passwords are properties of roles. Therefore
-    # SmartFit2026 is assigned to the postgres role.
+    # postgres is assigned to the postgres role.
     # --------------------------------------------------------
 
     Write-InstallerLog `
         -Level "INFO" `
         -Message "Setting postgres role password to the SmartFit default password..."
 
-    $passwordSql = @"
-ALTER ROLE "$PostgresUser" WITH PASSWORD '$DefaultPostgresPassword';
-"@
+    # --------------------------------------------------------
+    # NOTE: same class of issue as CREATE DATABASE - the role
+    # name is wrapped in literal double quotes for the SQL
+    # identifier. Invoke-PostgresSql runs this via a temp .sql
+    # file rather than a --command argument. -NoPassword mirrors
+    # the passwordless local connection used above, since we
+    # don't yet know the role's password. See New-DatabaseIfMissing
+    # for the full explanation of the underlying quoting issue.
+    # --------------------------------------------------------
 
-    $previousPassword = $env:PGPASSWORD
+    $roleIdentifier = ConvertTo-PostgresIdentifier -Value $PostgresUser
+    $passwordLiteral = ConvertTo-PostgresLiteral -Value $DefaultPostgresPassword
 
-    try {
+    $passwordResult = Invoke-PostgresSql `
+        -Sql "ALTER ROLE $roleIdentifier WITH PASSWORD $passwordLiteral;" `
+        -Database "postgres" `
+        -HostOverride "localhost" `
+        -NoPassword
 
-        Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
-
-        & $script:PsqlPath `
-            "--host=localhost" `
-            "--port=$PostgresPort" `
-            "--username=$PostgresUser" `
-            "--dbname=postgres" `
-            "--no-password" `
-            "--command=$passwordSql" 2>&1 | Out-Null
-
-        $exitCode = $LASTEXITCODE
-
-    }
-    finally {
-
-        if ($null -eq $previousPassword) {
-
-            Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
-        }
-        else {
-
-            $env:PGPASSWORD = $previousPassword
-        }
-    }
-
-    if ($exitCode -ne 0) {
+    if (-not $passwordResult.Success) {
 
         Write-InstallerLog `
             -Level "ERROR" `
             -Message "Failed to configure the postgres role password."
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "psql output: $($passwordResult.Output | Out-String)"
 
         return $false
     }
@@ -635,7 +710,12 @@ ALTER ROLE "$PostgresUser" WITH PASSWORD '$DefaultPostgresPassword';
 
 function Test-PostgresAuthentication {
 
-    if ([string]::IsNullOrWhiteSpace($script:PostgresPassword)) {
+    param(
+        [Parameter()]
+        [string]$Password = $script:PostgresPassword
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Password)) {
 
         Write-InstallerLog `
             -Level "ERROR" `
@@ -661,7 +741,7 @@ function Test-PostgresAuthentication {
 
     try {
 
-        $env:PGPASSWORD = $script:PostgresPassword
+        $env:PGPASSWORD = $Password
 
         & $script:PsqlPath `
             "--host=$PostgresHost" `
@@ -702,6 +782,87 @@ function Test-PostgresAuthentication {
 }
 
 # ============================================================
+# Check whether a database exists (read-only, no side effects)
+# ============================================================
+
+function Test-DatabaseExists {
+
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$DatabaseName
+    )
+
+    $literal = ConvertTo-PostgresLiteral -Value $DatabaseName
+
+    $sql = "SELECT 1 FROM pg_database WHERE datname = $literal;"
+
+    $result = Invoke-PostgresSql -Sql $sql -Database "postgres"
+
+    if (-not $result.Success) {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "Unable to query PostgreSQL for database '$DatabaseName'."
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "psql output: $($result.Output | Out-String)"
+
+        return $false
+    }
+
+    return (($result.Output | Out-String).Trim() -eq "1")
+}
+
+# ============================================================
+# Find databases that conflict with an expected SmartFit name
+# ============================================================
+#
+# SmartFit only ever recognizes two exact, case-sensitive
+# database names: SmartFit_db and SmartFit_Test_db. Any other
+# database name that merely resembles one of these (different
+# case, extra/missing whitespace) is NOT the same database to
+# PostgreSQL and must never be silently treated as if it were,
+# or silently left alongside a newly created correct one - both
+# are compliance errors that need a human to resolve.
+# ============================================================
+
+function Find-ConflictingDatabaseNames {
+
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$DatabaseName
+    )
+
+    $literal = ConvertTo-PostgresLiteral -Value $DatabaseName
+
+    $sql = "SELECT datname FROM pg_database WHERE lower(trim(datname)) = lower(trim($literal)) AND datname <> $literal;"
+
+    $result = Invoke-PostgresSql -Sql $sql -Database "postgres"
+
+    if (-not $result.Success) {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "Unable to check for conflicting database names for '$DatabaseName'."
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "psql output: $($result.Output | Out-String)"
+
+        # Fail closed: if we can't verify there's no conflict,
+        # do not proceed as though there isn't one.
+        return @("<unable to verify>")
+    }
+
+    $conflicts = ($result.Output | Out-String) -split "`r?`n" |
+        ForEach-Object { $_.Trim() } |
+        Where-Object { $_ -ne "" }
+
+    return @($conflicts)
+}
+
+# ============================================================
 # Create database if missing
 # ============================================================
 
@@ -716,92 +877,86 @@ function New-DatabaseIfMissing {
         -Level "INFO" `
         -Message "Checking database '$DatabaseName'..."
 
-    $previousPassword = $env:PGPASSWORD
+    # ----------------------------------------------------------
+    # A similarly-named but non-exact database (different case,
+    # e.g. smartfit_db instead of SmartFit_db) is logged as a
+    # warning, not treated as fatal. It is a DIFFERENT database
+    # as far as PostgreSQL is concerned, so it does not block
+    # creating the correctly-named one SmartFit actually needs -
+    # it's just surfaced so a human can clean it up later if it's
+    # leftover cruft.
+    # ----------------------------------------------------------
 
-    try {
+    $conflicts = Find-ConflictingDatabaseNames -DatabaseName $DatabaseName
 
-        $env:PGPASSWORD = $script:PostgresPassword
+    if ($conflicts.Count -gt 0) {
 
-        $query = "SELECT 1 FROM pg_database WHERE datname = '$DatabaseName';"
+        Write-InstallerLog `
+            -Level "WARN" `
+            -Message "Found database name(s) resembling but not exactly matching '$DatabaseName': $($conflicts -join ', '). SmartFit only uses the exact name '$DatabaseName' - these will be left untouched."
+    }
 
-        $result = & $script:PsqlPath `
-            "--host=$PostgresHost" `
-            "--port=$PostgresPort" `
-            "--username=$PostgresUser" `
-            "--dbname=postgres" `
-            "--no-password" `
-            "--tuples-only" `
-            "--no-align" `
-            "--command=$query" 2>&1
-
-        $exitCode = $LASTEXITCODE
-
-        if ($exitCode -ne 0) {
-
-            Write-InstallerLog `
-                -Level "ERROR" `
-                -Message "Unable to query PostgreSQL for database '$DatabaseName'."
-
-            Write-InstallerLog `
-                -Level "DEBUG" `
-                -Message "psql output: $result"
-
-            return $false
-        }
-
-        $databaseExists = ($result | Out-String).Trim() -eq "1"
-
-        if ($databaseExists) {
-
-            Write-InstallerLog `
-                -Level "INFO" `
-                -Message "Database '$DatabaseName' already exists."
-
-            return $true
-        }
+    if (Test-DatabaseExists -DatabaseName $DatabaseName) {
 
         Write-InstallerLog `
             -Level "INFO" `
-            -Message "Database '$DatabaseName' does not exist. Creating it..."
-
-        $createQuery = 'CREATE DATABASE "' + $DatabaseName + '";'
-
-        & $script:PsqlPath `
-            "--host=$PostgresHost" `
-            "--port=$PostgresPort" `
-            "--username=$PostgresUser" `
-            "--dbname=postgres" `
-            "--no-password" `
-            "--command=$createQuery" 2>&1 | Out-Null
-
-        $createExitCode = $LASTEXITCODE
-
-        if ($createExitCode -ne 0) {
-
-            Write-InstallerLog `
-                -Level "ERROR" `
-                -Message "Failed to create database '$DatabaseName'."
-
-            return $false
-        }
-
-        Write-InstallerLog `
-            -Level "INFO" `
-            -Message "Database '$DatabaseName' created successfully."
+            -Message "Database '$DatabaseName' already exists."
 
         return $true
     }
-    finally {
 
-        if ($null -eq $previousPassword) {
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "Database '$DatabaseName' does not exist. Creating it..."
 
-            Remove-Item Env:PGPASSWORD -ErrorAction SilentlyContinue
-        }
-        else {
+    # --------------------------------------------------------
+    # NOTE: CREATE DATABASE needs a double-quoted, case-
+    # preserving identifier (e.g. "SmartFit_db"). Invoke-
+    # PostgresSql runs this via a temp .sql file rather than a
+    # --command process argument, because Windows native-command
+    # argument passing can silently drop a literal double quote
+    # embedded inside a larger argument (this previously caused
+    # CREATE DATABASE "SmartFit_db" to arrive at psql unquoted
+    # and get lowercase-folded to smartfit_db).
+    # --------------------------------------------------------
 
-            $env:PGPASSWORD = $previousPassword
-        }
+    $identifier = ConvertTo-PostgresIdentifier -Value $DatabaseName
+
+    $createResult = Invoke-PostgresSql -Sql "CREATE DATABASE $identifier;" -Database "postgres"
+
+    if (-not $createResult.Success) {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "Failed to create database '$DatabaseName'."
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "psql output: $($createResult.Output | Out-String)"
+
+        return $false
     }
+
+    # ----------------------------------------------------
+    # Do not trust the CREATE DATABASE exit code alone.
+    # Re-query PostgreSQL to confirm the database is
+    # actually present before reporting success.
+    # ----------------------------------------------------
+
+    if (-not (Test-DatabaseExists -DatabaseName $DatabaseName)) {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "Database '$DatabaseName' was not found after creation."
+
+        return $false
+    }
+
+    Write-InstallerLog `
+        -Level "INFO" `
+        -Message "Database '$DatabaseName' created and confirmed successfully."
+
+    return $true
 }
 
 # ============================================================
@@ -820,7 +975,9 @@ function Write-EnvValue {
 
     $found = $false
 
-    $updatedLines = foreach ($line in $Lines) {
+    # Enclosing the foreach expression in @(...) ensures $updatedLines 
+    # remains an array rather than auto-unboxing into a single string scalar.
+    $updatedLines = @(foreach ($line in $Lines) {
 
         if ($line -match "^\s*$escapedKey\s*=") {
 
@@ -832,7 +989,7 @@ function Write-EnvValue {
 
             $line
         }
-    }
+    })
 
     if (-not $found) {
 
@@ -873,11 +1030,9 @@ function Write-PostgresEnvironment {
 
         if (-not (Test-Path $BackendRoot)) {
 
-            Write-InstallerLog `
-                -Level "ERROR" `
-                -Message "Backend directory does not exist: $BackendRoot"
-
-            Exit-WithInstallerCode $PostgresEnvironmentFailureCode
+            Write-SetupFailure `
+                -Message "Backend directory does not exist: $BackendRoot" `
+                -ExitCode $PostgresEnvironmentFailureCode
         }
 
         # ----------------------------------------------------
@@ -998,11 +1153,9 @@ function Write-PostgresEnvironment {
     }
     catch {
 
-        Write-InstallerLog `
-            -Level "ERROR" `
-            -Message "Failed to write PostgreSQL environment configuration: $($_.Exception.Message)"
-
-        Exit-WithInstallerCode $PostgresEnvironmentFailureCode
+        Write-SetupFailure `
+            -Message "Failed to write PostgreSQL environment configuration: $($_.Exception.Message)" `
+            -ExitCode $PostgresEnvironmentFailureCode
     }
 }
 
@@ -1190,6 +1343,89 @@ function Test-PostgresEnvironment {
 }
 
 # ============================================================
+# Confirm both SmartFit databases exist
+# ============================================================
+#
+# This is the checkpoint any downstream process MUST use before
+# doing anything to database tables (running migrations, seeding
+# data, resetting tables, etc.). It does not rely on this module
+# having "remembered" that it ran successfully earlier in the
+# same process - it re-queries PostgreSQL directly, every time.
+# ============================================================
+
+function Test-SmartFitDatabasesReady {
+
+    if ([string]::IsNullOrWhiteSpace($script:PsqlPath) -or
+        [string]::IsNullOrWhiteSpace($script:PostgresPassword)) {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "PostgreSQL has not been initialized in this session. Refusing to confirm database readiness."
+
+        return $false
+    }
+
+    $developmentExists = Test-DatabaseExists -DatabaseName $DevelopmentDatabase
+    $testExists = Test-DatabaseExists -DatabaseName $TestDatabase
+
+    if (-not $developmentExists) {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "Development database '$DevelopmentDatabase' does not exist. Table operations must not proceed."
+    }
+
+    if (-not $testExists) {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "Test database '$TestDatabase' does not exist. Table operations must not proceed."
+    }
+
+    $script:PostgresDatabasesReady = ($developmentExists -and $testExists)
+
+    return $script:PostgresDatabasesReady
+}
+
+# ============================================================
+# Verify the database name constants themselves are compliant
+# ============================================================
+#
+# Guards against the constants above ever being edited to
+# something other than the two exact, case-sensitive names
+# SmartFit requires. This is a hard requirement, not a
+# convention - any drift here is treated as a setup error.
+# ============================================================
+
+function Test-SmartFitDatabaseNamesAreValid {
+
+    $expectedDevelopmentName = "SmartFit_db"
+    $expectedTestName = "SmartFit_Test_db"
+
+    $isValid = $true
+
+    if (-not ($DevelopmentDatabase -ceq $expectedDevelopmentName)) {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "Configured development database name '$DevelopmentDatabase' does not exactly match the required name '$expectedDevelopmentName'."
+
+        $isValid = $false
+    }
+
+    if (-not ($TestDatabase -ceq $expectedTestName)) {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "Configured test database name '$TestDatabase' does not exactly match the required name '$expectedTestName'."
+
+        $isValid = $false
+    }
+
+    return $isValid
+}
+
+# ============================================================
 # Initialize PostgreSQL
 # ============================================================
 
@@ -1198,6 +1434,19 @@ function Initialize-PostgreSQL {
     Write-InstallerLog `
         -Level "INFO" `
         -Message "Initializing PostgreSQL for SmartFit..."
+
+    # --------------------------------------------------------
+    # Fail immediately if the required database names have been
+    # changed to anything non-compliant, before touching
+    # PostgreSQL at all.
+    # --------------------------------------------------------
+
+    if (-not (Test-SmartFitDatabaseNamesAreValid)) {
+
+        Write-SetupFailure `
+            -Message "SmartFit database naming configuration is not compliant. Expected exactly 'SmartFit_db' and 'SmartFit_Test_db'." `
+            -ExitCode $PostgresDatabaseFailureCode
+    }
 
     # --------------------------------------------------------
     # Determine whether PostgreSQL already exists.
@@ -1215,22 +1464,35 @@ function Initialize-PostgreSQL {
 
         # ----------------------------------------------------
         # Existing installation:
-        # ask for the current password.
+        # ask for the current password, retrying up to
+        # $MaxPostgresPasswordAttempts times in case of typos
+        # before giving up.
         # ----------------------------------------------------
 
-        Request-ExistingPostgresPassword
+        $authenticated = $false
 
-        if (-not (Test-PostgresAuthentication)) {
+        for ($attempt = 1; $attempt -le $MaxPostgresPasswordAttempts; $attempt++) {
+
+            Request-ExistingPostgresPassword `
+                -AttemptNumber $attempt `
+                -MaxAttempts $MaxPostgresPasswordAttempts
+
+            if (Test-PostgresAuthentication) {
+
+                $authenticated = $true
+                break
+            }
 
             Write-InstallerLog `
-                -Level "ERROR" `
-                -Message "The supplied PostgreSQL password is incorrect."
+                -Level "WARN" `
+                -Message "PostgreSQL authentication failed (attempt $attempt of $MaxPostgresPasswordAttempts)."
+        }
 
-            Write-InstallerLog `
-                -Level "ERROR" `
-                -Message "The existing PostgreSQL installation was NOT modified."
+        if (-not $authenticated) {
 
-            Exit-WithInstallerCode $PostgresAuthenticationFailureCode
+            Write-SetupFailure `
+                -Message "Wrong PostgreSQL password: the supplied password was incorrect after $MaxPostgresPasswordAttempts attempts. The existing PostgreSQL installation was NOT modified." `
+                -ExitCode $PostgresWrongPasswordFailureCode
         }
 
         Write-InstallerLog `
@@ -1250,16 +1512,14 @@ function Initialize-PostgreSQL {
         Install-PostgreSQL
 
         # ----------------------------------------------------
-        # Configure SmartFit2026 on the new postgres role.
+        # Configure postgres on the new postgres role.
         # ----------------------------------------------------
 
         if (-not (Set-NewPostgresPassword)) {
 
-            Write-InstallerLog `
-                -Level "ERROR" `
-                -Message "Failed to configure PostgreSQL for SmartFit."
-
-            Exit-WithInstallerCode $PostgresAuthenticationFailureCode
+            Write-SetupFailure `
+                -Message "Failed to configure PostgreSQL for SmartFit." `
+                -ExitCode $PostgresAuthenticationFailureCode
         }
     }
 
@@ -1275,11 +1535,9 @@ function Initialize-PostgreSQL {
 
     if (-not (Find-PostgreSQL)) {
 
-        Write-InstallerLog `
-            -Level "ERROR" `
-            -Message "PostgreSQL could not be located after initialization."
-
-        Exit-WithInstallerCode $PostgresInstallFailureCode
+        Write-SetupFailure `
+            -Message "PostgreSQL could not be located after initialization." `
+            -ExitCode $PostgresInstallFailureCode
     }
 
     # --------------------------------------------------------
@@ -1288,11 +1546,9 @@ function Initialize-PostgreSQL {
 
     if (-not (Test-PostgresAuthentication)) {
 
-        Write-InstallerLog `
-            -Level "ERROR" `
-            -Message "PostgreSQL authentication verification failed."
-
-        Exit-WithInstallerCode $PostgresAuthenticationFailureCode
+        Write-SetupFailure `
+            -Message "PostgreSQL authentication verification failed." `
+            -ExitCode $PostgresAuthenticationFailureCode
     }
 
     # --------------------------------------------------------
@@ -1301,11 +1557,9 @@ function Initialize-PostgreSQL {
 
     if (-not (New-DatabaseIfMissing -DatabaseName $DevelopmentDatabase)) {
 
-        Write-InstallerLog `
-            -Level "ERROR" `
-            -Message "Failed to initialize SmartFit development database."
-
-        Exit-WithInstallerCode $PostgresDatabaseFailureCode
+        Write-SetupFailure `
+            -Message "Failed to initialize SmartFit development database." `
+            -ExitCode $PostgresDatabaseFailureCode
     }
 
     # --------------------------------------------------------
@@ -1314,11 +1568,23 @@ function Initialize-PostgreSQL {
 
     if (-not (New-DatabaseIfMissing -DatabaseName $TestDatabase)) {
 
-        Write-InstallerLog `
-            -Level "ERROR" `
-            -Message "Failed to initialize SmartFit test database."
+        Write-SetupFailure `
+            -Message "Failed to initialize SmartFit test database." `
+            -ExitCode $PostgresDatabaseFailureCode
+    }
 
-        Exit-WithInstallerCode $PostgresDatabaseFailureCode
+    # --------------------------------------------------------
+    # Explicitly confirm both databases exist before doing
+    # anything further. Nothing past this point (including
+    # any downstream migration/reset step) should run against
+    # databases we haven't actually verified are present.
+    # --------------------------------------------------------
+
+    if (-not (Test-SmartFitDatabasesReady)) {
+
+        Write-SetupFailure `
+            -Message "SmartFit databases could not be confirmed after creation. Aborting before any further steps." `
+            -ExitCode $PostgresDatabaseFailureCode
     }
 
     # --------------------------------------------------------
@@ -1327,11 +1593,9 @@ function Initialize-PostgreSQL {
 
     if (-not (Write-PostgresEnvironment)) {
 
-        Write-InstallerLog `
-            -Level "ERROR" `
-            -Message "Failed to configure backend PostgreSQL environment."
-
-        Exit-WithInstallerCode $PostgresEnvironmentFailureCode
+        Write-SetupFailure `
+            -Message "Failed to configure backend PostgreSQL environment." `
+            -ExitCode $PostgresEnvironmentFailureCode
     }
 
     # --------------------------------------------------------
@@ -1340,11 +1604,9 @@ function Initialize-PostgreSQL {
 
     if (-not (Test-PostgresEnvironment)) {
 
-        Write-InstallerLog `
-            -Level "ERROR" `
-            -Message "PostgreSQL environment verification failed."
-
-        Exit-WithInstallerCode $PostgresEnvironmentFailureCode
+        Write-SetupFailure `
+            -Message "PostgreSQL environment verification failed." `
+            -ExitCode $PostgresEnvironmentFailureCode
     }
 
     # --------------------------------------------------------

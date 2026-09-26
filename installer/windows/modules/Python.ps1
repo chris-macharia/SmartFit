@@ -9,7 +9,8 @@
 # 3. Creates the SmartFit virtual environment using Python 3.12.
 # 4. Detects and replaces virtual environments created with
 #    an incompatible Python version.
-# 5. Upgrades pip inside the SmartFit virtual environment.
+# 5. Checks whether pip requires an upgrade and only upgrades
+#    pip when a newer version is available.
 # 6. Installs backend Python dependencies.
 # 7. Verifies the Python version used by the virtual environment.
 #
@@ -493,6 +494,241 @@ function New-SmartFitVenv {
 
 
 # ============================================================
+# CHECK WHETHER PIP REQUIRES AN UPGRADE
+# ============================================================
+#
+# This function checks PyPI for a newer pip version.
+#
+# If pip is already current:
+#
+#     No pip installation command is executed.
+#
+# If a newer pip version exists:
+#
+#     pip is upgraded.
+#
+# This prevents the installer from unnecessarily reinstalling
+# or upgrading pip every time SmartFit setup is executed.
+#
+# ============================================================
+
+function Test-PipUpgradeRequired {
+
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param ()
+
+    Write-Step "Checking whether the installed pip version requires an upgrade."
+
+    if (-not (Test-Path $VenvPython -PathType Leaf)) {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "SmartFit virtual environment Python executable was not found: $VenvPython"
+
+        return $false
+    }
+
+    try {
+
+        # ----------------------------------------------------
+        # Check for outdated packages.
+        #
+        # --outdated asks pip to compare installed packages
+        # against the versions currently available from the
+        # configured package index.
+        #
+        # --format=json gives the installer structured output
+        # that can be checked reliably.
+        # ----------------------------------------------------
+
+        $OutdatedOutput = & $VenvPython -m pip list `
+            --outdated `
+            --format=json `
+            --disable-pip-version-check 2>&1
+
+        $PipExitCode = [int]$LASTEXITCODE
+
+        if ($PipExitCode -ne 0) {
+
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "Unable to determine whether pip requires an upgrade."
+
+            Write-InstallerLog `
+                -Level "DEBUG" `
+                -Message "pip output: $OutdatedOutput"
+
+            return $false
+        }
+
+        $OutdatedText = ($OutdatedOutput | Out-String).Trim()
+
+        if ([string]::IsNullOrWhiteSpace($OutdatedText)) {
+
+            Write-InstallerLog `
+                -Level "INFO" `
+                -Message "pip upgrade check returned no package information."
+
+            return $false
+        }
+
+        try {
+
+            $OutdatedPackages = $OutdatedText | ConvertFrom-Json -ErrorAction Stop
+        }
+        catch {
+
+            Write-InstallerLog `
+                -Level "ERROR" `
+                -Message "Unable to parse pip outdated-package information."
+
+            Write-InstallerLog `
+                -Level "DEBUG" `
+                -Message "pip outdated output: $OutdatedText"
+
+            return $false
+        }
+
+        # ----------------------------------------------------
+        # Search specifically for pip.
+        # ----------------------------------------------------
+
+        $PipPackage = @(
+            $OutdatedPackages |
+                Where-Object {
+                    $_.name -ieq "pip"
+                }
+        )
+
+        if ($PipPackage.Count -eq 0) {
+
+            Write-InstallerLog `
+                -Level "INFO" `
+                -Message "Installed pip is already up to date. No pip installation is required."
+
+            return $false
+        }
+
+        $CurrentVersion = $PipPackage[0].version
+        $LatestVersion = $PipPackage[0].latest_version
+
+        Write-InstallerLog `
+            -Level "INFO" `
+            -Message "A newer pip version is available."
+
+        Write-InstallerLog `
+            -Level "INFO" `
+            -Message "Installed pip version: $CurrentVersion"
+
+        Write-InstallerLog `
+            -Level "INFO" `
+            -Message "Available pip version: $LatestVersion"
+
+        return $true
+    }
+    catch {
+
+        Write-InstallerLog `
+            -Level "ERROR" `
+            -Message "Failed while checking the installed pip version: $($_.Exception.Message)"
+
+        return $false
+    }
+}
+
+
+# ============================================================
+# UPGRADE PIP IF REQUIRED
+# ============================================================
+
+function Update-PipIfRequired {
+
+    [CmdletBinding()]
+    param ()
+
+    Write-Step "Checking the SmartFit virtual environment pip installation."
+
+    # --------------------------------------------------------
+    # Check whether a newer pip version is actually available.
+    # --------------------------------------------------------
+
+    $PipUpgradeRequired = Test-PipUpgradeRequired
+
+    # --------------------------------------------------------
+    # Test-PipUpgradeRequired returns $false both when:
+    #
+    # 1. pip is already current, and
+    # 2. the check itself failed.
+    #
+    # Therefore perform a direct pip version check before
+    # deciding whether to continue.
+    # --------------------------------------------------------
+
+    if (-not $PipUpgradeRequired) {
+
+        # Verify that pip itself is available.
+        try {
+
+            $PipVersionOutput = & $VenvPython -m pip --version 2>&1
+            $PipVersionExitCode = [int]$LASTEXITCODE
+
+            if ($PipVersionExitCode -ne 0) {
+
+                Write-SetupFailure `
+                    -Message "pip is not available inside the SmartFit Python virtual environment." `
+                    -ExitCode $EXIT_BACKEND_SETUP
+            }
+
+            Write-Info "Using existing pip installation: $PipVersionOutput"
+        }
+        catch {
+
+            Write-SetupFailure `
+                -Message "Unable to verify the existing pip installation: $($_.Exception.Message)" `
+                -ExitCode $EXIT_BACKEND_SETUP
+        }
+
+        return
+    }
+
+
+    # --------------------------------------------------------
+    # A newer pip version is available.
+    # Only now execute the upgrade command.
+    # --------------------------------------------------------
+
+    Write-Step "A newer pip version is available. Upgrading pip."
+
+    Write-CommandHeader ".\.venv\Scripts\python.exe -m pip install --upgrade pip"
+
+    $PipExitCode = 1
+
+    try {
+
+        & $VenvPython -m pip install --upgrade pip
+
+        $PipExitCode = [int]$LASTEXITCODE
+    }
+    catch {
+
+        $PipExitCode = 1
+    }
+
+    Write-CommandFooter -ExitCode $PipExitCode
+
+    if ($PipExitCode -ne 0) {
+
+        Write-SetupFailure `
+            -Message "pip upgrade failed." `
+            -ExitCode $EXIT_BACKEND_SETUP
+    }
+
+    Write-Success "pip was upgraded successfully."
+}
+
+
+# ============================================================
 # INITIALIZE PYTHON
 # ============================================================
 
@@ -602,47 +838,28 @@ function Initialize-Python {
 
 
     # --------------------------------------------------------
-    # Upgrade pip.
+    # Check and upgrade pip only when necessary.
+    #
+    # If the installed pip version is current, the existing
+    # pip installation is retained.
+    #
+    # If a newer version exists, pip is upgraded.
+    # --------------------------------------------------------
+
+    Update-PipIfRequired
+
+
+    # --------------------------------------------------------
+    # Install backend dependencies.
+    #
+    # This is intentionally performed here because the
+    # Python module owns the virtual environment and its
+    # Python package installation.
     # --------------------------------------------------------
 
     Push-Location $BackendRoot
 
     try {
-
-        Write-Step "Upgrading pip inside the SmartFit Python 3.12 virtual environment."
-
-        Write-CommandHeader ".\.venv\Scripts\python.exe -m pip install --upgrade pip"
-
-        $PipExitCode = 1
-
-        try {
-
-            & $VenvPython -m pip install --upgrade pip
-
-            $PipExitCode = [int]$LASTEXITCODE
-        }
-        catch {
-
-            $PipExitCode = 1
-        }
-
-        Write-CommandFooter -ExitCode $PipExitCode
-
-        if ($PipExitCode -ne 0) {
-
-            Write-SetupFailure `
-                -Message "pip upgrade failed." `
-                -ExitCode $EXIT_BACKEND_SETUP
-        }
-
-
-        # ----------------------------------------------------
-        # Install backend dependencies.
-        #
-        # This is intentionally performed here because the
-        # Python module owns the virtual environment and its
-        # Python package installation.
-        # ----------------------------------------------------
 
         Write-Step "Installing SmartFit backend Python dependencies."
 

@@ -140,6 +140,7 @@ function Write-InstallerLog {
         [ValidateSet(
             "INFO",
             "SUCCESS",
+            "WARN",
             "WARNING",
             "ERROR",
             "DEBUG"
@@ -147,10 +148,15 @@ function Write-InstallerLog {
         [string]$Level = "INFO"
     )
 
-    $Prefix = "[$Level]"
+    $DisplayLevel = if ($Level -eq "WARN") {
+        "WARNING"
+    }
+    else {
+        $Level
+    }
 
     Write-Information `
-        "$Prefix $Message" `
+        "[$DisplayLevel] $Message" `
         -InformationAction Continue
 }
 

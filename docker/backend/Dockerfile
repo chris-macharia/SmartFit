@@ -25,14 +25,20 @@ WORKDIR /app
 # OpenCV and MediaPipe may require system libraries that are
 # not included in the slim Python image.
 #
-# libgl1 and libglib2.0-0 provide common runtime libraries
+# libegl1, libgles2, libgl1, libglib2.0-0, libgomp1, libsm6, libxext6 and ffmpeg provide common runtime libraries
 # required by OpenCV.
 # ------------------------------------------------------------
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
+        libegl1 \
+        libgles2 \
         libgl1 \
         libglib2.0-0 \
+        libgomp1 \
+        libsm6 \
+        libxext6 \
+        ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 
 # ------------------------------------------------------------

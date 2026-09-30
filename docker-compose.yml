@@ -24,6 +24,7 @@ services:
 
     volumes:
       - smartfit_postgres_data:/var/lib/postgresql/18/docker
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d
 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d SmartFit_db"]

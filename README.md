@@ -1,4 +1,4 @@
-# 👕 SmartFit
+# 👕 SmartFit  v0.0.1
 
 SmartFit is a web-based virtual fitting system designed to revolutionize the online clothing shopping experience. By leveraging computer vision and 3D modeling, SmartFit enables users to estimate body measurements from simple video uploads, generate personalized 3D digital avatars, and receive precise clothing size recommendations.
 
@@ -9,126 +9,146 @@ The project is built with a **React** frontend, **FastAPI** backend, **PostgreSQ
 ## 🚀 Development Status & Roadmap
 
 <details>
+
 <summary><b>🗄️ Milestone 1 — Database & Persistence Layer (✅ Complete)</b></summary>
 
 * 🐘 **Database:** PostgreSQL integration with SQLAlchemy ORM and session management.
 * 🆔 **Entity Identifiers:** UUID-based primary keys across all relational entities.
 * 📐 **Data Schemas:** User, Video, Body Measurement, Avatar, Garment, and Virtual Fitting models.
-* 🔗 **Entity Mapping:** Configured foreign key relationships and strict one-to-one constraints.
+* 🔗 **Entity Mapping:** Configured foreign key relationships and one-to-one constraints where required.
 * 🧪 **Testing:** Automated CRUD persistence and schema validation test suites.
+
 </details>
 
 <details>
+
 <summary><b>🔐 Milestone 2 — API Foundation (✅ Complete)</b></summary>
 
 * ⚡ **Framework:** FastAPI modular router structure with shared database dependencies.
 * 👤 **User Management:** User registration (`POST /api/users/`) with email uniqueness validation.
 * 🔐 **Security:** Password hashing using `bcrypt` and JWT token authentication (`POST /api/users/login`).
-* 🛡️ **Protected Routes:** Bearer token authentication middleware and user profile route (`GET /api/users/me`).
-* 🎥 **Media API:** Video upload (`POST /api/videos/`) and deletion endpoints (`DELETE /api/videos/{video_id}`).
-* 🌐 **Integration Prep:** CORS policies configured for React/Vite frontend integration.
-* 🧪 **Test Isolation:** Dedicated PostgreSQL test database (`SmartFit_Test_db`) setup.
+* 🛡️ **Protected Routes:** Bearer token authentication and authenticated user profile access (`GET /api/users/me`).
+* 🎥 **Media API:** Video upload (`POST /api/videos/`) and deletion (`DELETE /api/videos/{video_id}`).
+* 🌐 **Integration Preparation:** CORS policies configured for React/Vite frontend integration.
+* 🧪 **Test Isolation:** Dedicated PostgreSQL test database (`SmartFit_Test_db`) for automated testing.
+
 </details>
 
 <details>
+
 <summary><b>💻 Milestone 3 — Frontend Foundation (✅ Complete)</b></summary>
 
-* ⚛️ **Framework:** React 19 + Vite 8 app shell configured with React Router 7 navigation.
-* 🎨 **UI Engine:** Modern responsive layout featuring dark mode toggling and reusable UI components.
-* 📱 **User Experience:** Complete dashboard, login, registration, video upload, and avatar viewer pages.
+* ⚛️ **Framework:** React 19 + Vite 8 with React Router 7 navigation.
+* 🎨 **UI Engine:** Responsive interface with dark-mode support and reusable UI components.
+* 📱 **User Experience:** Dashboard, login, registration, video upload, and avatar viewer pages.
+
 </details>
 
 <details>
+
 <summary><b>🔗 Milestone 4 — Frontend & Backend Integration (✅ Complete)</b></summary>
 
 * 🔗 **API Client:** Centralized HTTP service (`src/services/api.js`) with automatic JWT Bearer header injection.
 * 🧠 **State Management:** `AuthContext` provider handling application-wide authentication state.
-* 🛡️ **Route Guards:** `ProtectedRoute` component managing session restoration and route authorization.
+* 🛡️ **Route Guards:** `ProtectedRoute` component managing authentication state and route authorization.
 * 🎥 **Upload Flow:** Video upload interface with declared height inputs (100–250 cm) and 500 MB file validation.
-* 🚪 **Auth Lifecycle:** Full integration of login, user registration, profile hydration, and session destruction.
+* 🚪 **Authentication Lifecycle:** Integrated login, registration, profile retrieval, session restoration, and logout.
+
 </details>
 
 <details>
+
 <summary><b>👁️ Milestone 5 — Video Processing & Body Measurement (✅ Complete)</b></summary>
 
-* 🎥 **Background Jobs:** Asynchronous video processing workflow using FastAPI `BackgroundTasks`.
-* 👁️ **Computer Vision:** Integrated OpenCV and MediaPipe Pose Landmarker (`pose_estimator.py`).
-* 📏 **Estimation Engine:** Height-calibrated shoulder-width and inseam calculation (`measurement_estimator.py`).
-* 💾 **Persistence:** Stored measurement models complete with confidence metrics and algorithm versioning.
-* 📊 **Progress UI:** Real-time frontend video status polling, progress indicators, and status UI tracking (`GET /api/videos/{video_id}`).
-* 🛡️ **Data Isolation:** Strict multi-tenant security verification preventing cross-user video and measurement access.
+* 🎥 **Background Processing:** Asynchronous video processing using FastAPI `BackgroundTasks`.
+* 👁️ **Computer Vision:** OpenCV and MediaPipe Pose Landmarker integration through the pose estimation pipeline.
+* 📏 **Measurement Engine:** Height-calibrated shoulder-width and inseam estimation.
+* 💾 **Persistence:** Body measurement records stored with confidence metrics and algorithm versioning.
+* 📊 **Progress UI:** Frontend video-status polling, progress indicators, and processing-status tracking.
+* 🛡️ **Data Isolation:** Access controls preventing users from accessing videos and measurements belonging to other accounts.
+
 </details>
 
 <details>
+
 <summary><b>🧍 Milestone 6 — Avatar Generation (✅ Complete)</b></summary>
 
-* ✅ **Avatar Generation Service:** Backend logic to transform estimated body measurements into digital avatar data (`feat(avatar): implement avatar generation and retrieval`).
-* ✅ **Pipeline Integration:** Seamless connection linking video measurement outputs directly to the avatar generation flow.
-* ✅ **Backend Verification:** Dedicated unit/integration test suite covering avatar creation and retrieval.
-* ✅ **3D Avatar Rendering:** Interactive frontend 3D canvas built with **Three.js**, **React Three Fiber**, and **Drei (`useGLTF`, `OrbitControls`)** rendering generated GLB models via blob URL fetching.
-* ✅ **Full E2E Avatar Workflow:** Video Upload ➔ Processing ➔ Measurements ➔ Avatar Generation ➔ GLB Retrieval ➔ Interactive 3D Avatar Display.
+* ✅ **Avatar Generation Service:** Backend service for transforming estimated body measurements into digital avatar data.
+* ✅ **Pipeline Integration:** Integrated video processing, measurement extraction, and avatar generation workflows.
+* ✅ **Backend Verification:** Dedicated unit and integration tests covering avatar creation and retrieval.
+* ✅ **3D Avatar Rendering:** Interactive 3D rendering using **Three.js**, **React Three Fiber**, and **Drei** (`useGLTF`, `OrbitControls`).
+* ✅ **Complete Avatar Workflow:** Video Upload ➔ Processing ➔ Measurements ➔ Avatar Generation ➔ GLB Retrieval ➔ Interactive 3D Avatar Display.
+
 </details>
 
 <details>
+
 <summary><b>👗 Milestone 7 — Garment Uploading & Management (✅ Complete)</b></summary>
 
-* ✅ **Retailer & Admin API:** Complete Garment CRUD backend operations (`POST`, `GET`, `PUT`, `DELETE` `/api/garments/`) enforcing retailer-only authorization via `require_retailer` dependency.
-* ✅ **Garment Schema & Service:** Integrated SQLAlchemy Garment model and Pydantic schemas (`GarmentCreate`, `GarmentUpdate`, `GarmentResponse`) mapping chest, waist, hip, shoulder width, and inseam measurements.
-* ✅ **Multi-Tenant Ownership:** Enforced strict garment ownership validation tied to authenticated retailer account IDs.
-* ✅ **Role-Specific Dashboard UI:** Authenticated dashboard routing displaying retailer-specific Upload Garment tiles (`/garments`) while preserving customer video and avatar workflows.
-* ✅ **Retailer Garment Upload Page:** Interactive frontend form allowing retailers to register garments with physical measurement attributes using JWT Bearer authentication.
-</details>
-
-<details>
-<summary><b>👕 Milestone 8 — Virtual Fitting (✅ Completed)</b></summary>
-
-* ✅ **<b>Virtual Fitting Workflow:</b>** Implemented the complete customer virtual fitting workflow, allowing customers to select an available retailer garment and compare it against their generated avatar measurements.
-
-* ✅ **<b>Fit Algorithm & Matching:</b>** Implemented measurement-based fitting logic comparing available body measurements with corresponding garment measurements to classify the fit as <b>Tight</b>, <b>Good Fit</b>, or <b>Loose</b>.
-
-* ✅ **<b>Size Recommendations:</b>** Implemented initial size recommendation logic based on available chest measurements. When chest measurements are unavailable, the system safely returns <b>N/A</b> rather than failing.
-
-* ✅ **<b>Partial Measurement Handling:</b>** Updated the fitting algorithm to ignore unavailable (<code>null</code>) measurements and perform matching using only the body and garment measurements currently available in the prototype.
-
-* ✅ **<b>Virtual Fitting API:</b>** Added authenticated endpoints for creating and retrieving virtual fitting results, including validation for invalid garments, avatars, measurements, duplicate fittings, and unauthorized access.
-
-* ✅ **<b>Available Garments:</b>** Added a customer-accessible endpoint for retrieving garments uploaded by retailers for virtual fitting.
-
-* ✅ **<b>Frontend Integration:</b>** Added the Virtual Fitting interface, garment selection, fitting result display, recommended size display, and navigation from the generated avatar to the fitting workflow.
-
-* 📝 **<b>Prototype Limitation:</b>** The current fitting system uses only the body measurements successfully extracted by the existing measurement module. Further refinement of measurement extraction, sizing accuracy, and advanced fitting logic will be addressed in future development.
+* ✅ **Retailer API:** Complete garment CRUD operations (`POST`, `GET`, `PUT`, `DELETE /api/garments/`) with retailer-only authorization.
+* ✅ **Garment Schema & Service:** SQLAlchemy Garment model and Pydantic schemas covering chest, waist, hip, shoulder-width, and inseam measurements.
+* ✅ **Multi-Tenant Ownership:** Garment ownership validation tied to authenticated retailer accounts.
+* ✅ **Role-Specific Dashboard:** Retailer-specific garment management interface while preserving customer workflows.
+* ✅ **Garment Upload Interface:** Interactive frontend form allowing retailers to register garments and their physical measurement attributes.
 
 </details>
 
 <details>
 
-<summary><b>🛡️ Milestone 9 — System Hardening (🟡 In Progress)</b></summary>
+<summary><b>👕 Milestone 8 — Virtual Fitting (✅ Complete)</b></summary>
 
-* 🟡 **<b>Security Hardening:</b>** Review and strengthen authentication, authorization, input validation, JWT handling, and protected API access across the system.
-
-* 🟡 **<b>Backend Validation & Error Handling:</b>** Improve API validation, exception handling, HTTP status codes, and error responses to ensure predictable and secure backend behaviour.
-
-* 🟡 **<b>Database & Data Integrity:</b>** Review database relationships, constraints, ownership checks, and data handling to prevent invalid or unauthorized records.
-
-* 🟡 **<b>API Security Testing:</b>** Expand automated tests for authentication, authorization, invalid requests, unauthorized resource access, duplicate operations, and other security-related scenarios.
-
-* 🟡 **<b>Frontend Security & Validation:</b>** Review protected routes, authentication state, API error handling, and client-side validation to improve the security and reliability of the frontend.
-
-* 🟡 **<b>Frontend UI/UX:</b>** Improve the UI/UX of the web application.
-
-* 🟡 **<b>Configuration & Environment Security:</b>** Review environment variables, secrets, development configuration, file handling, and other deployment-related settings to reduce security risks.
-
-* 🟡 **<b>System Reliability:</b>** Identify and address edge cases, unexpected failures, and inconsistencies across the complete SmartFit workflow.
-
-* 📝 **<b>Hardening Scope:</b>** Milestone 9 focuses on strengthening the existing SmartFit prototype rather than introducing major new functionality. The goal is to improve security, reliability, validation, testing, and overall system robustness before final project evaluation.
+* ✅ **Virtual Fitting Workflow:** Customer workflow for selecting retailer garments and comparing them against generated avatar measurements.
+* ✅ **Fit Algorithm & Matching:** Measurement-based fitting logic classifying results as **Tight**, **Good Fit**, or **Loose**.
+* ✅ **Size Recommendations:** Initial size recommendation logic based on available chest measurements, returning **N/A** when the required measurement is unavailable.
+* ✅ **Partial Measurement Handling:** Unavailable (`null`) measurements are excluded from fitting calculations so the prototype can operate with the measurements currently supported by the measurement module.
+* ✅ **Virtual Fitting API:** Authenticated endpoints for creating and retrieving fitting results, with validation for invalid garments, avatars, measurements, duplicate fittings, and unauthorized access.
+* ✅ **Available Garments:** Customer-accessible endpoint for retrieving garments uploaded by retailers.
+* ✅ **Frontend Integration:** Virtual Fitting interface with garment selection, fitting-result display, recommended-size display, and navigation from the generated avatar.
+* 📝 **Prototype Limitation:** The current fitting system uses only body measurements successfully extracted by the existing measurement module. Further refinement of measurement extraction, sizing accuracy, and fitting logic remains part of future development.
 
 </details>
 
 <details>
-<summary><b>🕶️ Milestone 10 — Visualization (⬜ Planned)</b></summary>
+
+<summary><b>🛡️ Milestone 9 — System Hardening (✅ Complete)</b></summary>
+
+* ✅ **Security Hardening:** Review and strengthen authentication, authorization, input validation, JWT handling, and protected API access.
+* ✅ **Backend Validation & Error Handling:** Improve API validation, exception handling, HTTP status codes, and error responses for predictable backend behaviour.
+* ✅ **Database & Data Integrity:** Review relationships, constraints, ownership checks, and data handling to prevent invalid or unauthorized records.
+* ✅ **API Security Testing:** Expand automated tests covering authentication, authorization, invalid requests, unauthorized resource access, duplicate operations, and security-related edge cases.
+* ✅ **Frontend Security & Validation:** Review protected routes, authentication state, API error handling, and client-side validation.
+* ✅ **Frontend UI/UX:** Improve the consistency, usability, responsiveness, and overall presentation of the web application.
+* ✅ **Configuration & Environment Security:** Review environment variables, secrets, development configuration, file handling, and deployment-related settings.
+* ✅ **System Reliability:** Identify and address edge cases, unexpected failures, and inconsistencies across the complete SmartFit workflow.
+* 📝 **Hardening Scope:** This milestone focuses on strengthening the existing SmartFit prototype rather than introducing major new functionality. The objective is to improve security, reliability, validation, testing, and overall system robustness before the final release.
+
+</details>
+
+<details>
+
+<summary><b>📦 Milestone 10 — Release Engineering & Version Release (✅ Complete)</b></summary>
+
+* ✅ **Release Preparation:** Prepare the SmartFit application for reproducible installation and distribution as a final project release.
+* 🐳 **Docker Deployment:** Finalize Docker and Docker Compose configuration for running the complete SmartFit stack, including the React frontend, FastAPI backend, and PostgreSQL database.
+* 🗄️ **Database Initialization:** Automate creation and initialization of the SmartFit development and test databases during Docker setup.
+* 🪟 **Windows Installer:** Complete and validate the Windows installation process, including Python, PostgreSQL, Node.js, project dependencies, database configuration, environment setup, and application verification.
+* 🐧 **Linux Installer:** Prepare and validate the Linux installation process for supported development environments.
+* ⚙️ **Environment Configuration:** Ensure required configuration files, environment variables, bundled models, database credentials, and runtime dependencies are correctly prepared during installation.
+* 🧪 **Clean-Environment Testing:** Test the release from a clean developer environment to verify that SmartFit can be installed and started without relying on previously configured local development dependencies.
+* 🔍 **Release Verification:** Execute the automated backend test suite and perform end-to-end verification of authentication, video processing, body measurement, avatar generation, garment management, and virtual fitting workflows.
+* 📋 **Documentation:** Finalize installation instructions, system requirements, configuration guidance, troubleshooting information, and developer setup documentation.
+* 🏷️ **Versioned Release:** Produce the final SmartFit release package with a documented version number, release notes, and reproducible installation procedure.
+* 📝 **Release Scope:** This milestone focuses on stabilizing, packaging, installing, and verifying the existing SmartFit prototype. Major new application functionality is not introduced unless required to resolve release-blocking defects.
+
+</details>
+
+<details>
+
+<summary><b>🕶️ Milestone 11 — Visualization (⬜ Planned)</b></summary>
 
 * ⬜ **3D Garment Overlay:** Rendering 3D garment overlays onto the user's generated digital avatar.
-* ⬜ **Interactive Virtual Fitting Room:** Real-time fitting room UI with fabric drape visualization, style toggling, and interactive fit inspection.
+* ⬜ **Interactive Virtual Fitting Room:** Real-time fitting-room interface with garment visualization, style toggling, and interactive fit inspection.
+
 </details>
 
 ---
@@ -166,35 +186,94 @@ The backend test suite verifies system integrity across all implemented layers:
 ---
 
 ## 🛠️ Technology Stack
+
 <details>
-<summary>⚙️ Backend </summary>
+
+<summary>⚙️ Backend</summary>
 
 * **Language:** Python 3.12+
-
 * **API Framework:** FastAPI
+* **Database:** PostgreSQL 18
+* **ORM:** SQLAlchemy
+* **Configuration:** Pydantic Settings and environment-based configuration
+* **Authentication:** Passlib (`bcrypt`) and PyJWT
+* **Computer Vision:** OpenCV
+* **Pose Estimation:** MediaPipe Pose Landmarker
+* **Background Processing:** FastAPI `BackgroundTasks`
+* **API Testing:** Pytest
 
-* **Database & ORM:** PostgreSQL, SQLAlchemy
-
-* **Authentication:** Passlib (`bcrypt`), PyJWT
-
-* **Computer Vision & ML:** OpenCV, MediaPipe Pose Landmarker
-
-* **Testing:** Pytest
 </details>
 
 <details>
+
 <summary>💻 Frontend</summary>
 
 * **Core:** React 19, Vite 8
-
 * **Routing:** React Router 7
+* **3D Visualization:** Three.js, React Three Fiber (`@react-three/fiber`), and Drei (`@react-three/drei`)
+* **3D Model Format:** GLB / glTF
+* **Styling:** CSS3 with modern Flexbox/Grid layouts and CSS variables for light/dark themes
+* **Networking:** Fetch API with a centralized HTTP client wrapper
+* **Authentication:** JWT Bearer token handling and protected route management
+* **File Handling:** Multipart video uploads and Blob-based 3D model retrieval
 
-* **3D Visualization & Engine:** Three.js, React Three Fiber (`@react-three/fiber`), Drei (`@react-three/drei`)
-
-* **Styling:** CSS3 (Modern Flex/Grid with CSS variables for dark/light themes)
-
-* **Networking:** Fetch API with a custom HTTP client wrapper, JWT authorization handling, and Blob stream handling
 </details>
+
+<details>
+
+<summary>🐳 Containerization & Deployment</summary>
+
+* **Container Platform:** Docker
+* **Container Orchestration:** Docker Compose
+* **Backend Container:** Python/FastAPI application container
+* **Frontend Container:** React/Vite application container
+* **Database Container:** PostgreSQL 18 container
+* **Database Initialization:** PostgreSQL initialization scripts for automatic database creation
+* **Persistent Storage:** Docker named volumes for PostgreSQL data and application uploads
+* **Service Networking:** Docker Compose service-to-service networking
+* **Environment Configuration:** Docker Compose environment variables and application configuration files
+
+</details>
+
+<details>
+
+<summary>🧪 Testing & Quality Assurance</summary>
+
+* **Backend Testing:** Pytest automated test suite
+* **API Testing:** FastAPI endpoint and integration testing
+* **Release Testing:** Clean-environment installation and application verification for Docker
+
+</details>
+
+<details>
+
+<summary>🛠️ Development & Build Tools</summary>
+
+* **Version Control:** Git
+* **Backend Environment:** Python virtual environments (`venv`)
+* **Frontend Package Management:** npm
+* **Backend Dependency Management:** `pip` and `requirements.txt`
+* **Frontend Build System:** Vite
+* **Container Build System:** Dockerfiles and Docker Compose
+* **Documentation:** Markdown
+* **API Documentation:** OpenAPI / FastAPI Swagger UI
+
+</details>
+
+<details>
+
+<summary>📦 Installation & Release</summary>
+
+* **Container Platform:** Docker and Docker Compose
+
+* **Application Services:** Containerized React frontend, FastAPI backend, and PostgreSQL database.
+
+* **Database Initialization:** Automatic creation of the SmartFit development and test databases during first-time PostgreSQL initialization.
+
+* **Persistent Storage:** Docker named volumes for PostgreSQL data and SmartFit application uploads.
+
+</details>
+
 
 ---
 
@@ -203,17 +282,18 @@ The backend test suite verifies system integrity across all implemented layers:
 ## 📁 Project Structure
 
 <details>
-<summary><b>🔧 Backend</b></summary>
+
+<summary><b>⚙️ Backend</b></summary>
 
 ```text
 backend/
 ├── app/
 │   ├── api/
 │   │   ├── routes/
-│   │   │   ├── users.py
-│   │   │   ├── videos.py
 │   │   │   ├── avatars.py
 │   │   │   ├── garments.py
+│   │   │   ├── users.py
+│   │   │   ├── videos.py
 │   │   │   └── virtual_fittings.py
 │   │   ├── dependencies.py
 │   │   └── router.py
@@ -277,6 +357,7 @@ backend/
 │   ├── test_garment_api.py
 │   ├── test_garment_crud.py
 │   ├── test_garment_model.py
+│   ├── test_garment_schema.py
 │   ├── test_garment_service.py
 │   ├── test_measurement_estimator.py
 │   ├── test_security.py
@@ -297,16 +378,27 @@ backend/
 ├── README.md
 └── requirements.txt
 ```
-</details> 
+
+The `backend/` directory contains the FastAPI application, database layer, SQLAlchemy models, Pydantic schemas, business services, computer-vision processing, database utilities, and automated tests. The bundled MediaPipe Pose Landmarker model is stored under `backend/models/`.
+
+</details>
 
 <details>
- <summary><b>💻 Frontend</b></summary>
+
+<summary><b>💻 Frontend</b></summary>
 
 ```text
 frontend/
 ├── public/
 │   ├── favicon.svg
-│   └── icons.svg
+│   ├── icons.svg
+│   └── smartfit-logo.svg
+│
+├── scripts/
+│   ├── css-review/
+│   ├── extract-css.ps1
+│   ├── README.md
+│   └── replace-css.ps1
 │
 ├── src/
 │   ├── assets/
@@ -361,9 +453,77 @@ frontend/
 ├── README.md
 └── vite.config.js
 ```
-</details> 
+
+The `frontend/` directory contains the React/Vite application, reusable components, authentication context, application pages, API service modules, styling, and frontend development utilities.
+
+</details>
 
 <details>
+
+<summary><b>🐳 Docker & Container Configuration</b></summary>
+
+```text
+docker/
+├── backend/
+│   └── Dockerfile
+│
+├── frontend/
+│   └── Dockerfile
+│
+└── postgres/
+    └── init/
+        └── 01-create-test-database.sql
+
+docker-compose.yml
+.dockerignore
+```
+
+The `docker/` directory contains the Docker build definitions and PostgreSQL initialization configuration used by the containerized SmartFit development environment.
+
+* `docker/backend/Dockerfile` — Builds the FastAPI backend container.
+* `docker/frontend/Dockerfile` — Builds the React/Vite frontend container.
+* `docker/postgres/init/01-create-test-database.sql` — Creates the dedicated SmartFit test database during first-time PostgreSQL initialization.
+* `docker-compose.yml` — Defines and orchestrates the frontend, backend, and PostgreSQL services.
+* `.dockerignore` — Controls which project files are excluded from Docker build contexts.
+
+</details>
+
+<details>
+
+<summary><b>🛠️ Installation & Release</b></summary>
+
+```text
+installer/
+├── linux/
+│   └── modules/
+│       ├── backend.sh
+│       ├── frontend.sh
+│       ├── logging.sh
+│       ├── postgresql.sh
+│       ├── python.sh
+│       └── verification.sh
+│
+└── windows/
+    └── modules/
+        ├── Backend.ps1
+        ├── Frontend.ps1
+        ├── Logging.ps1
+        ├── PostgreSQL.ps1
+        ├── Python.ps1
+        └── Verification.ps1
+
+setup.ps1
+setup.sh
+```
+
+The `installer/` directory contains the modular native installation workflows for Windows and Linux. The root-level `setup.ps1` and `setup.sh` provide the corresponding installer entry points.
+
+For the current Docker-based release workflow, `docker-compose.yml` provides the primary containerized application setup.
+
+</details>
+
+<details>
+
 <summary><b>📚 Documentation & UML</b></summary>
 
 ```text
@@ -382,365 +542,284 @@ docs/
 │
 ├── uml-diagrams/
 │   ├── 1_8_proposed_system_methodology/
-│   │   ├── Data Collection Methods.png
-│   │   ├── Data_collection_methods.puml
-│   │   ├── Modular System Design Approach.png
-│   │   ├── modular_system_design_approach.puml
-│   │   ├── Software Development Methodology.png
-│   │   ├── software_development_methodology.puml
-│   │   ├── Testing and Evaluation Approach.png
-│   │   ├── Testing_and_evaluation_report.puml
-│   │   ├── Tools and Technologies used in the proposed system architecture.png
-│   │   └── Tools_and_technologies_used.puml
-│   │
 │   ├── 2_4_integration_and_architecture/
-│   │   ├── Avatar Generation and Visualization Module of the Proposed Virtual Fitting System.png
-│   │   ├── Avatar_generation.puml
-│   │   ├── Backend Layer of the Proposed Virtual Fitting System.png
-│   │   ├── Backend_layer.puml
-│   │   ├── Computer Vision Processing Module of the Proposed Virtual Fitting System.png
-│   │   ├── Computer_vision_processing_module.puml
-│   │   ├── Database Layer of the Proposed Virtual Fitting System.png
-│   │   ├── Database_layer.puml
-│   │   ├── Frontend Layer of the Proposed Virtual Fitting System.png
-│   │   ├── Frontend_Layer.puml
-│   │   ├── Integration_architecture.puml
-│   │   ├── Integration_architecture_of_the_proposed_virtual_fitting_system.png
-│   │   ├── System Integration Workflow of the Proposed Virtual Fitting System.png
-│   │   └── System_integration_workflow.puml
-│   │
 │   ├── 3_6_system_specification/
-│   │   ├── functional_requirement.png
-│   │   ├── functional_requirement.puml
-│   │   ├── non_functional_requirement.puml
-│   │   └── non_functional_requirements.png
-│   │
 │   ├── 3_7_1_1_use_case_diagrams/
-│   │   └── Use Case Diagram.png
-│   │
 │   ├── 3_7_4_activity_diagram/
-│   │   └── Activity Diagrams.png
-│   │
 │   ├── 3_7_5_sequence_diagrams/
-│   │   ├── Sequence_Avatar_Generation.png
-│   │   ├── Sequence_Avatar_Generation.puml
-│   │   ├── Sequence_Garment_Generation.png
-│   │   ├── Sequence_Garment_Generation.puml
-│   │   ├── Sequence_User_Authentication.png
-│   │   ├── Sequence_User_Authentication.puml
-│   │   ├── Sequence_Virtual_Fitting.png
-│   │   └── Sequence_Virtual_Fitting.puml
-│   │
 │   ├── 3_8_logical_design/
-│   │   ├── 3_8_1_system_architecture/
-│   │   │   ├── application_layer.png
-│   │   │   ├── application_layer.puml
-│   │   │   ├── data_layer.png
-│   │   │   ├── data_layer.puml
-│   │   │   ├── presentation_layer.png
-│   │   │   ├── presentation_layer.puml
-│   │   │   ├── processing_layer.png
-│   │   │   └── processing_layer.puml
-│   │   │
-│   │   ├── 3_8_2_control_flow_and_process_design/
-│   │   │   ├── customer_virtual_fitting_process.png
-│   │   │   ├── customer_virtual_fitting_process.puml
-│   │   │   ├── exception_handling.png
-│   │   │   ├── exception_handling.puml
-│   │   │   ├── retailer_garment_management_process.png
-│   │   │   ├── retailer_garment_management_process.puml
-│   │   │   ├── system_control_logic.png
-│   │   │   └── system_control_logic.puml
-│   │   │
-│   │   ├── 3_8_3_non_functional_requirements_design/
-│   │   │   ├── error_exception_handling.png
-│   │   │   ├── error_exception_handling.puml
-│   │   │   ├── performance_maintainability_scalability.png
-│   │   │   ├── performance_maintainability_scalability.puml
-│   │   │   ├── security_design.png
-│   │   │   ├── security_design.puml
-│   │   │   ├── usability_user_experience.png
-│   │   │   └── usability_user_experience.puml
-│   │   │
-│   │   ├── Logical_Architecture.png
-│   │   └── Logical_Architecture.puml
-│   │
 │   └── 3_9_1_database_design/
-│       ├── avatars_entity.png
-│       ├── avatars_entity.puml
-│       ├── body_measurements_entity.png
-│       ├── body_measurements_entity.puml
-│       ├── erd.png
-│       ├── erd.puml
-│       ├── garments_entity.png
-│       ├── garments_entity.puml
-│       ├── users_entity.png
-│       ├── users_entity.puml
-│       ├── videos_entity.png
-│       ├── videos_entity.puml
-│       ├── virtual_fittings_entity.png
-│       └── virtual_fittings_entity.puml
 │
 ├── Official SmartFit Documentation.docx
 └── Official SmartFit Documentation.pdf
 ```
 
-The `docs/` directory contains the project's formal documentation, UML/architecture source files, generated diagrams, and interface design references. PlantUML `.puml` files are retained alongside their corresponding `.png` diagrams to allow diagrams to be regenerated or modified when required.
+The `docs/` directory contains the project's formal documentation, user-interface design references, UML diagrams, PlantUML source files, and generated diagram images. PlantUML (`.puml`) source files are retained alongside their corresponding `.png` diagrams so that diagrams can be regenerated or modified when required.
 
 </details>
 
-
 <details>
-<summary><b>📄 Root Files</b></summary>
+
+<summary><b>📄 Root Configuration & Project Files</b></summary>
 
 ```text
 SmartFit/
+├── backend/
+├── docker/
+├── docs/
+├── frontend/
+├── installer/
+├── .dockerignore
 ├── .gitignore
+├── docker-compose.yml
 ├── README.md
-├── setup.ps1       # Windows setup script
-└── setup.sh        # macOS/Linux setup script
+├── setup.ps1
+└── setup.sh
 ```
+
+The project root contains the primary Docker Compose configuration, installation entry points, repository configuration files, and the main SmartFit documentation.
+
 </details>
 
 ---
 
 ## ⚡ Quick Start Guide
 
-### 1️⃣ One-Command Automated Setup
-
-Run the setup script for your operating system from the root folder. It will automatically check/create PostgreSQL databases (`SmartFit_db` & `SmartFit_Test_db`), set up Python `.venv`, install requirements, populate `.env` files, run database migrations, execute tests, and install npm packages.
-
-* **Windows (PowerShell):**
-  ```powershell
-  .\setup.ps1
-  ```
-
-* **macOS / Linux (Bash):**
-  ```bash
-  chmod +x setup.sh
-  ./setup.sh
-  ```
+> **⚠️ Important — SmartFit v0.0.1 Installation**
+>
+> The native **Windows (`setup.ps1`)** and **Linux (`setup.sh`)** installers are currently under development and **are not supported installation methods for v0.0.1**.
+>
+> For the current release, SmartFit should be installed and run using **Docker and Docker Compose**.
 
 <details>
-<summary><b>📜 OS Setup Script Reference & Troubleshooting</b></summary>
+<summary><b>1️⃣ Docker Installation</b></summary>
 
-<details>
-<summary><b>🪟 Windows Setup Script (`setup.ps1`)</b></summary>
+Before starting, install:
 
-```powershell
-# SmartFit Automated Setup Script for Windows (PowerShell)
-$ErrorActionPreference = "Stop"
+* **Docker Desktop** on Windows or macOS
+* **Docker Engine and Docker Compose** on Linux
 
-Write-Host "🚀 Starting SmartFit Full System Setup..." -ForegroundColor Cyan
-
-# PostgreSQL credentials
-$env:PGUSER = if ($env:PGUSER) { $env:PGUSER } else { "postgres" }
-
-# 1. Database Setup
-Write-Host "`n🐘 Checking & Creating PostgreSQL Databases..." -ForegroundColor Yellow
-try {
-    psql -U $env:PGUSER -c 'CREATE DATABASE "SmartFit_db";' 2>$null
-    Write-Host "  ✅ Database SmartFit_db ready." -ForegroundColor Green
-} catch {
-    Write-Host "  ℹ️ SmartFit_db ready or postgres CLI bypassed." -ForegroundColor Gray
-}
-
-try {
-    psql -U $env:PGUSER -c 'CREATE DATABASE "SmartFit_Test_db";' 2>$null
-    Write-Host "  ✅ Database SmartFit_Test_db ready." -ForegroundColor Green
-} catch {
-    Write-Host "  ℹ️ SmartFit_Test_db ready or postgres CLI bypassed." -ForegroundColor Gray
-}
-
-# 2. Backend Setup
-Write-Host "`n⚙️ Setting up Backend..." -ForegroundColor Yellow
-Set-Location backend
-
-if (-not (Test-Path ".venv")) {
-    Write-Host "  📦 Creating Python virtual environment (.venv)..." -ForegroundColor Blue
-    python -m venv .venv
-}
-
-Write-Host "  🔌 Activating virtual environment..." -ForegroundColor Blue
-& .\.venv\Scripts\Activate.ps1
-
-Write-Host "  📥 Installing Python dependencies..." -ForegroundColor Blue
-pip install -r requirements.txt --quiet
-
-if (-not (Test-Path ".env")) {
-    Write-Host "  📄 Copying .env.example to .env..." -ForegroundColor Blue
-    Copy-Item .env.example .env
-}
-
-Write-Host "  🗄️ Initializing database tables..." -ForegroundColor Blue
-python -m app.db.init_db
-
-Write-Host "  🧪 Executing automated backend test suite..." -ForegroundColor Blue
-pytest -v
-
-Set-Location ..
-
-# 3. Frontend Setup
-Write-Host "`n💻 Setting up Frontend..." -ForegroundColor Yellow
-Set-Location frontend
-
-if (-not (Test-Path ".env")) {
-    Write-Host "  📄 Copying .env.example to .env..." -ForegroundColor Blue
-    Copy-Item .env.example .env
-}
-
-Write-Host "  📥 Installing npm packages (Three.js, R3F, React 19)..." -ForegroundColor Blue
-npm install
-
-Set-Location ..
-
-Write-Host "`n🎉 Setup complete! You are ready to start development." -ForegroundColor Green
-```
-</details>
-
-<details>
-<summary><b>🍎 / 🐧 macOS & Linux Setup Script (`setup.sh`)</b></summary>
+Verify that Docker is available:
 
 ```bash
-#!/usr/bin/env bash
-set -e
-
-echo "🚀 Starting SmartFit Full System Setup..."
-
-PGUSER=${PGUSER:-postgres}
-
-# 1. Database Setup
-echo "
-🐘 Checking & Creating PostgreSQL Databases..."
-psql -U "$PGUSER" -c 'CREATE DATABASE "SmartFit_db";' 2>/dev/null || echo "  ℹ️ SmartFit_db ready or already exists."
-psql -U "$PGUSER" -c 'CREATE DATABASE "SmartFit_Test_db";' 2>/dev/null || echo "  ℹ️ SmartFit_Test_db ready or already exists."
-
-# 2. Backend Setup
-echo "
-⚙️ Setting up Backend..."
-cd backend
-
-if [ ! -d ".venv" ]; then
-    echo "  📦 Creating Python virtual environment (.venv)..."
-    python3 -m venv .venv
-fi
-
-echo "  🔌 Activating virtual environment..."
-source .venv/bin/activate
-
-echo "  📥 Installing Python dependencies..."
-pip install -r requirements.txt --quiet
-
-if [ ! -f ".env" ]; then
-    echo "  📄 Copying .env.example to .env..."
-    cp .env.example .env
-fi
-
-echo "  🗄️ Initializing database tables..."
-python -m app.db.init_db
-
-echo "  🧪 Executing automated backend test suite..."
-pytest -v
-
-cd ..
-
-# 3. Frontend Setup
-echo "
-💻 Setting up Frontend..."
-cd frontend
-
-if [ ! -f ".env" ]; then
-    echo "  📄 Copying .env.example to .env..."
-    cp .env.example .env
-fi
-
-echo "  📥 Installing npm packages..."
-npm install
-
-cd ..
-
-echo "
-🎉 Setup complete! You are ready to start development."
+docker --version
+docker compose version
 ```
+
 </details>
 
 <details>
-<summary><b>🛠️ Manual Setup Steps</b></summary>
+<summary><b>2️⃣ Clone the Repository</b></summary>
 
-If you prefer to run each step manually:
+Clone the SmartFit repository and enter the project directory:
 
-1. **PostgreSQL Databases:**
-   ```sql
-   CREATE DATABASE "SmartFit_db";
-   CREATE DATABASE "SmartFit_Test_db";
-   ```
-2. **Backend Setup:**
-   ```bash
-   cd backend
-   python -m venv .venv
-   source .venv/bin/activate  # Windows: .venv\Scripts\Activate.ps1
-   pip install -r requirements.txt
-   cp .env.example .env       # Windows: Copy-Item .env.example .env
-   python -m app.db.init_db
-   pytest -v
-   ```
-3. **Frontend Setup:**
-   ```bash
-   cd frontend
-   cp .env.example .env       # Windows: Copy-Item .env.example .env
-   npm install
-   ```
-</details>
+```bash
+git clone <repository-url>
+cd SmartFit
+```
 
 </details>
 
+<details>
+<summary><b>3️⃣ Start SmartFit</b></summary>
+
+From the SmartFit root directory, run:
+
+```bash
+docker compose up --build
+```
+
+Docker Compose automatically:
+
+1. Builds the SmartFit frontend image.
+2. Builds the SmartFit FastAPI backend image.
+3. Creates the PostgreSQL container.
+4. Initializes the SmartFit PostgreSQL databases.
+5. Creates the required Docker volumes.
+6. Starts the backend API.
+7. Starts the React frontend.
+8. Connects the application services through the Docker network.
+
+Once the containers have started:
+
+* **🌐 SmartFit Frontend:** `http://localhost:5173`
+* **⚡ SmartFit API:** `http://localhost:8000`
+* **📚 API Documentation:** `http://localhost:8000/docs`
+
+</details>
+
+<details>
+<summary><b>4️⃣ Verify Running Containers</b></summary>
+
+In another terminal, run:
+
+```bash
+docker compose ps
+```
+
+The SmartFit services should be running:
+
+```text
+smartfit-frontend
+smartfit-backend
+smartfit-db
+```
+
+To view all service logs:
+
+```bash
+docker compose logs
+```
+
+To view a specific service:
+
+```bash
+docker compose logs backend
+docker compose logs frontend
+docker compose logs db
+```
+
+</details>
+
+<details>
+<summary><b>5️⃣ Stop SmartFit</b></summary>
+
+To stop the application:
+
+```bash
+docker compose down
+```
+
+This stops and removes the containers while preserving persistent Docker volumes.
+
+</details>
+
+<details>
+<summary><b>6️⃣ Rebuild SmartFit</b></summary>
+
+If project dependencies or Docker configuration change, rebuild the containers:
+
+```bash
+docker compose up --build
+```
+
+For a completely clean Docker rebuild:
+
+```bash
+docker compose build --no-cache
+docker compose up
+```
+
+</details>
+
+<details>
+<summary><b>7️⃣ SmartFit Docker Environment</b></summary>
+
+The Docker Compose configuration provides the complete SmartFit development environment:
+
+```text
+┌───────────────────────────────────────────────┐
+│                 SmartFit                      │
+│                                               │
+│  ┌─────────────┐      ┌──────────────────┐   │
+│  │  Frontend   │ ───► │     Backend      │   │
+│  │ React/Vite  │      │ FastAPI/Python   │   │
+│  │ :5173       │      │ :8000            │   │
+│  └─────────────┘      └────────┬─────────┘   │
+│                                │              │
+│                                ▼              │
+│                       ┌──────────────────┐    │
+│                       │   PostgreSQL 18  │    │
+│                       │      :5432       │    │
+│                       └──────────────────┘    │
+└───────────────────────────────────────────────┘
+```
+
+When running SmartFit through Docker, a local Python virtual environment, PostgreSQL installation, or Node.js installation is **not required**.
+
+</details>
+
+<details>
+<summary><b>⚠️ Native Installers — Currently Unsupported</b></summary>
+
+The repository contains native installation scripts for Windows and Linux:
+
+```text
+installer/
+├── linux/
+│   └── modules/
+└── windows/
+    └── modules/
+
+setup.ps1
+setup.sh
+```
+
+These installers are **currently not working and should not be used to install SmartFit v0.0.1**.
+
+They are retained as part of the project's ongoing release-engineering work and may be completed in a future release.
+
+**For SmartFit v0.0.1, Docker Compose is the supported installation method.**
+
+</details>
+
+<details>
+<summary><b>🛠️ Troubleshooting</b></summary>
+
+If SmartFit does not start correctly, first check the container status:
+
+```bash
+docker compose ps
+```
+
+Then inspect the service logs:
+
+```bash
+docker compose logs backend
+docker compose logs frontend
+docker compose logs db
+```
+
+To recreate the containers:
+
+```bash
+docker compose down
+docker compose up --build
+```
+
+> **💡 Tip:** Always run Docker Compose commands from the **SmartFit project root**, where `docker-compose.yml` is located.
+
+</details>
+
+
 ---
+## 🔌API Endpoints
+<details>
+<summary><b>Current API Endpoints</b></summary>
 
-### 2️⃣ Start Development Servers
+| Method   | Endpoint                             | Auth Required | Role / Description                                                        |
+| -------- | ------------------------------------ | ------------- | ------------------------------------------------------------------------- |
+| `GET`    | `/`                                  | No            | Health check and API status endpoint                                      |
+| `POST`   | `/api/users/`                        | No            | Register a new user                                                       |
+| `POST`   | `/api/users/login`                   | No            | Authenticate user and issue JWT                                           |
+| `GET`    | `/api/users/me`                      | Yes           | Retrieve the logged-in user's profile                                     |
+| `POST`   | `/api/videos/`                       | Yes           | Upload a body video with height metadata (Customer)                       |
+| `GET`    | `/api/videos/{video_id}`             | Yes           | Retrieve video processing status and body measurements (Customer)         |
+| `DELETE` | `/api/videos/{video_id}`             | Yes           | Delete a user's uploaded body video (Customer)                            |
+| `POST`   | `/api/avatars/`                      | Yes           | Generate a personalized avatar from body measurement data (Customer)      |
+| `GET`    | `/api/avatars/me`                    | Yes           | Retrieve the logged-in user's generated avatar (Customer)                 |
+| `GET`    | `/api/avatars/{avatar_id}/file`      | Yes           | Retrieve the authenticated user's avatar GLB model file (Customer)        |
+| `POST`   | `/api/garments/`                     | Yes           | Register a new garment with measurements (Retailer)                       |
+| `GET`    | `/api/garments/`                     | Yes           | List garments owned by the authenticated retailer (Retailer)              |
+| `GET`    | `/api/garments/available`            | Yes           | Retrieve garments available for customer virtual fitting                  |
+| `GET`    | `/api/garments/{garment_id}`         | Yes           | Retrieve a specific garment (Retailer)                                    |
+| `PUT`    | `/api/garments/{garment_id}`         | Yes           | Update garment details and measurements (Retailer)                        |
+| `DELETE` | `/api/garments/{garment_id}`         | Yes           | Delete a retailer's garment (Retailer)                                    |
+| `POST`   | `/api/virtual-fittings/`             | Yes           | Create a virtual fitting using a garment and generated avatar (Customer)  |
+| `GET`    | `/api/virtual-fittings/{fitting_id}` | Yes           | Retrieve a virtual fitting result belonging to the authenticated customer |
 
-Open two terminal windows to start the services:
+</details>
 
-* **Backend Server:**
-  ```powershell
-  cd backend
-  .venv\Scripts\Activate.ps1   # Windows
-  .venv/bin/activate          # MacOS/Linux
-
-  uvicorn app.main:app --reload
-  ```
-  *Interactive API Documentation:* `http://127.0.0.1:8000/docs`
-
-* **Frontend Client:**
-  ```powershell
-  cd frontend
-  npm run dev
-  ```
-  *Application Client:* `http://localhost:5173`
-
----
-
-## 🔌 Current API Endpoints
-
-| Method | Endpoint | Auth Required | Role / Description |
-|--------|----------|---------------|--------------------|
-| `GET` | `/` | No | Health check and API status endpoint |
-| `POST` | `/api/users/` | No | Register a new user |
-| `POST` | `/api/users/login` | No | Authenticate user and issue JWT |
-| `GET` | `/api/users/me` | Yes | Retrieve the logged-in user's profile |
-| `POST` | `/api/videos/` | Yes | Upload a body video with height metadata (Customer) |
-| `GET` | `/api/videos/{video_id}` | Yes | Retrieve video processing status and body measurements (Customer) |
-| `DELETE` | `/api/videos/{video_id}` | Yes | Delete a user's uploaded body video (Customer) |
-| `POST` | `/api/avatars/` | Yes | Generate a personalized avatar from body measurement data (Customer) |
-| `GET` | `/api/avatars/me` | Yes | Retrieve the logged-in user's generated avatar (Customer) |
-| `GET` | `/api/avatars/{avatar_id}/file` | Yes | Retrieve the authenticated user's avatar GLB model file (Customer) |
-| `POST` | `/api/garments/` | Yes | Register a new garment with measurements (Retailer) |
-| `GET` | `/api/garments/` | Yes | List garments owned by the authenticated retailer (Retailer) |
-| `GET` | `/api/garments/available` | Yes | Retrieve garments available for customer virtual fitting |
-| `GET` | `/api/garments/{garment_id}` | Yes | Retrieve a specific garment (Retailer) |
-| `PUT` | `/api/garments/{garment_id}` | Yes | Update garment details and measurements (Retailer) |
-| `DELETE` | `/api/garments/{garment_id}` | Yes | Delete a retailer's garment (Retailer) |
-| `POST` | `/api/virtual-fittings/` | Yes | Create a virtual fitting using a garment and generated avatar (Customer) |
-| `GET` | `/api/virtual-fittings/{fitting_id}` | Yes | Retrieve a virtual fitting result belonging to the authenticated customer |
 
 ---
 
@@ -777,18 +856,3 @@ main
   ▼
 🚀 Merge into main
 ```
-
-### 📌 Milestone Summary
-
-| Milestone | Status |
-|-----------|--------|
-| 1 — Database & Persistence Layer | ✅ Complete |
-| 2 — API Foundation | ✅ Complete |
-| 3 — Frontend Foundation | ✅ Complete |
-| 4 — Frontend & Backend Integration | ✅ Complete |
-| 5 — Video Processing & Body Measurement | ✅ Complete |
-| 6 — Avatar Generation | ✅ Complete |
-| 7 — Garment Uploading & Management | ✅ Complete |
-| 8 — Garment Matching | ✅ Complete |
-| 9 — System Hardening | 🟡 In Progress |
-| 10 — Visualization | ⬜ Planned |
